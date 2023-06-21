@@ -20,7 +20,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavHostController
 import com.example.trp.R
-import com.example.trp.ui.theme.MyYellow
+import com.example.trp.ui.theme.TRPTheme
 import kotlinx.coroutines.delay
 
 @Composable
@@ -42,14 +42,14 @@ fun SplashScreen(navController: NavHostController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MyYellow),
+            .background(TRPTheme.colors.MyYellow),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Image(
             modifier = Modifier.scale(scale),
             painter = painterResource(id = R.drawable.welcomelogo),
-            contentDescription = "SplashScreenLogo"
+            contentDescription = "Splash Screen Logo"
         )
     }
 }

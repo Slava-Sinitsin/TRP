@@ -15,7 +15,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -26,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
@@ -34,14 +34,14 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.trp.R
-import com.example.trp.ui.theme.MyYellow
+import com.example.trp.ui.theme.TRPTheme
 
 @Composable
 fun LoginScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+            .background(TRPTheme.colors.primaryBackground),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -61,9 +61,18 @@ fun MailField() {
             .padding(vertical = 5.dp, horizontal = 50.dp),
         value = logValue,
         onValueChange = { logValue = it },
-        placeholder = { Text("Email") },
+        placeholder = {
+            Text(
+                "Email",
+                color = TRPTheme.colors.primaryText,
+                modifier = Modifier.alpha(0.6f)
+            )
+        },
         shape = RoundedCornerShape(8.dp),
         colors = TextFieldDefaults.textFieldColors(
+            containerColor = TRPTheme.colors.secondaryBackground,
+            textColor = TRPTheme.colors.primaryText,
+            cursorColor = TRPTheme.colors.primaryText,
             focusedIndicatorColor = Color.Transparent,
             disabledIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent
@@ -87,9 +96,18 @@ fun PassField() {
             .padding(vertical = 5.dp, horizontal = 50.dp),
         value = passValue,
         onValueChange = { passValue = it },
-        placeholder = { Text("Password") },
+        placeholder = {
+            Text(
+                "Password",
+                color = TRPTheme.colors.primaryText,
+                modifier = Modifier.alpha(0.6f)
+            )
+        },
         shape = RoundedCornerShape(8.dp),
         colors = TextFieldDefaults.textFieldColors(
+            containerColor = TRPTheme.colors.secondaryBackground,
+            textColor = TRPTheme.colors.primaryText,
+            cursorColor = TRPTheme.colors.primaryText,
             focusedIndicatorColor = Color.Transparent,
             disabledIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent
@@ -127,8 +145,8 @@ fun ConfirmButton() {
         onClick = {},
         modifier = Modifier
             .padding(5.dp),
-        colors = ButtonDefaults.buttonColors(MyYellow)
+        colors = ButtonDefaults.buttonColors(TRPTheme.colors.MyYellow)
     ) {
-        Text(text = "Confirm")
+        Text(text = "Confirm", color = TRPTheme.colors.secondaryText)
     }
 }
