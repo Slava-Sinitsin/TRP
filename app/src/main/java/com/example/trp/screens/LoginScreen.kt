@@ -1,11 +1,22 @@
 package com.example.trp.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -19,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,15 +41,34 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.example.trp.R
+import com.example.trp.data.AuthRequest
+import com.example.trp.network.ApiService
 import com.example.trp.ui.theme.TRPTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @Composable
-fun LoginScreen() {
+fun LoginScreen(navController: NavHostController) {
+    var logValue by remember { mutableStateOf("") }
+    var passValue by remember { mutableStateOf("") }
+    var isLogged by remember { mutableStateOf(false) }
+    var message by remember { mutableStateOf("") }
+    var messageVisibility by remember { mutableStateOf(false) }
+    LaunchedEffect(isLogged) {
+        if (isLogged) {
+            navController.popBackStack()
+            navController.navigate("WelcomeScreen")
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -45,22 +76,108 @@ fun LoginScreen() {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        MailField()
-        PassField()
-        ConfirmButton()
+        Message(
+            message = message,
+            messageVisibility = messageVisibility
+        )
+        MailField(value = logValue,
+            newValue = { newValue ->
+                logValue = newValue
+            },
+            onMessageVisibilityChange = { newMessageVisibility ->
+                messageVisibility = newMessageVisibility
+            })
+        PassField(value = passValue,
+            newValue = { newValue ->
+                passValue = newValue
+            },
+            onMessageVisibilityChange = { newMessageVisibility ->
+                messageVisibility = newMessageVisibility
+            })
+        ConfirmButton(
+            logValue = logValue,
+            passValue = passValue,
+            onMessageChange = { newMessage, newIsMessageVisible ->
+                message = newMessage
+                messageVisibility = newIsMessageVisible
+            },
+            onLoggedChange = { newIsLogged ->
+                isLogged = newIsLogged
+            }
+        )
+        Spacer(modifier = Modifier.size(70.dp))
+    }
+}
+
+@Composable
+fun Message(
+    message: String,
+    messageVisibility: Boolean
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(50.dp)
+            .padding(vertical = 5.dp, horizontal = 100.dp)
+    ) {
+        AnimatedVisibility(
+            visible = messageVisibility,
+            enter = fadeIn(
+                animationSpec = tween(
+                    durationMillis = 350,
+                    easing = FastOutSlowInEasing
+                )
+            ),
+            exit = fadeOut(
+                animationSpec = tween(
+                    durationMillis = 350,
+                    easing = FastOutSlowInEasing
+                )
+            )
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(40.dp)
+                    .background(
+                        color = TRPTheme.colors.secondaryBackground,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .border(
+                        width = 1.dp,
+                        color = TRPTheme.colors.errorColor,
+                        shape = RoundedCornerShape(8.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    message,
+                    color = TRPTheme.colors.errorColor,
+                    modifier = Modifier.padding(horizontal = animateDpAsState(if (message.isNotEmpty()) 16.dp else 0.dp).value),
+                    fontSize = 15.sp
+                )
+            }
+        }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MailField() {
-    var logValue by remember { mutableStateOf("") }
+fun MailField(
+    value: String,
+    newValue: (String) -> Unit,
+    onMessageVisibilityChange: (Boolean) -> Unit
+) {
     TextField(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 5.dp, horizontal = 50.dp),
-        value = logValue,
-        onValueChange = { logValue = it },
+        textStyle = TextStyle.Default.copy(fontSize = 20.sp),
+        value = value,
+        onValueChange = {
+            newValue(it)
+            onMessageVisibilityChange(false)
+        },
         placeholder = {
             Text(
                 "Email",
@@ -87,15 +204,22 @@ fun MailField() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PassField() {
-    var passValue by remember { mutableStateOf("") }
+fun PassField(
+    value: String,
+    newValue: (String) -> Unit,
+    onMessageVisibilityChange: (Boolean) -> Unit
+) {
     var showPassword by remember { mutableStateOf(false) }
     TextField(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 5.dp, horizontal = 50.dp),
-        value = passValue,
-        onValueChange = { passValue = it },
+        textStyle = TextStyle.Default.copy(fontSize = 20.sp),
+        value = value,
+        onValueChange = {
+            newValue(it)
+            onMessageVisibilityChange(false)
+        },
         placeholder = {
             Text(
                 "Password",
@@ -140,11 +264,31 @@ fun PassField() {
 }
 
 @Composable
-fun ConfirmButton() {
+fun ConfirmButton(
+    logValue: String,
+    passValue: String,
+    onMessageChange: (String, Boolean) -> Unit,
+    onLoggedChange: (Boolean) -> Unit
+) {
     Button(
-        onClick = {},
-        modifier = Modifier
-            .padding(5.dp),
+        onClick = {
+            CoroutineScope(Dispatchers.IO).launch {
+                val response = ApiService.userAPI.auth(
+                    AuthRequest(
+                        logValue,
+                        passValue
+                    )
+                )
+                val user = response.body()
+                user?.let {
+                    val message = it.message ?: ""
+                    val isMessageVisible = message.isNotEmpty()
+                    onMessageChange(message, isMessageVisible)
+                    onLoggedChange(user.token != null)
+                }
+            }
+        },
+        modifier = Modifier.padding(5.dp),
         colors = ButtonDefaults.buttonColors(TRPTheme.colors.MyYellow)
     ) {
         Text(text = "Confirm", color = TRPTheme.colors.secondaryText)

@@ -1,4 +1,4 @@
-package com.example.trp
+package com.example.trp.navigation
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -13,6 +13,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.trp.screens.LoginScreen
 import com.example.trp.screens.SplashScreen
+import com.example.trp.screens.WelcomeScreen
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.theme.TRPThemeDefaultSettings
 
@@ -48,7 +49,10 @@ fun SplashScreenNavigation() {
             SplashScreen(navController = navController)
         }
         composable("LoginScreen") {
-            LoginScreen()
+            LoginScreen(navController = navController)
+        }
+        composable("WelcomeScreen") {
+            WelcomeScreen()
         }
     }
 }

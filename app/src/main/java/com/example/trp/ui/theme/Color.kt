@@ -9,7 +9,7 @@ val lightScheme = TRPColors(
     secondaryText = Color(0xFF3D454C),
     tintColor = Color.Magenta,
     controlColor = Color(0xFF7A8A99),
-    errorColor = Color(0xFF000000),
+    errorColor = Color(0xFFca4754),
     MyYellow = Color(0xFFE2B714)
 )
 
@@ -20,6 +20,6 @@ val darkScheme = TRPColors(
     secondaryText = Color(0xFF3D454C),
     tintColor = Color.Magenta,
     controlColor = Color(0xFF7A8A99),
-    errorColor = Color(0xFFFF6699),
+    errorColor = Color(0xffca4754),
     MyYellow = Color(0xFFE2B714)
 )

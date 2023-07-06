@@ -34,7 +34,7 @@ fun SplashScreen(navController: NavHostController) {
             RepeatMode.Reverse
         )
     )
-    LaunchedEffect(key1 = true) {
+    LaunchedEffect(true) {
         delay(350)
         navController.popBackStack()
         navController.navigate("LoginScreen")
