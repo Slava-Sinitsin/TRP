@@ -50,19 +50,22 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.trp.R
 import com.example.trp.data.AuthRequest
+import com.example.trp.data.User
 import com.example.trp.network.ApiService
 import com.example.trp.ui.theme.TRPTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 @Composable
 fun LoginScreen(navController: NavHostController) {
-    var logValue by remember { mutableStateOf("") }
-    var passValue by remember { mutableStateOf("") }
+    var logValue by remember { mutableStateOf("android_student") }
+    var passValue by remember { mutableStateOf("rebustubus") }
     var isLogged by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf("") }
     var messageVisibility by remember { mutableStateOf(false) }
+    var user by remember { mutableStateOf(User()) }
     LaunchedEffect(isLogged) {
         if (isLogged) {
             navController.popBackStack()
@@ -103,6 +106,9 @@ fun LoginScreen(navController: NavHostController) {
             },
             onLoggedChange = { newIsLogged ->
                 isLogged = newIsLogged
+            },
+            onUserChange = { newUser ->
+                user = newUser
             }
         )
         Spacer(modifier = Modifier.size(70.dp))
@@ -268,7 +274,8 @@ fun ConfirmButton(
     logValue: String,
     passValue: String,
     onMessageChange: (String, Boolean) -> Unit,
-    onLoggedChange: (Boolean) -> Unit
+    onLoggedChange: (Boolean) -> Unit,
+    onUserChange: (User) -> Unit
 ) {
     Button(
         onClick = {
@@ -279,11 +286,16 @@ fun ConfirmButton(
                         passValue
                     )
                 )
+                val errorMessage = response.errorBody()?.string()?.let { errorBody ->
+                    JSONObject(errorBody).getString("authenticationError")
+                }
+                val isMessageVisible = errorMessage?.isNotEmpty() ?: false
+                onMessageChange(errorMessage ?: "", isMessageVisible)
                 val user = response.body()
+                if (user != null) {
+                    onUserChange(user)
+                }
                 user?.let {
-                    val message = it.message ?: ""
-                    val isMessageVisible = message.isNotEmpty()
-                    onMessageChange(message, isMessageVisible)
                     onLoggedChange(user.token != null)
                 }
             }
