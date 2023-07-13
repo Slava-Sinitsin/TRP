@@ -1,4 +1,4 @@
-package com.example.trp.screens
+package com.example.trp.ui.screens
 
 import android.view.animation.OvershootInterpolator
 import androidx.compose.animation.core.RepeatMode

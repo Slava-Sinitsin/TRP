@@ -1,4 +1,4 @@
-package com.example.trp.screens
+package com.example.trp.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -7,18 +7,26 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.trp.data.JWTDecoder
-import com.example.trp.data.User
-import com.example.trp.data.UserDataManager
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.trp.ui.theme.TRPTheme
+import com.example.trp.ui.viewmodels.WelcomeScreenViewModel
 
 @Composable
+@Suppress("UNCHECKED_CAST")
 fun WelcomeScreen() {
+    val viewModel = viewModel<WelcomeScreenViewModel>(
+        factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return WelcomeScreenViewModel() as T
+            }
+        }
+    )
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -33,34 +41,28 @@ fun WelcomeScreen() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                UserDataManager.getUser()
-                    .collectAsState(initial = User()).value.login.toString(),
+                viewModel.user.login.toString(),
                 modifier = Modifier
                     .padding(5.dp),
                 color = TRPTheme.colors.primaryText,
                 fontSize = 40.sp
             )
             Text(
-                UserDataManager.getUser()
-                    .collectAsState(initial = User()).value.password.toString(),
+                viewModel.user.role.toString(),
                 modifier = Modifier
                     .padding(5.dp),
                 color = TRPTheme.colors.primaryText,
                 fontSize = 40.sp
             )
             Text(
-                UserDataManager.getUser()
-                    .collectAsState(initial = User()).value.token.toString(),
+                viewModel.user.fullName.toString(),
                 modifier = Modifier
                     .padding(5.dp),
                 color = TRPTheme.colors.primaryText,
                 fontSize = 20.sp
             )
             Text(
-                JWTDecoder().decodeToken(
-                    UserDataManager.getUser()
-                        .collectAsState(initial = User()).value.token.toString()
-                ).toString(),
+                viewModel.user.exp.toString(),
                 modifier = Modifier
                     .padding(5.dp),
                 color = TRPTheme.colors.primaryText,

@@ -13,9 +13,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.trp.data.UserDataManager
-import com.example.trp.screens.LoginScreen
-import com.example.trp.screens.SplashScreen
-import com.example.trp.screens.WelcomeScreen
+import com.example.trp.ui.screens.LoginScreen
+import com.example.trp.ui.screens.SplashScreen
+import com.example.trp.ui.screens.WelcomeScreen
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.theme.TRPThemeDefaultSettings
 
