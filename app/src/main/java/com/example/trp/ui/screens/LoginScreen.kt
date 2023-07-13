@@ -21,6 +21,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -35,8 +37,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -47,7 +47,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.example.trp.R
+import com.example.trp.navigation.Screen
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.LoginScreenViewModel
 
@@ -64,7 +64,7 @@ fun LoginScreen(navController: NavHostController) {
     LaunchedEffect(viewModel.isLogged) {
         if (viewModel.isLogged) {
             navController.popBackStack()
-            navController.navigate("WelcomeScreen")
+            navController.navigate(Screen.WelcomeScreen.route)
         }
     }
     Column(
@@ -165,7 +165,7 @@ fun MailField(viewModel: LoginScreenViewModel) {
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
         trailingIcon = {
-            Icon(imageVector = Icons.Default.Email, contentDescription = "Email Icon")
+            Icon(imageVector = Icons.Filled.Email, contentDescription = "Email Icon")
         }
     )
 }
@@ -205,13 +205,13 @@ fun PassField(viewModel: LoginScreenViewModel) {
         },
         trailingIcon = {
             IconButton(onClick = { viewModel.showPassword(!viewModel.passwordVisibility) }) {
-                val iconRes = if (viewModel.passwordVisibility) {
-                    R.drawable.pass_visibility_off_24
+                val icon = if (viewModel.passwordVisibility) {
+                    Icons.Filled.VisibilityOff
                 } else {
-                    R.drawable.pass_visibility_on_24
+                    Icons.Filled.Visibility
                 }
                 Icon(
-                    imageVector = ImageVector.vectorResource(id = iconRes),
+                    icon,
                     contentDescription = if (viewModel.passwordVisibility) "Pass Vis ON"
                     else "Pass Vis OFF"
                 )

@@ -45,15 +45,15 @@ class StartNavigate : ComponentActivity() {
 fun SplashScreenNavigation() {
     val navController = rememberNavController()
     NavHost(
-        navController = navController, startDestination = "SplashScreen"
+        navController = navController, startDestination = Screen.SplashScreen.route
     ) {
-        composable("SplashScreen") {
+        composable(Screen.SplashScreen.route) {
             SplashScreen(navController = navController)
         }
-        composable("LoginScreen") {
+        composable(Screen.LoginScreen.route) {
             LoginScreen(navController = navController)
         }
-        composable("WelcomeScreen") {
+        composable(Screen.WelcomeScreen.route) {
             WelcomeScreen()
         }
     }

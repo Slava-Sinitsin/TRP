@@ -14,6 +14,9 @@ import kotlinx.serialization.json.Json
 
 class WelcomeScreenViewModel : ViewModel() {
     var user by mutableStateOf(User())
+        private set
+    var selectedItem by mutableStateOf(0)
+        private set
 
     init {
         viewModelScope.launch {
@@ -22,6 +25,10 @@ class WelcomeScreenViewModel : ViewModel() {
                 addUserInformation()
             }
         }
+    }
+
+    fun selectItem(newSelectedItem: Int) {
+        selectedItem = newSelectedItem
     }
 
     private suspend fun addUserInformation() {

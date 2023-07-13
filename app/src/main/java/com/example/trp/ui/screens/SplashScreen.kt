@@ -20,6 +20,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavHostController
 import com.example.trp.R
+import com.example.trp.navigation.Screen
 import com.example.trp.ui.theme.TRPTheme
 import kotlinx.coroutines.delay
 
@@ -37,7 +38,7 @@ fun SplashScreen(navController: NavHostController) {
     LaunchedEffect(true) {
         delay(350)
         navController.popBackStack()
-        navController.navigate("LoginScreen")
+        navController.navigate(Screen.LoginScreen.route)
     }
     Column(
         modifier = Modifier

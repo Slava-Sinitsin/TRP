@@ -10,7 +10,9 @@ val lightScheme = TRPColors(
     tintColor = Color.Magenta,
     controlColor = Color(0xFF7A8A99),
     errorColor = Color(0xFFca4754),
-    MyYellow = Color(0xFFE2B714)
+    MyYellow = Color(0xFFE2B714),
+    icon = Color(0xFF7A8A99),
+    iconBackground = Color(0xFF5F6B77)
 )
 
 val darkScheme = TRPColors(
@@ -21,5 +23,7 @@ val darkScheme = TRPColors(
     tintColor = Color.Magenta,
     controlColor = Color(0xFF7A8A99),
     errorColor = Color(0xffca4754),
-    MyYellow = Color(0xFFE2B714)
+    MyYellow = Color(0xFFE2B714),
+    icon = Color(0xFF7A8A99),
+    iconBackground = Color(0xFF5F6B77)
 )
