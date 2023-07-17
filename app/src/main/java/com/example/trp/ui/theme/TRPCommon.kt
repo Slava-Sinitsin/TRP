@@ -14,8 +14,8 @@ data class TRPColors(
     val errorColor: Color,
     val MyYellow: Color,
     val icon: Color,
-    val iconBackground: Color
-
+    val iconBackground: Color,
+    val cardColor: Color
 )
 
 object TRPTheme {

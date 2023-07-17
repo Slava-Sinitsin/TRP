@@ -1,14 +1,9 @@
 package com.example.trp.ui.screens
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Task
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -18,63 +13,52 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.example.trp.ui.screens.bottombar.BottomNavGraph
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.WelcomeScreenViewModel
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Suppress("UNCHECKED_CAST")
 fun WelcomeScreen() {
+    val bottomBarNavController = rememberNavController()
+
     val viewModel = viewModel<WelcomeScreenViewModel>(
         factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return WelcomeScreenViewModel() as T
+                return WelcomeScreenViewModel(bottomBarNavController) as T
             }
         }
     )
+
+    viewModel.bottomBarNavController.currentBackStackEntryAsState().value?.destination
+
     Scaffold(
-        Modifier
-            .padding(),
+        Modifier.padding(),
         bottomBar = {
-            NavigationBar(viewModel = viewModel)
+            NavigationBar(
+                viewModel = viewModel
+            )
         },
         containerColor = TRPTheme.colors.primaryBackground,
-    ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            Text(
-                viewModel.selectedItem.toString(),
-                Modifier.align(Alignment.Center),
-                fontSize = 40.sp,
-                color = TRPTheme.colors.primaryText
-            )
-        }
+    ) {
+        BottomNavGraph(navController = bottomBarNavController)
     }
 }
 
 @Composable
-fun NavigationBar(viewModel: WelcomeScreenViewModel) {
-    val items = listOf(
-        "Tasks",
-        "Home",
-        "Me"
-    )
-    val icons = listOf(
-        Icons.Filled.Task,
-        Icons.Filled.Home,
-        Icons.Filled.Person
-    )
+fun NavigationBar(
+    viewModel: WelcomeScreenViewModel
+) {
     Surface(
         modifier = Modifier
             .wrapContentSize()
@@ -86,7 +70,7 @@ fun NavigationBar(viewModel: WelcomeScreenViewModel) {
         NavigationBar(
             containerColor = TRPTheme.colors.secondaryBackground
         ) {
-            items.forEachIndexed { index, item ->
+            viewModel.screens.forEach { screen ->
                 NavigationBarItem(
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = TRPTheme.colors.MyYellow,
@@ -95,10 +79,12 @@ fun NavigationBar(viewModel: WelcomeScreenViewModel) {
                         unselectedIconColor = TRPTheme.colors.icon,
                         unselectedTextColor = TRPTheme.colors.icon
                     ),
-                    icon = { Icon(icons[index], contentDescription = item) },
-                    label = { Text(item) },
-                    selected = viewModel.selectedItem == index,
-                    onClick = { viewModel.selectItem(index) }
+                    icon = { Icon(screen.icon, contentDescription = screen.title) },
+                    label = { Text(screen.title) },
+                    selected = viewModel.isSelected(screen),
+                    onClick = {
+                        viewModel.navigate(screen)
+                    }
                 )
             }
         }
