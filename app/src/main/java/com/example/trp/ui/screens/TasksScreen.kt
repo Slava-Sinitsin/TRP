@@ -1,7 +1,9 @@
 package com.example.trp.ui.screens
 
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -23,6 +25,7 @@ fun MyLazyColumn() {
         items(40) { index ->
             ListItem(index)
         }
+        item { Spacer(modifier = Modifier.size(100.dp)) }
     }
 }
 
@@ -40,7 +43,7 @@ fun ListItem(index: Int) {
         )
     ) {
         Text(
-            text = "Task $index",
+            text = "Task ${index + 1}",
             modifier = Modifier.padding(16.dp),
             color = TRPTheme.colors.primaryText,
             fontSize = 25.sp
