@@ -46,14 +46,14 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
-import com.example.trp.navigation.Screen
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.LoginScreenViewModel
 
 @Composable
 @Suppress("UNCHECKED_CAST")
-fun LoginScreen(navController: NavHostController) {
+fun LoginScreen(
+    onLoginClick: () -> Unit
+) {
     val viewModel = viewModel<LoginScreenViewModel>(
         factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -63,8 +63,7 @@ fun LoginScreen(navController: NavHostController) {
     )
     LaunchedEffect(viewModel.isLogged) {
         if (viewModel.isLogged) {
-            navController.popBackStack()
-            navController.navigate(Screen.WelcomeScreen.route)
+            onLoginClick()
         }
     }
     Column(

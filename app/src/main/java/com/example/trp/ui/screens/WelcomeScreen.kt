@@ -19,9 +19,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.trp.ui.screens.bottombar.BottomNavGraph
+import com.example.trp.navigation.graphs.WelcomeNavGraph
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.WelcomeScreenViewModel
 
@@ -29,13 +30,12 @@ import com.example.trp.ui.viewmodels.WelcomeScreenViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Suppress("UNCHECKED_CAST")
-fun WelcomeScreen() {
-    val bottomBarNavController = rememberNavController()
+fun WelcomeScreen(navController: NavHostController = rememberNavController()) {
 
     val viewModel = viewModel<WelcomeScreenViewModel>(
         factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return WelcomeScreenViewModel(bottomBarNavController) as T
+                return WelcomeScreenViewModel(navController) as T
             }
         }
     )
@@ -51,7 +51,7 @@ fun WelcomeScreen() {
         },
         containerColor = TRPTheme.colors.primaryBackground,
     ) {
-        BottomNavGraph(navController = bottomBarNavController)
+        WelcomeNavGraph(navController = navController)
     }
 }
 

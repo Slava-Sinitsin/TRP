@@ -18,14 +18,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.painterResource
-import androidx.navigation.NavHostController
 import com.example.trp.R
-import com.example.trp.navigation.Screen
 import com.example.trp.ui.theme.TRPTheme
 import kotlinx.coroutines.delay
 
 @Composable
-fun SplashScreen(navController: NavHostController) {
+fun SplashScreen(navigate: () -> Unit) {
     val infiniteTransition = rememberInfiniteTransition()
     val scale by infiniteTransition.animateFloat(
         initialValue = 1f,
@@ -37,8 +35,7 @@ fun SplashScreen(navController: NavHostController) {
     )
     LaunchedEffect(true) {
         delay(350)
-        navController.popBackStack()
-        navController.navigate(Screen.LoginScreen.route)
+        navigate()
     }
     Column(
         modifier = Modifier
