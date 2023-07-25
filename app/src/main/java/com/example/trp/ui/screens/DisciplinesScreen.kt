@@ -16,27 +16,27 @@ import androidx.compose.ui.unit.sp
 import com.example.trp.ui.theme.TRPTheme
 
 @Composable
-fun TasksScreen(onTaskClick: () -> Unit) {
-    Tasks(onTaskClick = onTaskClick)
+fun DisciplinesScreen(onDisciplineClick: () -> Unit) {
+    Disciplines(onDisciplineClick = onDisciplineClick)
 }
 
 @Composable
-fun Tasks(onTaskClick: () -> Unit) {
+fun Disciplines(onDisciplineClick: () -> Unit) {
     LazyColumn {
-        items(15) { index ->
-            Task(index, onTaskClick)
+        items(4) { index ->
+            Discipline(index, onDisciplineClick)
         }
         item { Spacer(modifier = Modifier.size(100.dp)) }
     }
 }
 
 @Composable
-fun Task(index: Int, onTaskClick: () -> Unit) {
+fun Discipline(index: Int, onDisciplineClick: () -> Unit) {
     Card(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxWidth()
-            .clickable { onTaskClick() },
+            .clickable { onDisciplineClick() },
         elevation = CardDefaults.cardElevation(
             defaultElevation = 10.dp
         ),
@@ -45,7 +45,7 @@ fun Task(index: Int, onTaskClick: () -> Unit) {
         )
     ) {
         Text(
-            text = "Task ${index + 1}",
+            text = "discipline ${index + 1}",
             modifier = Modifier.padding(16.dp),
             color = TRPTheme.colors.primaryText,
             fontSize = 25.sp

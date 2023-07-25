@@ -1,4 +1,4 @@
-package com.example.trp.ui.screens.bottombar
+package com.example.trp.ui.screens
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -11,20 +11,20 @@ sealed class BottomBarScreen(
     val title: String,
     val icon: ImageVector
 ) {
-    object Tasks : BottomBarScreen(
-        route = "Tasks",
-        title = "Tasks",
+    object Discipline : BottomBarScreen(
+        route = "disciplines",
+        title = "Disciplines",
         icon = Icons.Filled.Task
     )
 
     object Home : BottomBarScreen(
-        route = "Home",
+        route = "home",
         title = "Home",
         icon = Icons.Filled.Home
     )
 
     object Me : BottomBarScreen(
-        route = "Me",
+        route = "me",
         title = "Me",
         icon = Icons.Filled.Person
     )

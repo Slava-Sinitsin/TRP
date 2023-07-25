@@ -11,13 +11,13 @@ import androidx.navigation.NavHostController
 import com.example.trp.data.JWTDecoder
 import com.example.trp.data.User
 import com.example.trp.data.UserDataManager
-import com.example.trp.ui.screens.bottombar.BottomBarScreen
+import com.example.trp.ui.screens.BottomBarScreen
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
 class WelcomeScreenViewModel(
-    bottomBarNavController: NavHostController
+    navController: NavHostController
 ) : ViewModel() {
 
     var user by mutableStateOf(User())
@@ -52,24 +52,24 @@ class WelcomeScreenViewModel(
         )
     }
 
-    var bottomBarNavController = bottomBarNavController
+    var navController = navController
         private set
 
     val screens = listOf(
-        BottomBarScreen.Tasks,
+        BottomBarScreen.Discipline,
         BottomBarScreen.Home,
         BottomBarScreen.Me
     )
 
     fun isSelected(screen: BottomBarScreen): Boolean {
-        return bottomBarNavController.currentDestination?.hierarchy?.any {
-            it.route == screen.route
+        return navController.currentDestination?.hierarchy?.any {
+            it.route == screen.route || it.route == screen.route + "_graph"
         } == true
     }
 
     fun navigate(screen: BottomBarScreen) {
-        bottomBarNavController.navigate(screen.route) {
-            popUpTo(bottomBarNavController.graph.findStartDestination().id)
+        navController.navigate(screen.route) {
+            popUpTo(navController.graph.findStartDestination().id)
             launchSingleTop = true
         }
     }

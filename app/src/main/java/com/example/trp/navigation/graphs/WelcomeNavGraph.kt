@@ -4,10 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.trp.ui.screens.BottomBarScreen
+import com.example.trp.ui.screens.DisciplinesScreen
 import com.example.trp.ui.screens.HomeScreen
 import com.example.trp.ui.screens.MeScreen
-import com.example.trp.ui.screens.TasksScreen
-import com.example.trp.ui.screens.bottombar.BottomBarScreen
 
 @Composable
 fun WelcomeNavGraph(navController: NavHostController) {
@@ -16,8 +16,10 @@ fun WelcomeNavGraph(navController: NavHostController) {
         route = Graph.WELCOME,
         startDestination = BottomBarScreen.Home.route
     ) {
-        composable(route = BottomBarScreen.Tasks.route) {
-            TasksScreen()
+        composable(route = BottomBarScreen.Discipline.route) {
+            DisciplinesScreen(onDisciplineClick = {
+                navController.navigate(Graph.DISCIPLINE)
+            })
         }
         composable(route = BottomBarScreen.Home.route) {
             HomeScreen()
@@ -25,5 +27,6 @@ fun WelcomeNavGraph(navController: NavHostController) {
         composable(route = BottomBarScreen.Me.route) {
             MeScreen()
         }
+        disciplineNavGraph(navController = navController)
     }
 }

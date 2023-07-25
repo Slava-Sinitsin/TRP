@@ -40,7 +40,7 @@ fun WelcomeScreen(navController: NavHostController = rememberNavController()) {
         }
     )
 
-    viewModel.bottomBarNavController.currentBackStackEntryAsState().value?.destination
+    viewModel.navController.currentBackStackEntryAsState().value?.destination
 
     Scaffold(
         Modifier.padding(),
