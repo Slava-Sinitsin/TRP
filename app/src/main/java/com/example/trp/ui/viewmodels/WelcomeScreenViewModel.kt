@@ -8,9 +8,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
-import com.example.trp.data.JWTDecoder
-import com.example.trp.data.User
-import com.example.trp.data.UserDataManager
+import com.example.trp.data.user.JWTDecoder
+import com.example.trp.data.user.User
+import com.example.trp.data.datamanagers.UserDataManager
 import com.example.trp.ui.screens.BottomBarScreen
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString

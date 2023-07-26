@@ -1,4 +1,4 @@
-package com.example.trp.data
+package com.example.trp.data.user
 
 import android.util.Base64
 import org.json.JSONObject

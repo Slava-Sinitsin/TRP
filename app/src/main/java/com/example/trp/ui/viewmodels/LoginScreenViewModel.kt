@@ -5,12 +5,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.trp.data.AuthRequest
-import com.example.trp.data.User
-import com.example.trp.data.UserDataManager
+import com.example.trp.data.user.AuthRequest
+import com.example.trp.data.disciplines.Disciplines
+import com.example.trp.data.datamanagers.DisciplinesDataManager
+import com.example.trp.data.user.User
+import com.example.trp.data.datamanagers.UserDataManager
 import com.example.trp.network.ApiService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import retrofit2.Response
@@ -61,9 +64,9 @@ class LoginScreenViewModel : ViewModel() {
         messageVisibility = true
     }
 
-    fun getUser() {
+    fun login() {
         CoroutineScope(Dispatchers.IO).launch {
-            val response: Response<User> = ApiService.userAPI.auth(
+            val response: Response<User> = ApiService.userAPI.login(
                 AuthRequest(
                     logValue,
                     passValue
@@ -78,6 +81,7 @@ class LoginScreenViewModel : ViewModel() {
                         message = response.body()?.message
                     )
                     UserDataManager.saveUser(user)
+                    getDisciplines()
                     loggedChange(true)
                 }
             }
@@ -86,6 +90,17 @@ class LoginScreenViewModel : ViewModel() {
                 if (message.isNotEmpty()) {
                     messageChange(message)
                 }
+            }
+        }
+    }
+
+    private fun getDisciplines() {
+        viewModelScope.launch {
+            val user = UserDataManager.getUser().first()
+            val response: Response<Disciplines> =
+                ApiService.userAPI.disciplines("Bearer " + user.token)
+            response.body()?.let { Disciplines(it.list) }?.let {
+                DisciplinesDataManager.saveDisciplines(it)
             }
         }
     }

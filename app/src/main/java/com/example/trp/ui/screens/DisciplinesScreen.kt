@@ -13,30 +13,49 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.trp.ui.theme.TRPTheme
+import com.example.trp.ui.viewmodels.DisciplineScreenViewModel
 
+@Suppress("UNCHECKED_CAST")
 @Composable
 fun DisciplinesScreen(onDisciplineClick: () -> Unit) {
-    Disciplines(onDisciplineClick = onDisciplineClick)
+    val viewModel = viewModel<DisciplineScreenViewModel>(
+        factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return DisciplineScreenViewModel(onDisciplineClick) as T
+            }
+        }
+    )
+
+    Disciplines(viewModel = viewModel)
 }
 
 @Composable
-fun Disciplines(onDisciplineClick: () -> Unit) {
+fun Disciplines(viewModel: DisciplineScreenViewModel) {
     LazyColumn {
-        items(4) { index ->
-            Discipline(index, onDisciplineClick)
+        items(viewModel.disciplines.size) { index ->
+            Discipline(
+                viewModel = viewModel,
+                index = index
+            )
         }
         item { Spacer(modifier = Modifier.size(100.dp)) }
     }
 }
 
 @Composable
-fun Discipline(index: Int, onDisciplineClick: () -> Unit) {
+fun Discipline(
+    viewModel: DisciplineScreenViewModel,
+    index: Int
+) {
     Card(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxWidth()
-            .clickable { onDisciplineClick() },
+            .clickable { viewModel.onDisciplineClick() },
         elevation = CardDefaults.cardElevation(
             defaultElevation = 10.dp
         ),
@@ -45,7 +64,8 @@ fun Discipline(index: Int, onDisciplineClick: () -> Unit) {
         )
     ) {
         Text(
-            text = "discipline ${index + 1}",
+            text = viewModel.getDiscipline(index).name.toString() + " " +
+                    viewModel.getDiscipline(index).id.toString(),
             modifier = Modifier.padding(16.dp),
             color = TRPTheme.colors.primaryText,
             fontSize = 25.sp

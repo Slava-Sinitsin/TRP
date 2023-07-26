@@ -222,7 +222,9 @@ fun PassField(viewModel: LoginScreenViewModel) {
 @Composable
 fun ConfirmButton(viewModel: LoginScreenViewModel) {
     Button(
-        onClick = { viewModel.getUser() },
+        onClick = {
+            viewModel.login()
+        },
         modifier = Modifier.padding(5.dp),
         colors = ButtonDefaults.buttonColors(TRPTheme.colors.MyYellow)
     ) {
