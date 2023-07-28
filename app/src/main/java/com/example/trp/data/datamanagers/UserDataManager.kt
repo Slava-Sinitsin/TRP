@@ -23,7 +23,7 @@ object UserDataManager {
         UserDataManager.context = context
     }
 
-    suspend fun saveUser(user: User) {
+    suspend fun updateUser(user: User) {
         context.userDataStore.updateData { user }
     }
 

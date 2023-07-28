@@ -34,7 +34,7 @@ class WelcomeScreenViewModel(
 
     private suspend fun addUserInformation() {
         val updatedUser = parseToken(user.token.toString())
-        UserDataManager.saveUser(updatedUser)
+        UserDataManager.updateUser(updatedUser)
     }
 
     private fun parseToken(token: String): User {

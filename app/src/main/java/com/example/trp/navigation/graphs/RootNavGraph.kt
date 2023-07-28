@@ -32,5 +32,5 @@ object Graph {
     const val SPLASH = "splash_graph"
     const val AUTHENTICATION = "auth_graph"
     const val WELCOME = "welcome_graph"
-    const val DISCIPLINE = "disciplines_graph"
+    const val TASKS = "tasks_graph"
 }

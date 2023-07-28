@@ -5,11 +5,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.trp.data.user.AuthRequest
-import com.example.trp.data.disciplines.Disciplines
 import com.example.trp.data.datamanagers.DisciplinesDataManager
-import com.example.trp.data.user.User
 import com.example.trp.data.datamanagers.UserDataManager
+import com.example.trp.data.disciplines.Disciplines
+import com.example.trp.data.user.AuthRequest
+import com.example.trp.data.user.User
 import com.example.trp.network.ApiService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,6 +17,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import retrofit2.Response
+import java.net.ConnectException
+import java.net.SocketTimeoutException
 
 class LoginScreenViewModel : ViewModel() {
     var logValue by mutableStateOf("")
@@ -46,13 +48,13 @@ class LoginScreenViewModel : ViewModel() {
     }
 
     fun updateLogValue(newLogValue: String) {
-        logValue = newLogValue
         messageVisibility = false
+        logValue = newLogValue
     }
 
     fun updatePassValue(newPassValue: String) {
-        passValue = newPassValue
         messageVisibility = false
+        passValue = newPassValue
     }
 
     fun loggedChange(newIsLogged: Boolean) {
@@ -60,36 +62,45 @@ class LoginScreenViewModel : ViewModel() {
     }
 
     fun messageChange(newMessage: String) {
-        message = newMessage
         messageVisibility = true
+        message = newMessage
     }
 
     fun login() {
+        messageVisibility = false
         CoroutineScope(Dispatchers.IO).launch {
-            val response: Response<User> = ApiService.userAPI.login(
-                AuthRequest(
-                    logValue,
-                    passValue
-                )
-            )
-            response.body()?.message?.let { message ->
-                if (message == "OK") {
-                    val user = User(
-                        login = logValue,
-                        password = passValue,
-                        token = response.body()?.token,
-                        message = response.body()?.message
+            try {
+                val response: Response<User> = ApiService.userAPI.login(
+                    AuthRequest(
+                        logValue,
+                        passValue
                     )
-                    UserDataManager.saveUser(user)
-                    getDisciplines()
-                    loggedChange(true)
-                }
+                )
+                handleLoginResponse(response)
+            } catch (e: SocketTimeoutException) {
+                messageChange("Timeout")
+            } catch (e: ConnectException) {
+                messageChange("Check internet connection")
             }
-            response.errorBody()?.string()?.let { errorBody ->
-                val message = JSONObject(errorBody).getString("error")
+        }
+    }
+
+    private suspend fun handleLoginResponse(response: Response<User>) {
+        response.body()?.let { user ->
+            if (user.message == "OK") {
+                val updatedUser = user.copy(login = logValue, password = passValue)
+                UserDataManager.updateUser(updatedUser)
+                getDisciplines()
+                loggedChange(true)
+            }
+        } ?: run {
+            response.errorBody()?.let { errorBody ->
+                val message = JSONObject(errorBody.string()).getString("error")
                 if (message.isNotEmpty()) {
                     messageChange(message)
                 }
+            } ?: run {
+                messageChange("Bad response")
             }
         }
     }

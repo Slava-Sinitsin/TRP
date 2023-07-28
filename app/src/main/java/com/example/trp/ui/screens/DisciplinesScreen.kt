@@ -21,7 +21,7 @@ import com.example.trp.ui.viewmodels.DisciplineScreenViewModel
 
 @Suppress("UNCHECKED_CAST")
 @Composable
-fun DisciplinesScreen(onDisciplineClick: () -> Unit) {
+fun DisciplinesScreen(onDisciplineClick: (index: Int) -> Unit) {
     val viewModel = viewModel<DisciplineScreenViewModel>(
         factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -55,7 +55,7 @@ fun Discipline(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxWidth()
-            .clickable { viewModel.onDisciplineClick() },
+            .clickable { viewModel.onDisciplineClick(index) },
         elevation = CardDefaults.cardElevation(
             defaultElevation = 10.dp
         ),

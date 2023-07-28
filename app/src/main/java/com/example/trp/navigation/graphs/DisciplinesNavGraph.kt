@@ -9,10 +9,10 @@ import com.example.trp.ui.screens.TasksScreen
 
 fun NavGraphBuilder.disciplineNavGraph(navController: NavHostController) {
     navigation(
-        route = Graph.DISCIPLINE,
-        startDestination = DisciplineScreen.DisciplineInfo.route
+        route = Graph.TASKS,
+        startDestination = DisciplineScreen.Tasks.route
     ) {
-        composable(route = DisciplineScreen.DisciplineInfo.route) {
+        composable(route = DisciplineScreen.Tasks.route) {
             TasksScreen(onTaskClick = {
                 navController.navigate(DisciplineScreen.TaskInfo.route)
             })
@@ -24,6 +24,6 @@ fun NavGraphBuilder.disciplineNavGraph(navController: NavHostController) {
 }
 
 sealed class DisciplineScreen(val route: String) {
-    object DisciplineInfo : DisciplineScreen(route = "DISCIPLINE_INFO")
+    object Tasks : DisciplineScreen(route = "TASKS")
     object TaskInfo : DisciplineScreen(route = "TASK_INFO")
 }

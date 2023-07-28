@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -85,9 +86,9 @@ fun LoginScreen(
 fun Message(viewModel: LoginScreenViewModel) {
     Box(
         modifier = Modifier
-            .fillMaxWidth()
+            .wrapContentWidth()
             .heightIn(50.dp)
-            .padding(vertical = 5.dp, horizontal = 100.dp)
+            .padding(vertical = 5.dp, horizontal = 50.dp)
     ) {
         AnimatedVisibility(
             visible = viewModel.messageVisibility,
@@ -106,7 +107,6 @@ fun Message(viewModel: LoginScreenViewModel) {
         ) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
                     .heightIn(40.dp)
                     .background(
                         color = TRPTheme.colors.secondaryBackground,

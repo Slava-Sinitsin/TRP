@@ -7,7 +7,7 @@ import com.example.trp.data.disciplines.Discipline
 import kotlinx.coroutines.launch
 
 class DisciplineScreenViewModel(
-    var onDisciplineClick: () -> Unit
+    var onDisciplineClick: (index: Int) -> Unit
 ) : ViewModel() {
 
     lateinit var disciplines: List<Discipline>

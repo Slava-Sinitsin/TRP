@@ -18,7 +18,7 @@ fun WelcomeNavGraph(navController: NavHostController) {
     ) {
         composable(route = BottomBarScreen.Discipline.route) {
             DisciplinesScreen(onDisciplineClick = {
-                navController.navigate(Graph.DISCIPLINE)
+                navController.navigate(Graph.TASKS)
             })
         }
         composable(route = BottomBarScreen.Home.route) {
