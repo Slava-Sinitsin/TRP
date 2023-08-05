@@ -48,17 +48,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.trp.ui.theme.TRPTheme
-import com.example.trp.ui.viewmodels.LoginScreenViewModel
+import com.example.trp.ui.viewmodels.AuthScreenViewModel
 
 @Composable
 @Suppress("UNCHECKED_CAST")
 fun LoginScreen(
     onLoginClick: () -> Unit
 ) {
-    val viewModel = viewModel<LoginScreenViewModel>(
+    val viewModel = viewModel<AuthScreenViewModel>(
         factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return LoginScreenViewModel() as T
+                return AuthScreenViewModel() as T
             }
         }
     )
@@ -83,7 +83,7 @@ fun LoginScreen(
 }
 
 @Composable
-fun Message(viewModel: LoginScreenViewModel) {
+fun Message(viewModel: AuthScreenViewModel) {
     Box(
         modifier = Modifier
             .wrapContentWidth()
@@ -137,7 +137,7 @@ fun Message(viewModel: LoginScreenViewModel) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MailField(viewModel: LoginScreenViewModel) {
+fun MailField(viewModel: AuthScreenViewModel) {
     TextField(
         modifier = Modifier
             .fillMaxWidth()
@@ -171,7 +171,7 @@ fun MailField(viewModel: LoginScreenViewModel) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PassField(viewModel: LoginScreenViewModel) {
+fun PassField(viewModel: AuthScreenViewModel) {
     TextField(
         modifier = Modifier
             .fillMaxWidth()
@@ -220,7 +220,7 @@ fun PassField(viewModel: LoginScreenViewModel) {
 }
 
 @Composable
-fun ConfirmButton(viewModel: LoginScreenViewModel) {
+fun ConfirmButton(viewModel: AuthScreenViewModel) {
     Button(
         onClick = {
             viewModel.login()

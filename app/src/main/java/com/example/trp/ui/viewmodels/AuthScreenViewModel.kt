@@ -20,7 +20,7 @@ import retrofit2.Response
 import java.net.ConnectException
 import java.net.SocketTimeoutException
 
-class LoginScreenViewModel : ViewModel() {
+class AuthScreenViewModel : ViewModel() {
     var logValue by mutableStateOf("")
         private set
     var passValue by mutableStateOf("")

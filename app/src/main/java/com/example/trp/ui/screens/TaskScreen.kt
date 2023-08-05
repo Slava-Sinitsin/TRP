@@ -10,13 +10,13 @@ import androidx.compose.ui.unit.sp
 import com.example.trp.ui.theme.TRPTheme
 
 @Composable
-fun TaskScreen() {
+fun TaskScreen(taskId: Int) {
     Box(
         modifier = Modifier
             .fillMaxSize()
     ) {
         Text(
-            "Task",
+            "Task ${taskId + 1}",
             Modifier.align(Alignment.Center),
             fontSize = 40.sp,
             color = TRPTheme.colors.primaryText

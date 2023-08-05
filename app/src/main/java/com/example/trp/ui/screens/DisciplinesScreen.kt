@@ -55,7 +55,11 @@ fun Discipline(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxWidth()
-            .clickable { viewModel.onDisciplineClick(index) },
+            .clickable {
+                viewModel.getDiscipline(index).id?.let { id ->
+                    viewModel.onDisciplineClick(id)
+                }
+            },
         elevation = CardDefaults.cardElevation(
             defaultElevation = 10.dp
         ),

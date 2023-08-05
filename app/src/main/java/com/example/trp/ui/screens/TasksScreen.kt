@@ -13,30 +13,59 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.trp.ui.theme.TRPTheme
+import com.example.trp.ui.viewmodels.TasksScreenViewModel
 
+@Suppress("UNCHECKED_CAST")
 @Composable
-fun TasksScreen(onTaskClick: () -> Unit) {
-    Tasks(onTaskClick = onTaskClick)
+fun TasksScreen(
+    disciplineId: Int,
+    onTaskClick: (id: Int) -> Unit,
+) {
+
+    val viewModel = viewModel<TasksScreenViewModel>(
+        factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return TasksScreenViewModel(
+                    disciplineId = disciplineId,
+                    onTaskClick = onTaskClick
+                ) as T
+            }
+        }
+    )
+
+    Tasks(
+        viewModel = viewModel
+    )
 }
 
 @Composable
-fun Tasks(onTaskClick: () -> Unit) {
+fun Tasks(
+    viewModel: TasksScreenViewModel
+) {
     LazyColumn {
-        items(15) { index ->
-            Task(index, onTaskClick)
+        items(viewModel.disciplineId) { index ->
+            Task(viewModel = viewModel, index = index)
         }
         item { Spacer(modifier = Modifier.size(100.dp)) }
     }
 }
 
 @Composable
-fun Task(index: Int, onTaskClick: () -> Unit) {
+fun Task(
+    viewModel: TasksScreenViewModel,
+    index: Int
+) {
     Card(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxWidth()
-            .clickable { onTaskClick() },
+            .clickable {
+                viewModel.onTaskClick(index)
+            },
         elevation = CardDefaults.cardElevation(
             defaultElevation = 10.dp
         ),
