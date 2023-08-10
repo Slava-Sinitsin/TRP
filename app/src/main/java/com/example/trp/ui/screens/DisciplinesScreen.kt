@@ -69,7 +69,7 @@ fun Discipline(
     ) {
         Text(
             text = viewModel.getDiscipline(index).name.toString() + " " +
-                    viewModel.getDiscipline(index).id.toString(),
+                    viewModel.getDiscipline(index).year.toString(),
             modifier = Modifier.padding(16.dp),
             color = TRPTheme.colors.primaryText,
             fontSize = 25.sp

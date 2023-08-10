@@ -1,12 +1,33 @@
 package com.example.trp.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.trp.data.datamanagers.UserDataManager
+import com.example.trp.data.tasks.Tasks
+import com.example.trp.data.tasks.TasksResponse
+import com.example.trp.network.ApiService
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import retrofit2.Response
 
 class TasksScreenViewModel(
-    disciplineId: Int,
+    val disciplineId: Int,
     var onTaskClick: (id: Int) -> Unit
 ) : ViewModel() {
 
-    var disciplineId = disciplineId
+    var tasks: Tasks = Tasks()
         private set
+
+    init {
+        viewModelScope.launch {
+            tasks = getTasks(disciplineId = disciplineId)
+        }
+    }
+
+    private suspend fun getTasks(disciplineId: Int): Tasks {
+        val user = UserDataManager.getUser().first()
+        val response: Response<TasksResponse> =
+            ApiService.userAPI.tasks("Bearer " + user.token, disciplineId)
+        return Tasks(response.body()?.let { listOf(it.data) })
+    }
 }

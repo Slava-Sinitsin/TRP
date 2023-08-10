@@ -1,6 +1,5 @@
 package com.example.trp.navigation.graphs
 
-import android.util.Log
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -26,7 +25,6 @@ fun NavGraphBuilder.tasksNavGraph(navController: NavHostController) {
                     disciplineId = id,
                     onTaskClick = { taskId ->
                         navController.navigate("${TasksScreen.TaskInfo.route}/$taskId")
-                        Log.e("TAG", navController.currentDestination.toString())
                     }
                 )
             }

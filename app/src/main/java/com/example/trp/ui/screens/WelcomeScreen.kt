@@ -1,7 +1,6 @@
 package com.example.trp.ui.screens
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -85,7 +84,6 @@ fun NavigationBar(
                     selected = viewModel.isSelected(screen),
                     onClick = {
                         viewModel.navigate(screen)
-                        Log.e("TAG", viewModel.navController.currentDestination.toString())
                     }
                 )
             }

@@ -11,8 +11,6 @@ import com.example.trp.data.disciplines.Disciplines
 import com.example.trp.data.user.AuthRequest
 import com.example.trp.data.user.User
 import com.example.trp.network.ApiService
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -68,7 +66,7 @@ class AuthScreenViewModel : ViewModel() {
 
     fun login() {
         messageVisibility = false
-        CoroutineScope(Dispatchers.IO).launch {
+        viewModelScope.launch {
             try {
                 val response: Response<User> = ApiService.userAPI.login(
                     AuthRequest(

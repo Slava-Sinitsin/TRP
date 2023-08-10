@@ -25,7 +25,6 @@ fun TasksScreen(
     disciplineId: Int,
     onTaskClick: (id: Int) -> Unit,
 ) {
-
     val viewModel = viewModel<TasksScreenViewModel>(
         factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -36,7 +35,6 @@ fun TasksScreen(
             }
         }
     )
-
     Tasks(
         viewModel = viewModel
     )
@@ -47,8 +45,10 @@ fun Tasks(
     viewModel: TasksScreenViewModel
 ) {
     LazyColumn {
-        items(viewModel.disciplineId) { index ->
-            Task(viewModel = viewModel, index = index)
+        viewModel.tasks.list?.let {
+            items(count = it.size) { index ->
+                Task(viewModel = viewModel, index = index)
+            }
         }
         item { Spacer(modifier = Modifier.size(100.dp)) }
     }
@@ -74,7 +74,7 @@ fun Task(
         )
     ) {
         Text(
-            text = "Task ${index + 1}",
+            text = viewModel.tasks.list?.get(index)?.name.toString(),
             modifier = Modifier.padding(16.dp),
             color = TRPTheme.colors.primaryText,
             fontSize = 25.sp

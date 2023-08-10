@@ -1,6 +1,5 @@
 package com.example.trp.navigation.graphs
 
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -20,7 +19,6 @@ fun WelcomeNavGraph(navController: NavHostController) {
         composable(route = BottomBarScreen.Discipline.route) {
             DisciplinesScreen(onDisciplineClick = { disciplineId ->
                 navController.navigate("${Graph.TASKS}/${disciplineId}")
-                Log.e("TAG", navController.currentDestination.toString())
             })
         }
         composable(route = BottomBarScreen.Home.route) {
