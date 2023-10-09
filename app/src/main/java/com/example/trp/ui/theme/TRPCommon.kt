@@ -12,7 +12,7 @@ data class TRPColors(
     val tintColor: Color,
     val controlColor: Color,
     val errorColor: Color,
-    val MyYellow: Color,
+    val myYellow: Color,
     val icon: Color,
     val iconBackground: Color,
     val cardColor: Color

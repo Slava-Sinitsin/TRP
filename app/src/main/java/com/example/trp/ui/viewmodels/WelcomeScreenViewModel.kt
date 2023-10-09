@@ -20,8 +20,7 @@ class WelcomeScreenViewModel(
     navController: NavHostController
 ) : ViewModel() {
 
-    var user by mutableStateOf(User())
-        private set
+    private var user by mutableStateOf(User())
 
     init {
         viewModelScope.launch {

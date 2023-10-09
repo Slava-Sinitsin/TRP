@@ -3,8 +3,8 @@ package com.example.trp.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.trp.data.datamanagers.UserDataManager
+import com.example.trp.data.tasks.Task
 import com.example.trp.data.tasks.Tasks
-import com.example.trp.data.tasks.TasksResponse
 import com.example.trp.network.ApiService
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -15,7 +15,7 @@ class TasksScreenViewModel(
     var onTaskClick: (id: Int) -> Unit
 ) : ViewModel() {
 
-    var tasks: Tasks = Tasks()
+    var tasks: Tasks? = Tasks()
         private set
 
     init {
@@ -24,10 +24,18 @@ class TasksScreenViewModel(
         }
     }
 
-    private suspend fun getTasks(disciplineId: Int): Tasks {
+    private suspend fun getTasks(disciplineId: Int): Tasks? {
         val user = UserDataManager.getUser().first()
-        val response: Response<TasksResponse> =
-            ApiService.userAPI.tasks("Bearer " + user.token, disciplineId)
-        return Tasks(response.body()?.let { listOf(it.data) })
+        val response: Response<Tasks> =
+            ApiService.userAPI.getTasks("Bearer " + user.token, disciplineId)
+        return response.body()
+    }
+
+    fun getTask(index: Int): Task {
+        return tasks?.data?.get(index) ?: Task()
+    }
+
+    fun navigateToTask(index: Int) {
+        getTask(index = index).let { task -> task.id?.let { id -> onTaskClick(id) } }
     }
 }

@@ -45,7 +45,7 @@ fun Tasks(
     viewModel: TasksScreenViewModel
 ) {
     LazyColumn {
-        viewModel.tasks.list?.let {
+        viewModel.tasks?.data?.let {
             items(count = it.size) { index ->
                 Task(viewModel = viewModel, index = index)
             }
@@ -64,7 +64,7 @@ fun Task(
             .padding(8.dp)
             .fillMaxWidth()
             .clickable {
-                viewModel.onTaskClick(index)
+                viewModel.navigateToTask(index = index)
             },
         elevation = CardDefaults.cardElevation(
             defaultElevation = 10.dp
@@ -74,7 +74,7 @@ fun Task(
         )
     ) {
         Text(
-            text = viewModel.tasks.list?.get(index)?.name.toString(),
+            text = viewModel.getTask(index = index).title.toString(),
             modifier = Modifier.padding(16.dp),
             color = TRPTheme.colors.primaryText,
             fontSize = 25.sp

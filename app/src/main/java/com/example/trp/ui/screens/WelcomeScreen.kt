@@ -73,8 +73,8 @@ fun NavigationBar(
             viewModel.screens.forEach { screen ->
                 NavigationBarItem(
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = TRPTheme.colors.MyYellow,
-                        selectedTextColor = TRPTheme.colors.MyYellow,
+                        selectedIconColor = TRPTheme.colors.myYellow,
+                        selectedTextColor = TRPTheme.colors.myYellow,
                         indicatorColor = TRPTheme.colors.iconBackground,
                         unselectedIconColor = TRPTheme.colors.icon,
                         unselectedTextColor = TRPTheme.colors.icon

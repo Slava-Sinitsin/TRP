@@ -24,14 +24,14 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(navigate: () -> Unit) {
-    val infiniteTransition = rememberInfiniteTransition()
+    val infiniteTransition = rememberInfiniteTransition(label = "")
     val scale by infiniteTransition.animateFloat(
         initialValue = 1f,
         targetValue = 1.3f,
         animationSpec = infiniteRepeatable(
             animation = tween(500, easing = { OvershootInterpolator(2f).getInterpolation(it) }),
             RepeatMode.Reverse
-        )
+        ), label = ""
     )
     LaunchedEffect(true) {
         delay(350)
@@ -40,7 +40,7 @@ fun SplashScreen(navigate: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(TRPTheme.colors.MyYellow),
+            .background(TRPTheme.colors.myYellow),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {

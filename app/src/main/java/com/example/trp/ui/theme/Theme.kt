@@ -18,7 +18,7 @@ fun TRPTheme(
     val systemUiController = rememberSystemUiController()
     SideEffect {
         systemUiController.setStatusBarColor(
-            color = colors.MyYellow
+            color = colors.myYellow
         )
     }
 

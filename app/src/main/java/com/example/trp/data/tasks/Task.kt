@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName
 
 data class Task(
     @SerializedName("id") var id: Int? = null,
-    @SerializedName("name") var name: String? = null,
-    @SerializedName("year") var year: Int? = null,
-    @SerializedName("halfYear") var halfYear: String? = null
+    @SerializedName("disciplineId") var disciplineId: Int? = null,
+    @SerializedName("title") var title: String? = null,
+    @SerializedName("description") var description: String? = null
 )

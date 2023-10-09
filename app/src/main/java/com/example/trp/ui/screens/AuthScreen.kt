@@ -125,7 +125,7 @@ fun Message(viewModel: AuthScreenViewModel) {
                     modifier = Modifier.padding(
                         horizontal = animateDpAsState(
                             if (viewModel.message.isNotEmpty()) 16.dp
-                            else 0.dp
+                            else 0.dp, label = ""
                         ).value
                     ),
                     fontSize = 15.sp
@@ -226,7 +226,7 @@ fun ConfirmButton(viewModel: AuthScreenViewModel) {
             viewModel.login()
         },
         modifier = Modifier.padding(5.dp),
-        colors = ButtonDefaults.buttonColors(TRPTheme.colors.MyYellow)
+        colors = ButtonDefaults.buttonColors(TRPTheme.colors.myYellow)
     ) {
         Text(text = "Confirm", color = TRPTheme.colors.secondaryText)
     }

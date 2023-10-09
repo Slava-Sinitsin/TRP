@@ -55,11 +55,12 @@ class AuthScreenViewModel : ViewModel() {
         passValue = newPassValue
     }
 
-    fun loggedChange(newIsLogged: Boolean) {
+    @Suppress("SameParameterValue")
+    private fun loggedChange(newIsLogged: Boolean) {
         isLogged = newIsLogged
     }
 
-    fun messageChange(newMessage: String) {
+    private fun messageChange(newMessage: String) {
         messageVisibility = true
         message = newMessage
     }
@@ -107,7 +108,7 @@ class AuthScreenViewModel : ViewModel() {
         viewModelScope.launch {
             val user = UserDataManager.getUser().first()
             val response: Response<Disciplines> =
-                ApiService.userAPI.disciplines("Bearer " + user.token)
+                ApiService.userAPI.getDisciplines("Bearer " + user.token)
             response.body()?.let { Disciplines(it.list) }?.let {
                 DisciplinesDataManager.saveDisciplines(it)
             }

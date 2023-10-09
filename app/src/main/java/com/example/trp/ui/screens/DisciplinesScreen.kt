@@ -36,7 +36,7 @@ fun DisciplinesScreen(onDisciplineClick: (index: Int) -> Unit) {
 @Composable
 fun Disciplines(viewModel: DisciplineScreenViewModel) {
     LazyColumn {
-        items(viewModel.disciplines.size) { index ->
+        items(viewModel.disciplinesData.size) { index ->
             Discipline(
                 viewModel = viewModel,
                 index = index
@@ -56,9 +56,7 @@ fun Discipline(
             .padding(8.dp)
             .fillMaxWidth()
             .clickable {
-                viewModel.getDiscipline(index).id?.let { id ->
-                    viewModel.onDisciplineClick(id)
-                }
+                viewModel.navigateToTasks(index = index)
             },
         elevation = CardDefaults.cardElevation(
             defaultElevation = 10.dp
@@ -68,8 +66,7 @@ fun Discipline(
         )
     ) {
         Text(
-            text = viewModel.getDiscipline(index).name.toString() + " " +
-                    viewModel.getDiscipline(index).year.toString(),
+            text = viewModel.getDiscipline(index = index).name.toString(),
             modifier = Modifier.padding(16.dp),
             color = TRPTheme.colors.primaryText,
             fontSize = 25.sp
