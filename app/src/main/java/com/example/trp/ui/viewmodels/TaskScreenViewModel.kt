@@ -19,6 +19,7 @@ class TaskScreenViewModel(
 ) : ViewModel() {
     var task by mutableStateOf(TaskDesc())
     var taskDisciplineData by mutableStateOf(DisciplineData())
+    var taskText by mutableStateOf("")
 
     init {
         viewModelScope.launch {
@@ -39,5 +40,13 @@ class TaskScreenViewModel(
         val response: Response<DisciplineResponse> =
             ApiService.userAPI.getDisciplineByID("Bearer " + user.token, disciplineId ?: -1)
         return response.body()?.disciplineData ?: DisciplineData()
+    }
+
+    fun updateTaskText(newTaskText: String) {
+        taskText = newTaskText
+    }
+
+    fun onRunCodeButtonClick () {
+        // TODO
     }
 }
