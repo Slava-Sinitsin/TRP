@@ -5,10 +5,10 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class User(
-    @SerializedName("login") var login: String? = null,
-    @SerializedName("password") var password: String? = null,
-    @SerializedName("data") var token: String? = null,
-    @SerializedName("message") var message: String? = null,
+    @SerializedName("login") val login: String? = null,
+    @SerializedName("password") val password: String? = null,
+    @SerializedName("data") val token: String? = null,
+    @SerializedName("message") val message: String? = null,
     @SerializedName("sub") val sub: String? = null,
     @SerializedName("id") val id: Int? = null,
     @SerializedName("username") val username: String? = null,

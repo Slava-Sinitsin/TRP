@@ -5,8 +5,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class DisciplineData(
-    @SerializedName("id") var id: Int? = null,
-    @SerializedName("name") var name: String? = null,
-    @SerializedName("year") var year: Int? = null,
-    @SerializedName("halfYear") var halfYear: String? = null
+    @SerializedName("id") val id: Int? = null,
+    @SerializedName("name") val name: String? = null,
+    @SerializedName("year") val year: Int? = null,
+    @SerializedName("halfYear") val halfYear: String? = null
 )

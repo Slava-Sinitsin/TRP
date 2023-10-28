@@ -12,11 +12,10 @@ import kotlinx.serialization.json.Json
 import java.io.InputStream
 import java.io.OutputStream
 
-private val Context.userDataStore by dataStore("User.json", UserSerializer)
-
-
 @SuppressLint("StaticFieldLeak")
 object UserDataManager {
+    private val Context.userDataStore by dataStore("User.json", UserSerializer)
+
     private lateinit var context: Context
 
     fun initialize(context: Context) {
@@ -27,33 +26,33 @@ object UserDataManager {
         context.userDataStore.updateData { user }
     }
 
+    object UserSerializer : Serializer<User> {
+        override val defaultValue: User
+            get() = User()
+
+        override suspend fun readFrom(input: InputStream): User {
+            return try {
+                Json.decodeFromString(
+                    deserializer = User.serializer(),
+                    string = input.readBytes().decodeToString()
+                )
+            } catch (e: SerializationException) {
+                e.printStackTrace()
+                User()
+            }
+        }
+
+        override suspend fun writeTo(t: User, output: OutputStream) {
+            withContext(Dispatchers.IO) {
+                output.write(
+                    Json.encodeToString(
+                        serializer = User.serializer(),
+                        value = t
+                    ).encodeToByteArray()
+                )
+            }
+        }
+    }
+
     fun getUser() = context.userDataStore.data
-}
-
-object UserSerializer : Serializer<User> {
-    override val defaultValue: User
-        get() = User()
-
-    override suspend fun readFrom(input: InputStream): User {
-        return try {
-            Json.decodeFromString(
-                deserializer = User.serializer(),
-                string = input.readBytes().decodeToString()
-            )
-        } catch (e: SerializationException) {
-            e.printStackTrace()
-            User()
-        }
-    }
-
-    override suspend fun writeTo(t: User, output: OutputStream) {
-        withContext(Dispatchers.IO) {
-            output.write(
-                Json.encodeToString(
-                    serializer = User.serializer(),
-                    value = t
-                ).encodeToByteArray()
-            )
-        }
-    }
 }

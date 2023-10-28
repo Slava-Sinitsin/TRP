@@ -12,10 +12,10 @@ import kotlinx.serialization.json.Json
 import java.io.InputStream
 import java.io.OutputStream
 
-private val Context.disciplinesDataStore by dataStore("Disciplines.json", DisciplinesSerializer)
-
 @SuppressLint("StaticFieldLeak")
 object DisciplinesDataManager {
+    private val Context.disciplinesDataStore by dataStore("Disciplines.json", DisciplinesSerializer)
+
     private lateinit var context: Context
 
     fun initialize(context: Context) {
@@ -26,33 +26,33 @@ object DisciplinesDataManager {
         context.disciplinesDataStore.updateData { disciplines }
     }
 
+    object DisciplinesSerializer : Serializer<Disciplines> {
+        override val defaultValue: Disciplines
+            get() = Disciplines()
+
+        override suspend fun readFrom(input: InputStream): Disciplines {
+            return try {
+                Json.decodeFromString(
+                    deserializer = Disciplines.serializer(),
+                    string = input.readBytes().decodeToString()
+                )
+            } catch (e: SerializationException) {
+                e.printStackTrace()
+                Disciplines()
+            }
+        }
+
+        override suspend fun writeTo(t: Disciplines, output: OutputStream) {
+            withContext(Dispatchers.IO) {
+                output.write(
+                    Json.encodeToString(
+                        serializer = Disciplines.serializer(),
+                        value = t
+                    ).encodeToByteArray()
+                )
+            }
+        }
+    }
+
     fun getDisciplines() = context.disciplinesDataStore.data
-}
-
-object DisciplinesSerializer : Serializer<Disciplines> {
-    override val defaultValue: Disciplines
-        get() = Disciplines()
-
-    override suspend fun readFrom(input: InputStream): Disciplines {
-        return try {
-            Json.decodeFromString(
-                deserializer = Disciplines.serializer(),
-                string = input.readBytes().decodeToString()
-            )
-        } catch (e: SerializationException) {
-            e.printStackTrace()
-            Disciplines()
-        }
-    }
-
-    override suspend fun writeTo(t: Disciplines, output: OutputStream) {
-        withContext(Dispatchers.IO) {
-            output.write(
-                Json.encodeToString(
-                    serializer = Disciplines.serializer(),
-                    value = t
-                ).encodeToByteArray()
-            )
-        }
-    }
 }

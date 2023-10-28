@@ -16,7 +16,7 @@ class DisciplineScreenViewModel(
     init {
         viewModelScope.launch {
             DisciplinesDataManager.getDisciplines().collect {
-                disciplinesData = it.list!!
+                disciplinesData = it.list ?: emptyList()
             }
         }
     }
