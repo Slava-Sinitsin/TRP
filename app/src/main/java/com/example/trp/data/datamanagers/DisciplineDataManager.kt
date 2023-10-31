@@ -22,10 +22,6 @@ object DisciplinesDataManager {
         DisciplinesDataManager.context = context
     }
 
-    suspend fun saveDisciplines(disciplines: Disciplines) {
-        context.disciplinesDataStore.updateData { disciplines }
-    }
-
     object DisciplinesSerializer : Serializer<Disciplines> {
         override val defaultValue: Disciplines
             get() = Disciplines()
@@ -55,4 +51,8 @@ object DisciplinesDataManager {
     }
 
     fun getDisciplines() = context.disciplinesDataStore.data
+
+    suspend fun saveDisciplines(disciplines: Disciplines) {
+        context.disciplinesDataStore.updateData { disciplines }
+    }
 }

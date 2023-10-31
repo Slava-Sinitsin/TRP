@@ -15,7 +15,7 @@ import retrofit2.http.Path
 
 interface UserAPI {
     @POST("auth/login")
-    suspend fun login(@Body authRequest: AuthRequest): Response<User>
+    suspend fun getUserResponse(@Body authRequest: AuthRequest): Response<User>
 
     @GET("api/v2/disciplines")
     suspend fun getDisciplines(@Header("Authorization") token: String): Response<Disciplines>

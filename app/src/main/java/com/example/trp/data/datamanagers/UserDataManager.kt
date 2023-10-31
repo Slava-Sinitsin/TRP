@@ -22,10 +22,6 @@ object UserDataManager {
         UserDataManager.context = context
     }
 
-    suspend fun updateUser(user: User) {
-        context.userDataStore.updateData { user }
-    }
-
     object UserSerializer : Serializer<User> {
         override val defaultValue: User
             get() = User()
@@ -55,4 +51,8 @@ object UserDataManager {
     }
 
     fun getUser() = context.userDataStore.data
+
+    suspend fun updateUser(user: User) {
+        context.userDataStore.updateData { user }
+    }
 }

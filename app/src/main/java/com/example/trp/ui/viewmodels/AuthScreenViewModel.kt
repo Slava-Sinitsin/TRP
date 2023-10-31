@@ -10,11 +10,9 @@ import com.example.trp.data.datamanagers.UserDataManager
 import com.example.trp.data.disciplines.Disciplines
 import com.example.trp.data.network.ApiService
 import com.example.trp.data.user.AuthRequest
-import com.example.trp.data.user.User
 import com.example.trp.repository.UserAPIRepositoryImpl
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import org.json.JSONObject
 import retrofit2.Response
 import java.net.ConnectException
 import java.net.SocketTimeoutException
@@ -72,32 +70,18 @@ class AuthScreenViewModel : ViewModel() {
         messageVisibility = false
         viewModelScope.launch {
             try {
-                val response: Response<User> = repository.login(AuthRequest(logValue, passValue))
-                handleLoginResponse(response)
+                repository.getUser(AuthRequest(logValue, passValue)).let { user ->
+                    if (user.message == "OK") {
+                        getDisciplines()
+                        loggedChange(true)
+                    } else {
+                        messageChange(user.message!!)
+                    }
+                }
             } catch (e: SocketTimeoutException) {
                 messageChange("Timeout")
             } catch (e: ConnectException) {
                 messageChange("Check internet connection")
-            }
-        }
-    }
-
-    private suspend fun handleLoginResponse(response: Response<User>) {
-        response.body()?.let { user ->
-            if (user.message == "OK") {
-                val updatedUser = user.copy(login = logValue, password = passValue)
-                UserDataManager.updateUser(updatedUser)
-                getDisciplines()
-                loggedChange(true)
-            }
-        } ?: run {
-            response.errorBody()?.let { errorBody ->
-                val message = JSONObject(errorBody.string()).getString("error")
-                if (message.isNotEmpty()) {
-                    messageChange(message)
-                }
-            } ?: run {
-                messageChange("Bad response")
             }
         }
     }
