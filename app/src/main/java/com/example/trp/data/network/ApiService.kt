@@ -1,4 +1,4 @@
-package com.example.trp.network
+package com.example.trp.data.network
 
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor

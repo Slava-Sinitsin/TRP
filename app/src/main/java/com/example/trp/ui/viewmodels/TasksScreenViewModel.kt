@@ -3,9 +3,9 @@ package com.example.trp.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.trp.data.datamanagers.UserDataManager
+import com.example.trp.data.network.ApiService
 import com.example.trp.data.tasks.Task
 import com.example.trp.data.tasks.Tasks
-import com.example.trp.network.ApiService
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import retrofit2.Response

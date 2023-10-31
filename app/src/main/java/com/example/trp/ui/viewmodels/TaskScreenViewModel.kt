@@ -8,8 +8,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.trp.data.datamanagers.UserDataManager
 import com.example.trp.data.disciplines.DisciplineData
 import com.example.trp.data.disciplines.DisciplineResponse
+import com.example.trp.data.network.ApiService
 import com.example.trp.data.tasks.TaskDesc
-import com.example.trp.network.ApiService
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import retrofit2.Response

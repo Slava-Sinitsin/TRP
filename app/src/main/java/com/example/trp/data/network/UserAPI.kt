@@ -1,4 +1,4 @@
-package com.example.trp.network
+package com.example.trp.data.network
 
 import com.example.trp.data.disciplines.DisciplineResponse
 import com.example.trp.data.disciplines.Disciplines

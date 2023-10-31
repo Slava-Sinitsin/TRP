@@ -8,9 +8,10 @@ import androidx.lifecycle.viewModelScope
 import com.example.trp.data.datamanagers.DisciplinesDataManager
 import com.example.trp.data.datamanagers.UserDataManager
 import com.example.trp.data.disciplines.Disciplines
+import com.example.trp.data.network.ApiService
 import com.example.trp.data.user.AuthRequest
 import com.example.trp.data.user.User
-import com.example.trp.network.ApiService
+import com.example.trp.repository.UserAPIRepositoryImpl
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -19,6 +20,8 @@ import java.net.ConnectException
 import java.net.SocketTimeoutException
 
 class AuthScreenViewModel : ViewModel() {
+    private val repository = UserAPIRepositoryImpl()
+
     var logValue by mutableStateOf("")
         private set
     var passValue by mutableStateOf("")
@@ -69,12 +72,7 @@ class AuthScreenViewModel : ViewModel() {
         messageVisibility = false
         viewModelScope.launch {
             try {
-                val response: Response<User> = ApiService.userAPI.login(
-                    AuthRequest(
-                        logValue,
-                        passValue
-                    )
-                )
+                val response: Response<User> = repository.login(AuthRequest(logValue, passValue))
                 handleLoginResponse(response)
             } catch (e: SocketTimeoutException) {
                 messageChange("Timeout")
