@@ -6,6 +6,7 @@ import androidx.datastore.core.Serializer
 import androidx.datastore.dataStore
 import com.example.trp.data.disciplines.Disciplines
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
@@ -50,7 +51,7 @@ object DisciplinesDataManager {
         }
     }
 
-    fun getDisciplines() = context.disciplinesDataStore.data
+    suspend fun getDisciplines() = context.disciplinesDataStore.data.first().list
 
     suspend fun saveDisciplines(disciplines: Disciplines) {
         context.disciplinesDataStore.updateData { disciplines }

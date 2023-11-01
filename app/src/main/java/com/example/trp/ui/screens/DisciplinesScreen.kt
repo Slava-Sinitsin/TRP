@@ -17,15 +17,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.trp.ui.theme.TRPTheme
-import com.example.trp.ui.viewmodels.DisciplineScreenViewModel
+import com.example.trp.ui.viewmodels.DisciplinesScreenViewModel
 
 @Suppress("UNCHECKED_CAST")
 @Composable
 fun DisciplinesScreen(onDisciplineClick: (index: Int) -> Unit) {
-    val viewModel = viewModel<DisciplineScreenViewModel>(
+    val viewModel = viewModel<DisciplinesScreenViewModel>(
         factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return DisciplineScreenViewModel(onDisciplineClick) as T
+                return DisciplinesScreenViewModel(onDisciplineClick) as T
             }
         }
     )
@@ -34,9 +34,9 @@ fun DisciplinesScreen(onDisciplineClick: (index: Int) -> Unit) {
 }
 
 @Composable
-fun Disciplines(viewModel: DisciplineScreenViewModel) {
+fun Disciplines(viewModel: DisciplinesScreenViewModel) {
     LazyColumn {
-        items(viewModel.disciplinesData.size) { index ->
+        items(viewModel.disciplines.size) { index ->
             Discipline(
                 viewModel = viewModel,
                 index = index
@@ -48,7 +48,7 @@ fun Disciplines(viewModel: DisciplineScreenViewModel) {
 
 @Composable
 fun Discipline(
-    viewModel: DisciplineScreenViewModel,
+    viewModel: DisciplinesScreenViewModel,
     index: Int
 ) {
     Card(

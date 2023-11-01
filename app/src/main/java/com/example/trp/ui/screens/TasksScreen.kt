@@ -45,10 +45,8 @@ fun Tasks(
     viewModel: TasksScreenViewModel
 ) {
     LazyColumn {
-        viewModel.tasks?.data?.let {
-            items(count = it.size) { index ->
-                Task(viewModel = viewModel, index = index)
-            }
+        items(count = viewModel.tasks.size) { index ->
+            Task(viewModel = viewModel, index = index)
         }
         item { Spacer(modifier = Modifier.size(100.dp)) }
     }

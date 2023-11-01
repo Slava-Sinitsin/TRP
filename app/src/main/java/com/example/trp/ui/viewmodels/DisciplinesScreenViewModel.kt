@@ -1,28 +1,31 @@
 package com.example.trp.ui.viewmodels
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.trp.data.datamanagers.DisciplinesDataManager
 import com.example.trp.data.disciplines.DisciplineData
+import com.example.trp.repository.UserAPIRepositoryImpl
 import kotlinx.coroutines.launch
 
-class DisciplineScreenViewModel(
+class DisciplinesScreenViewModel(
     var onDisciplineClick: (id: Int) -> Unit
 ) : ViewModel() {
+    private val repository = UserAPIRepositoryImpl()
 
-    lateinit var disciplinesData: List<DisciplineData>
+    var disciplines by mutableStateOf(repository.disciplines)
         private set
 
     init {
         viewModelScope.launch {
-            DisciplinesDataManager.getDisciplines().collect {
-                disciplinesData = it.list ?: emptyList()
-            }
+            repository.disciplinesChanged = false
+            disciplines = repository.getDisciplines()
         }
     }
 
     fun getDiscipline(index: Int): DisciplineData {
-        return disciplinesData[index]
+        return disciplines[index]
     }
 
     fun navigateToTasks(index: Int) {

@@ -5,15 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.trp.data.datamanagers.DisciplinesDataManager
-import com.example.trp.data.datamanagers.UserDataManager
-import com.example.trp.data.disciplines.Disciplines
-import com.example.trp.data.network.ApiService
-import com.example.trp.data.user.AuthRequest
 import com.example.trp.repository.UserAPIRepositoryImpl
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import retrofit2.Response
 import java.net.ConnectException
 import java.net.SocketTimeoutException
 
@@ -26,7 +19,7 @@ class AuthScreenViewModel : ViewModel() {
         private set
     var isLogged by mutableStateOf(false)
         private set
-    var message by mutableStateOf("")
+    var message by mutableStateOf(repository.user.message.toString())
         private set
     var messageVisibility by mutableStateOf(false)
         private set
@@ -35,10 +28,8 @@ class AuthScreenViewModel : ViewModel() {
 
     init {
         viewModelScope.launch {
-            UserDataManager.getUser().collect {
-                logValue = it.login ?: "android_student"
-                passValue = it.password ?: "rebustubus"
-            }
+            logValue = repository.user.login ?: "android_student"
+            passValue = repository.user.password ?: "rebustubus"
         }
     }
 
@@ -70,9 +61,11 @@ class AuthScreenViewModel : ViewModel() {
         messageVisibility = false
         viewModelScope.launch {
             try {
-                repository.getUser(AuthRequest(logValue, passValue)).let { user ->
+                repository.login(logValue, passValue).let { user ->
                     if (user.message == "OK") {
-                        getDisciplines()
+                        repository.addUserInformation()
+                        repository.disciplinesChanged = true
+                        repository.getDisciplines()
                         loggedChange(true)
                     } else {
                         messageChange(user.message!!)
@@ -82,17 +75,6 @@ class AuthScreenViewModel : ViewModel() {
                 messageChange("Timeout")
             } catch (e: ConnectException) {
                 messageChange("Check internet connection")
-            }
-        }
-    }
-
-    private fun getDisciplines() {
-        viewModelScope.launch {
-            val user = UserDataManager.getUser().first()
-            val response: Response<Disciplines> =
-                ApiService.userAPI.getDisciplines("Bearer " + user.token)
-            response.body()?.let { Disciplines(it.list) }?.let {
-                DisciplinesDataManager.saveDisciplines(it)
             }
         }
     }

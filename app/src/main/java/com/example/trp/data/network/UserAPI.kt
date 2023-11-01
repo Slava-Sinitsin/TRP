@@ -2,7 +2,7 @@ package com.example.trp.data.network
 
 import com.example.trp.data.disciplines.DisciplineResponse
 import com.example.trp.data.disciplines.Disciplines
-import com.example.trp.data.tasks.TaskDesc
+import com.example.trp.data.tasks.TaskResponse
 import com.example.trp.data.tasks.Tasks
 import com.example.trp.data.user.AuthRequest
 import com.example.trp.data.user.User
@@ -18,19 +18,19 @@ interface UserAPI {
     suspend fun getUserResponse(@Body authRequest: AuthRequest): Response<User>
 
     @GET("api/v2/disciplines")
-    suspend fun getDisciplines(@Header("Authorization") token: String): Response<Disciplines>
+    suspend fun getDisciplinesResponse(@Header("Authorization") token: String): Response<Disciplines>
 
     @GET("/api/v2/disciplines/{id}/tasks")
-    suspend fun getTasks(
+    suspend fun getTasksResponse(
         @Header("Authorization") token: String,
         @Path("id") id: Int
     ): Response<Tasks>
 
     @GET("api/v2/tasks/{id}")
-    suspend fun getTaskDesc(
+    suspend fun getTaskDescriptionResponse(
         @Header("Authorization") token: String,
         @Path("id") id: Int
-    ): Response<TaskDesc>
+    ): Response<TaskResponse>
 
     @GET("api/v2/disciplines/{id}")
     suspend fun getDisciplineByID(

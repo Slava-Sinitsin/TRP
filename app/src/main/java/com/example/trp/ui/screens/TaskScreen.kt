@@ -66,7 +66,7 @@ fun TaskCenterAlignedTopAppBar(
         ),
         title = {
             Text(
-                text = "${viewModel.taskDisciplineData.name ?: ""} ${viewModel.task.taskDesc?.title ?: ""}",
+                text = "${viewModel.taskDisciplineData.name ?: ""} ${viewModel.task.title ?: ""}",
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 fontSize = 20.sp

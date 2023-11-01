@@ -5,5 +5,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Disciplines(
-    @SerializedName("data") val list: List<DisciplineData>? = null
+    @SerializedName("data") var list: List<DisciplineData>? = null
 )

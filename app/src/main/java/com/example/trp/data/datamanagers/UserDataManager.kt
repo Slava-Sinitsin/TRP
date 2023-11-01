@@ -6,6 +6,7 @@ import androidx.datastore.core.Serializer
 import androidx.datastore.dataStore
 import com.example.trp.data.user.User
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
@@ -50,7 +51,7 @@ object UserDataManager {
         }
     }
 
-    fun getUser() = context.userDataStore.data
+    suspend fun getUser() = context.userDataStore.data.first()
 
     suspend fun updateUser(user: User) {
         context.userDataStore.updateData { user }
