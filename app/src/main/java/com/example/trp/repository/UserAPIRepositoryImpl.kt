@@ -13,6 +13,9 @@ import com.example.trp.data.network.UserAPI
 import com.example.trp.data.tasks.Task
 import com.example.trp.data.tasks.TaskResponse
 import com.example.trp.data.tasks.Tasks
+import com.example.trp.data.tasks.solution.GetSolutionResponse
+import com.example.trp.data.tasks.solution.PostSolutionResponse
+import com.example.trp.data.tasks.solution.Solution
 import com.example.trp.data.user.AuthRequest
 import com.example.trp.data.user.JWTDecoder
 import com.example.trp.data.user.User
@@ -36,6 +39,8 @@ class UserAPIRepositoryImpl : UserAPI {
 
     var taskDisciplineData by mutableStateOf(DisciplineData())
 
+    var taskSolution by mutableStateOf(Solution())
+
     override suspend fun getUserResponse(authRequest: AuthRequest): Response<User> {
         return ApiService.userAPI.getUserResponse(authRequest)
     }
@@ -57,6 +62,21 @@ class UserAPIRepositoryImpl : UserAPI {
 
     override suspend fun getDisciplineByID(token: String, id: Int): Response<DisciplineResponse> {
         return ApiService.userAPI.getDisciplineByID("Bearer $token", id)
+    }
+
+    override suspend fun getTaskSolution(
+        token: String,
+        taskId: Int
+    ): Response<GetSolutionResponse> {
+        return ApiService.userAPI.getTaskSolution("Bearer $token", taskId)
+    }
+
+    override suspend fun postTaskSolution(
+        token: String,
+        taskId: Int,
+        code: String
+    ): Response<PostSolutionResponse> {
+        return ApiService.userAPI.postTaskSolution("Bearer $token", taskId, code)
     }
 
     suspend fun login(login: String, password: String): User {
@@ -144,18 +164,34 @@ class UserAPIRepositoryImpl : UserAPI {
                 UserDataManager.getUser().token?.let { getTaskDescriptionResponse(it, taskId) }
             taskResponse?.body()?.let {
                 task = it.task ?: Task()
+                if (task != Task()) {
+                    taskDisciplineData = getTaskDisciplineData()
+                    taskSolution = getTaskSolution()
+                }
             } ?: taskResponse?.errorBody()?.let {
                 task = Task()
             }
-            val disciplineDataResponse = UserDataManager.getUser().token?.let {
-                getDisciplineByID(it, task.disciplineId ?: -1)
-            }
-            disciplineDataResponse?.body()?.let {
-                taskDisciplineData = it.disciplineData ?: DisciplineData()
-            } ?: taskResponse?.errorBody()?.let {
-                taskDisciplineData = DisciplineData()
-            }
         }
         return task
+    }
+
+    private suspend fun getTaskDisciplineData(): DisciplineData {
+        val disciplineDataResponse = UserDataManager.getUser().token?.let { token ->
+            task.disciplineId?.let { disciplineId -> getDisciplineByID(token, disciplineId) }
+        }
+        return disciplineDataResponse?.body()?.disciplineData ?: DisciplineData()
+    }
+
+    private suspend fun getTaskSolution(): Solution {
+        val solutionResponse = UserDataManager.getUser().token?.let { token ->
+            task.id?.let { taskId -> getTaskSolution(token, taskId) }
+        }
+        return solutionResponse?.body()?.data ?: Solution()
+    }
+
+    suspend fun postTaskSolution(solutionText: String) {
+        UserDataManager.getUser().token?.let { token ->
+            task.id?.let { taskId -> postTaskSolution(token, taskId, solutionText) }
+        }
     }
 }

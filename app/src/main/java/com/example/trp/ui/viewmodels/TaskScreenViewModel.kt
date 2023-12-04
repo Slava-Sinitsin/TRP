@@ -14,21 +14,33 @@ class TaskScreenViewModel(
     private val repository = UserAPIRepositoryImpl()
 
     var task by mutableStateOf(repository.task)
-    var taskDisciplineData by mutableStateOf(repository.taskDisciplineData)
-    var taskText by mutableStateOf("")
+    var disciplineName by mutableStateOf("")
+    var solutionText by mutableStateOf("")
+    var outputText by mutableStateOf("")
 
     init {
         viewModelScope.launch {
             task = repository.getTask(taskId)
-            taskDisciplineData = repository.taskDisciplineData
+            disciplineName = repository.taskDisciplineData.name ?: ""
+            solutionText = repository.taskSolution.code ?: ""
         }
     }
 
     fun updateTaskText(newTaskText: String) {
-        taskText = newTaskText
+        solutionText = newTaskText
+    }
+
+    fun onSaveCodeButtonClick() {
+        viewModelScope.launch {
+            solutionText.let { repository.postTaskSolution(it) }
+        }
     }
 
     fun onRunCodeButtonClick() {
         // TODO
+    }
+
+    fun updateOutputText(newOutputText: String) {
+        outputText = newOutputText
     }
 }

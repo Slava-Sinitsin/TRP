@@ -4,6 +4,8 @@ import com.example.trp.data.disciplines.DisciplineResponse
 import com.example.trp.data.disciplines.Disciplines
 import com.example.trp.data.tasks.TaskResponse
 import com.example.trp.data.tasks.Tasks
+import com.example.trp.data.tasks.solution.GetSolutionResponse
+import com.example.trp.data.tasks.solution.PostSolutionResponse
 import com.example.trp.data.user.AuthRequest
 import com.example.trp.data.user.User
 import retrofit2.Response
@@ -37,4 +39,17 @@ interface UserAPI {
         @Header("Authorization") token: String,
         @Path("id") id: Int
     ): Response<DisciplineResponse>
+
+    @GET("api/v2/tasks/{id}/solution")
+    suspend fun getTaskSolution(
+        @Header("Authorization") token: String,
+        @Path("id") taskId: Int
+    ): Response<GetSolutionResponse>
+
+    @POST("api/v2/tasks/{id}/solution")
+    suspend fun postTaskSolution(
+        @Header("Authorization") token: String,
+        @Path("id") taskId: Int,
+        @Body code: String
+    ): Response<PostSolutionResponse>
 }
