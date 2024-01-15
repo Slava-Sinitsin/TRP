@@ -4,7 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import androidx.datastore.core.Serializer
 import androidx.datastore.dataStore
-import com.example.trp.data.user.User
+import com.example.trp.data.mappers.user.User
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext

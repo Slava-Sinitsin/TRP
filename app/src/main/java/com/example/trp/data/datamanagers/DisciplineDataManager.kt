@@ -4,7 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import androidx.datastore.core.Serializer
 import androidx.datastore.dataStore
-import com.example.trp.data.disciplines.Disciplines
+import com.example.trp.data.mappers.disciplines.Disciplines
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -23,27 +23,27 @@ object DisciplinesDataManager {
         DisciplinesDataManager.context = context
     }
 
-    object DisciplinesSerializer : Serializer<Disciplines> {
-        override val defaultValue: Disciplines
-            get() = Disciplines()
+    object DisciplinesSerializer : Serializer<com.example.trp.data.mappers.disciplines.Disciplines> {
+        override val defaultValue: com.example.trp.data.mappers.disciplines.Disciplines
+            get() = com.example.trp.data.mappers.disciplines.Disciplines()
 
-        override suspend fun readFrom(input: InputStream): Disciplines {
+        override suspend fun readFrom(input: InputStream): com.example.trp.data.mappers.disciplines.Disciplines {
             return try {
                 Json.decodeFromString(
-                    deserializer = Disciplines.serializer(),
+                    deserializer = com.example.trp.data.mappers.disciplines.Disciplines.serializer(),
                     string = input.readBytes().decodeToString()
                 )
             } catch (e: SerializationException) {
                 e.printStackTrace()
-                Disciplines()
+                com.example.trp.data.mappers.disciplines.Disciplines()
             }
         }
 
-        override suspend fun writeTo(t: Disciplines, output: OutputStream) {
+        override suspend fun writeTo(t: com.example.trp.data.mappers.disciplines.Disciplines, output: OutputStream) {
             withContext(Dispatchers.IO) {
                 output.write(
                     Json.encodeToString(
-                        serializer = Disciplines.serializer(),
+                        serializer = com.example.trp.data.mappers.disciplines.Disciplines.serializer(),
                         value = t
                     ).encodeToByteArray()
                 )
@@ -53,7 +53,7 @@ object DisciplinesDataManager {
 
     suspend fun getDisciplines() = context.disciplinesDataStore.data.first().list
 
-    suspend fun saveDisciplines(disciplines: Disciplines) {
+    suspend fun saveDisciplines(disciplines: com.example.trp.data.mappers.disciplines.Disciplines) {
         context.disciplinesDataStore.updateData { disciplines }
     }
 }

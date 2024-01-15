@@ -11,7 +11,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.rememberNavController
 import com.example.trp.data.datamanagers.DisciplinesDataManager
 import com.example.trp.data.datamanagers.UserDataManager
-import com.example.trp.navigation.graphs.RootNavGraph
+import com.example.trp.navigation.graphs.common.RootNavGraph
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.theme.TRPThemeDefaultSettings
 
