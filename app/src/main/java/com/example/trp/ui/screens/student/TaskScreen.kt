@@ -48,6 +48,7 @@ fun TaskScreen(taskId: Int) {
             }
         }
     )
+
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -131,7 +132,7 @@ fun TaskText(
                 .fillMaxWidth()
                 .height(400.dp)
                 .horizontalScroll(rememberScrollState()),
-            value = viewModel.solutionText,
+            value = viewModel.solutionTextFieldValue,
             onValueChange = { viewModel.updateTaskText(it) },
             shape = RoundedCornerShape(8.dp),
             colors = TextFieldDefaults.textFieldColors(

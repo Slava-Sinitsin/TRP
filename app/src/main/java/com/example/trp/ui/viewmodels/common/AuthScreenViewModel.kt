@@ -31,7 +31,7 @@ class AuthScreenViewModel : ViewModel() {
 
     init {
         viewModelScope.launch {
-            logValue = repository.user.login ?: "android_teacher"
+            logValue = repository.user.login ?: "android_student"
             passValue = repository.user.password ?: "rebustubus"
         }
     }
