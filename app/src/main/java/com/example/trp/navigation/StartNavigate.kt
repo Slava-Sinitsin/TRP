@@ -14,7 +14,9 @@ import com.example.trp.data.datamanagers.UserDataManager
 import com.example.trp.navigation.graphs.common.RootNavGraph
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.theme.TRPThemeDefaultSettings
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class StartNavigate : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
