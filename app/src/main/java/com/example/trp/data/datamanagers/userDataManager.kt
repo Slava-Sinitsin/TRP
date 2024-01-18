@@ -1,6 +1,5 @@
 package com.example.trp.data.datamanagers
 
-import android.annotation.SuppressLint
 import android.content.Context
 import androidx.datastore.core.Serializer
 import androidx.datastore.dataStore
@@ -13,15 +12,8 @@ import kotlinx.serialization.json.Json
 import java.io.InputStream
 import java.io.OutputStream
 
-@SuppressLint("StaticFieldLeak")
-object UserDataManager {
+class UserDataManager(var context: Context) {
     private val Context.userDataStore by dataStore("User.json", UserSerializer)
-
-    private lateinit var context: Context
-
-    fun initialize(context: Context) {
-        UserDataManager.context = context
-    }
 
     object UserSerializer : Serializer<User> {
         override val defaultValue: User

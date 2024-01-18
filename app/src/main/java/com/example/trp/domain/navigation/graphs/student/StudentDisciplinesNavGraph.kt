@@ -1,4 +1,4 @@
-package com.example.trp.navigation.graphs.student
+package com.example.trp.domain.navigation.graphs.student
 
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -6,7 +6,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
-import com.example.trp.navigation.graphs.common.Graph
+import com.example.trp.domain.navigation.graphs.common.Graph
 import com.example.trp.ui.screens.student.TaskScreen
 import com.example.trp.ui.screens.student.TasksScreen
 
@@ -24,7 +24,7 @@ fun NavGraphBuilder.tasksNavGraph(navController: NavHostController) {
             disciplineId?.let { id ->
                 TasksScreen(
                     disciplineId = id,
-                    onGroupClick = { taskId ->
+                    onTaskClick = { taskId ->
                         navController.navigate("${TasksScreen.TaskInfo.route}/$taskId")
                     }
                 )

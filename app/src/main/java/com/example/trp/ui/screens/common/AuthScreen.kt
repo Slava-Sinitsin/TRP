@@ -44,24 +44,15 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.common.AuthScreenViewModel
 
 @Composable
-@Suppress("UNCHECKED_CAST")
 fun LoginScreen(
     onLoginClick: (destination: String) -> Unit
 ) {
-    val viewModel = viewModel<AuthScreenViewModel>(
-        factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return AuthScreenViewModel() as T
-            }
-        }
-    )
+    val viewModel: AuthScreenViewModel = hiltViewModel()
     LaunchedEffect(viewModel.isLogged) {
         if (viewModel.isLogged) {
             onLoginClick(viewModel.destination)

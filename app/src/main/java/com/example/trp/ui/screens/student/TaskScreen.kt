@@ -1,5 +1,6 @@
 package com.example.trp.ui.screens.student
 
+import android.app.Activity
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -28,25 +29,28 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.trp.domain.di.ViewModelFactoryProvider
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.student.TaskScreenViewModel
+import dagger.hilt.android.EntryPointAccessors
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Suppress("UNCHECKED_CAST")
 @Composable
 fun TaskScreen(taskId: Int) {
-    val viewModel = viewModel<TaskScreenViewModel>(
-        factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return TaskScreenViewModel(taskId = taskId) as T
-            }
-        }
+    val factory = EntryPointAccessors.fromActivity(
+        LocalContext.current as Activity,
+        ViewModelFactoryProvider::class.java
+    ).taskScreenViewModelFactory()
+    val viewModel: TaskScreenViewModel = viewModel(
+        factory = TaskScreenViewModel.provideTaskScreenViewModel(
+            factory,
+            taskId
+        )
     )
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())

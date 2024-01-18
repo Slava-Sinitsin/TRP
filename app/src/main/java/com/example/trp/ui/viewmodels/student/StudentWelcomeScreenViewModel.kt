@@ -4,29 +4,49 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
-import com.example.trp.repository.UserAPIRepositoryImpl
+import com.example.trp.domain.repository.UserAPIRepositoryImpl
 import com.example.trp.ui.screens.student.StudentBottomBarScreen
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
 
-class StudentWelcomeScreenViewModel(
-    navController: NavHostController
+class StudentWelcomeScreenViewModel @AssistedInject constructor(
+    val repository: UserAPIRepositoryImpl,
+    @Assisted
+    val navController: NavHostController
 ) : ViewModel() {
-    private val repository = UserAPIRepositoryImpl()
-
     private var user by mutableStateOf(repository.user)
+
+    @AssistedFactory
+    interface Factory {
+        fun create(navController: NavHostController): StudentWelcomeScreenViewModel
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    companion object {
+        fun provideStudentWelcomeScreenViewModel(
+            factory: Factory,
+            navController: NavHostController
+        ): ViewModelProvider.Factory {
+            return object : ViewModelProvider.Factory {
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                    return factory.create(navController) as T
+                }
+            }
+        }
+    }
 
     init {
         viewModelScope.launch {
             user = repository.getUser()
         }
     }
-
-    var navController = navController
-        private set
 
     val screens = listOf(
         StudentBottomBarScreen.StudentDisciplines,

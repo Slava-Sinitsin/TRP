@@ -5,15 +5,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.trp.navigation.graphs.common.Graph
-import com.example.trp.repository.UserAPIRepositoryImpl
+import com.example.trp.domain.navigation.graphs.common.Graph
+import com.example.trp.domain.repository.UserAPIRepositoryImpl
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.net.ConnectException
 import java.net.SocketTimeoutException
+import javax.inject.Inject
 
-class AuthScreenViewModel : ViewModel() {
-    private val repository = UserAPIRepositoryImpl()
-
+@HiltViewModel
+class AuthScreenViewModel @Inject constructor(val repository: UserAPIRepositoryImpl) : ViewModel() {
     var logValue by mutableStateOf("")
         private set
     var passValue by mutableStateOf("")
@@ -31,7 +32,7 @@ class AuthScreenViewModel : ViewModel() {
 
     init {
         viewModelScope.launch {
-            logValue = repository.user.login ?: "android_student"
+            logValue = repository.user.login ?: "android_teacher"
             passValue = repository.user.password ?: "rebustubus"
         }
     }

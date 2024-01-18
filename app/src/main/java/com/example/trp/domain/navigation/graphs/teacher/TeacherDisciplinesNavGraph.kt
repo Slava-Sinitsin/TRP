@@ -1,4 +1,4 @@
-package com.example.trp.navigation.graphs.teacher
+package com.example.trp.domain.navigation.graphs.teacher
 
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -6,7 +6,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
-import com.example.trp.navigation.graphs.common.Graph
+import com.example.trp.domain.navigation.graphs.common.Graph
 import com.example.trp.ui.screens.teacher.GroupsScreen
 import com.example.trp.ui.screens.teacher.StudentsScreen
 

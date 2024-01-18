@@ -1,5 +1,6 @@
 package com.example.trp.ui.screens.student
 
+import android.app.Activity
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -12,31 +13,33 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.trp.domain.di.ViewModelFactoryProvider
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.student.TasksScreenViewModel
+import dagger.hilt.android.EntryPointAccessors
 
-@Suppress("UNCHECKED_CAST")
 @Composable
 fun TasksScreen(
     disciplineId: Int,
-    onGroupClick: (id: Int) -> Unit,
+    onTaskClick: (id: Int) -> Unit,
 ) {
-    val viewModel = viewModel<TasksScreenViewModel>(
-        factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return TasksScreenViewModel(
-                    disciplineId = disciplineId,
-                    onTaskClick = onGroupClick
-                ) as T
-            }
-        }
+    val factory = EntryPointAccessors.fromActivity(
+        LocalContext.current as Activity,
+        ViewModelFactoryProvider::class.java
+    ).tasksScreenViewModelFactory()
+    val viewModel: TasksScreenViewModel = viewModel(
+        factory = TasksScreenViewModel.provideTasksScreenViewModel(
+            factory,
+            disciplineId,
+            onTaskClick
+        )
     )
+
     Tasks(
         viewModel = viewModel
     )

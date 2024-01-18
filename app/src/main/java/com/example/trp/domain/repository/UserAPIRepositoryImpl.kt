@@ -1,4 +1,4 @@
-package com.example.trp.repository
+package com.example.trp.domain.repository
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,7 +28,7 @@ import kotlinx.serialization.json.Json
 import org.json.JSONObject
 import retrofit2.Response
 
-class UserAPIRepositoryImpl : UserAPI {
+class UserAPIRepositoryImpl(private val userDataManager: UserDataManager) : UserAPI {
     var user by mutableStateOf(User())
     private var userChanged by mutableStateOf(true)
 
@@ -107,7 +107,7 @@ class UserAPIRepositoryImpl : UserAPI {
                 )
             )
             response.body()?.let {
-                UserDataManager.updateUser(
+                userDataManager.updateUser(
                     it.copy(
                         login = login,
                         password = password
@@ -116,27 +116,27 @@ class UserAPIRepositoryImpl : UserAPI {
                 userChanged = false
             } ?: run {
                 response.errorBody()?.let { errorBody ->
-                    UserDataManager.updateUser(
+                    userDataManager.updateUser(
                         user.copy(message = JSONObject(errorBody.string()).getString("error"))
                     )
                 } ?: run {
-                    UserDataManager.updateUser(user.copy(message = "Bad response"))
+                    userDataManager.updateUser(user.copy(message = "Bad response"))
                 }
             }
         }
-        user = UserDataManager.getUser()
+        user = userDataManager.getUser()
         return user
     }
 
     suspend fun getUser(): User {
-        user = UserDataManager.getUser()
+        user = userDataManager.getUser()
         return user
     }
 
     suspend fun addUserInformation() {
         val updatedUser = parseToken(user.token.toString())
-        UserDataManager.updateUser(updatedUser)
-        user = UserDataManager.getUser()
+        userDataManager.updateUser(updatedUser)
+        user = userDataManager.getUser()
     }
 
     private fun parseToken(token: String): User {
@@ -156,7 +156,7 @@ class UserAPIRepositoryImpl : UserAPI {
 
     suspend fun getDisciplines(): List<DisciplineData> {
         if (disciplinesChanged) {
-            val response = UserDataManager.getUser().token?.let { getDisciplinesResponse(it) }
+            val response = userDataManager.getUser().token?.let { getDisciplinesResponse(it) }
             response?.body()?.let {
                 DisciplinesDataManager.saveDisciplines(it)
                 disciplinesChanged = false
@@ -171,7 +171,7 @@ class UserAPIRepositoryImpl : UserAPI {
     suspend fun getTasks(disciplineId: Int): List<Task> {
         if (tasksChanged) {
             val response =
-                UserDataManager.getUser().token?.let { getTasksResponse(it, disciplineId) }
+                userDataManager.getUser().token?.let { getTasksResponse(it, disciplineId) }
             response?.body()?.let {
                 tasks = it.data ?: emptyList()
 
@@ -185,7 +185,7 @@ class UserAPIRepositoryImpl : UserAPI {
     suspend fun getTask(taskId: Int): Task {
         if (taskChanged) {
             val taskResponse =
-                UserDataManager.getUser().token?.let { getTaskDescriptionResponse(it, taskId) }
+                userDataManager.getUser().token?.let { getTaskDescriptionResponse(it, taskId) }
             taskResponse?.body()?.let {
                 task = it.task ?: Task()
                 if (task != Task()) {
@@ -200,34 +200,34 @@ class UserAPIRepositoryImpl : UserAPI {
     }
 
     private suspend fun getTaskDisciplineData(): DisciplineData {
-        val disciplineDataResponse = UserDataManager.getUser().token?.let { token ->
+        val disciplineDataResponse = userDataManager.getUser().token?.let { token ->
             task.disciplineId?.let { disciplineId -> getDisciplineByID(token, disciplineId) }
         }
         return disciplineDataResponse?.body()?.disciplineData ?: DisciplineData()
     }
 
     private suspend fun getTaskSolution(): Solution {
-        val solutionResponse = UserDataManager.getUser().token?.let { token ->
+        val solutionResponse = userDataManager.getUser().token?.let { token ->
             task.id?.let { taskId -> getTaskSolution(token, taskId) }
         }
         return solutionResponse?.body()?.data ?: Solution()
     }
 
     suspend fun postTaskSolution(solutionText: String) {
-        UserDataManager.getUser().token?.let { token ->
+        userDataManager.getUser().token?.let { token ->
             task.id?.let { taskId -> postTaskSolution(token, taskId, solutionText) }
         }
     }
 
     suspend fun getTeacherAppointments(): List<TeacherAppointmentsData> {
-        val teacherAppointmentsResponse = UserDataManager.getUser().token?.let { token ->
+        val teacherAppointmentsResponse = userDataManager.getUser().token?.let { token ->
             teacherAppointments(token)
         }
         return teacherAppointmentsResponse?.body()?.data ?: emptyList()
     }
 
     suspend fun getStudents(groupId: Int): List<Student> {
-        val studentsResponse = UserDataManager.getUser().token?.let { token ->
+        val studentsResponse = userDataManager.getUser().token?.let { token ->
             getStudents(token, groupId)
         }
         return studentsResponse?.body()?.data ?: emptyList()
