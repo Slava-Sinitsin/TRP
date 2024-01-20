@@ -1,10 +1,8 @@
 package com.example.trp.domain.repository
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.example.trp.data.datamanagers.DisciplinesDataManager
 import com.example.trp.data.mappers.disciplines.DisciplineData
 import com.example.trp.data.mappers.disciplines.DisciplineResponse
 import com.example.trp.data.mappers.disciplines.Disciplines
@@ -23,14 +21,14 @@ import com.example.trp.data.mappers.user.JWTDecoder
 import com.example.trp.data.mappers.user.User
 import com.example.trp.data.network.ApiService
 import com.example.trp.data.network.UserAPI
-import com.example.trp.data.userdb.UserDB
+import com.example.trp.data.maindb.MainDB
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import org.json.JSONObject
 import retrofit2.Response
 
 class UserAPIRepositoryImpl(
-    val userDB: UserDB
+    val mainDB: MainDB
 ) : UserAPI {
     var user by mutableStateOf(User())
     private var userChanged by mutableStateOf(true)
@@ -102,7 +100,7 @@ class UserAPIRepositoryImpl(
     }
 
     suspend fun getActiveUser(): User {
-        user = userDB.dao.getActiveUser() ?: User()
+        user = mainDB.userDAO.getActiveUser() ?: User()
         return user
     }
 
@@ -142,11 +140,9 @@ class UserAPIRepositoryImpl(
             message = message,
             isActive = true
         )
-        userDB.dao.setAllIsActiveFalse()
-        userDB.dao.insertActiveUser(updatedUser)
-        user = userDB.dao.getActiveUser() ?: User()
-        Log.e("getAllUser", userDB.dao.getAllUser().toString())
-        Log.e("user", user.toString())
+        mainDB.userDAO.setAllIsActiveFalse()
+        mainDB.userDAO.insertActiveUser(updatedUser)
+        user = mainDB.userDAO.getActiveUser() ?: User()
         return user
     }
 
@@ -169,13 +165,15 @@ class UserAPIRepositoryImpl(
         if (disciplinesChanged) {
             val response = user.token?.let { getDisciplinesResponse(it) }
             response?.body()?.let {
-                DisciplinesDataManager.saveDisciplines(it)
+                it.list?.forEach { discipline ->
+                    mainDB.disciplinesDAO.insertDiscipline(discipline)
+                }
                 disciplinesChanged = false
             } ?: response?.errorBody()?.let {
-                DisciplinesDataManager.saveDisciplines(Disciplines())
+                return emptyList()
             }
         }
-        disciplines = DisciplinesDataManager.getDisciplines() ?: emptyList()
+        disciplines = mainDB.disciplinesDAO.getDisciplines() ?: emptyList()
         return disciplines
     }
 

@@ -1,4 +1,4 @@
-package com.example.trp.data.userdb
+package com.example.trp.data.maindb
 
 import androidx.room.Dao
 import androidx.room.Insert
@@ -10,9 +10,6 @@ import com.example.trp.data.mappers.user.User
 interface UserDAO {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertActiveUser(user: User)
-
-    @Query("SELECT * FROM User")
-    suspend fun getAllUser(): List<User>
 
     @Query("SELECT * FROM User WHERE id LIKE :id")
     suspend fun getUser(id: Int): User

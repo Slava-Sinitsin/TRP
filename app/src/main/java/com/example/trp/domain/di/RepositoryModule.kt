@@ -2,7 +2,7 @@ package com.example.trp.domain.di
 
 import android.app.Application
 import androidx.room.Room
-import com.example.trp.data.userdb.UserDB
+import com.example.trp.data.maindb.MainDB
 import com.example.trp.domain.repository.UserAPIRepositoryImpl
 import dagger.Module
 import dagger.Provides
@@ -15,10 +15,10 @@ import javax.inject.Singleton
 object RepositoryModule {
     @Provides
     @Singleton
-    fun provideUserDB(app: Application): UserDB {
+    fun provideUserDB(app: Application): MainDB {
         return Room.databaseBuilder(
             context = app,
-            klass = UserDB::class.java,
+            klass = MainDB::class.java,
             name = "User.db"
         ).build()
     }
@@ -26,8 +26,8 @@ object RepositoryModule {
     @Provides
     @Singleton
     fun provideUserRepository(
-        userDB: UserDB
+        mainDB: MainDB
     ): UserAPIRepositoryImpl {
-        return UserAPIRepositoryImpl(userDB = userDB)
+        return UserAPIRepositoryImpl(mainDB = mainDB)
     }
 }

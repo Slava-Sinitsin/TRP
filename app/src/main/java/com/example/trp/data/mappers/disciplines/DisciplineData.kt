@@ -1,10 +1,12 @@
 package com.example.trp.data.mappers.disciplines
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
-import kotlinx.serialization.Serializable
 
-@Serializable
+@Entity
 data class DisciplineData(
+    @PrimaryKey(autoGenerate = false)
     @SerializedName("id") val id: Int? = null,
     @SerializedName("name") val name: String? = null,
     @SerializedName("year") val year: Int? = null,
