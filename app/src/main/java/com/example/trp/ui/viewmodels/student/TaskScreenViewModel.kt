@@ -87,10 +87,10 @@ class TaskScreenViewModel @AssistedInject constructor(
     }
 
     fun onRunCodeButtonClick() {
-        // TODO
-    }
-
-    fun updateOutputText(newOutputText: String) {
-        outputText = newOutputText
+        viewModelScope.launch {
+            solutionText.let { repository.postTaskSolution(it) }
+            val output = repository.runCode()
+            outputText = output.data ?: output.error ?: "Error"
+        }
     }
 }

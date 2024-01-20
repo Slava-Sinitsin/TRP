@@ -3,9 +3,11 @@ package com.example.trp.domain.repository
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.example.trp.data.maindb.MainDB
 import com.example.trp.data.mappers.disciplines.DisciplineData
 import com.example.trp.data.mappers.disciplines.DisciplineResponse
 import com.example.trp.data.mappers.disciplines.Disciplines
+import com.example.trp.data.mappers.tasks.Output
 import com.example.trp.data.mappers.tasks.Student
 import com.example.trp.data.mappers.tasks.Students
 import com.example.trp.data.mappers.tasks.Task
@@ -21,7 +23,6 @@ import com.example.trp.data.mappers.user.JWTDecoder
 import com.example.trp.data.mappers.user.User
 import com.example.trp.data.network.ApiService
 import com.example.trp.data.network.UserAPI
-import com.example.trp.data.maindb.MainDB
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import org.json.JSONObject
@@ -97,6 +98,13 @@ class UserAPIRepositoryImpl(
         id: Int
     ): Response<Students> {
         return ApiService.userAPI.getStudents("Bearer $token", id)
+    }
+
+    override suspend fun runCode(
+        token: String,
+        taskId: Int,
+    ): Response<Output> {
+        return ApiService.userAPI.runCode("Bearer $token", taskId)
     }
 
     suspend fun getActiveUser(): User {
@@ -216,16 +224,28 @@ class UserAPIRepositoryImpl(
     }
 
     private suspend fun getTaskSolution(): Solution {
-        val solutionResponse = user.token?.let { token ->
+        return user.token?.let { token ->
             task.id?.let { taskId -> getTaskSolution(token, taskId) }
-        }
-        return solutionResponse?.body()?.data ?: Solution()
+        }?.body()?.data ?: Solution()
     }
 
     suspend fun postTaskSolution(solutionText: String) {
         user.token?.let { token ->
             task.id?.let { taskId -> postTaskSolution(token, taskId, solutionText) }
         }
+    }
+
+    suspend fun runCode(): Output {
+        val response =
+            user.token?.let { token -> task.id?.let { taskId -> runCode(token, taskId) } }
+        return response?.body() ?: response?.errorBody()?.let {
+            val errorBody = it.string()
+            Output().copy(
+                status = JSONObject(errorBody).getInt("status"),
+                message = JSONObject(errorBody).getString("message"),
+                error = JSONObject(errorBody).getString("error")
+            )
+        } ?: Output()
     }
 
     suspend fun getTeacherAppointments(): List<TeacherAppointmentsData> {

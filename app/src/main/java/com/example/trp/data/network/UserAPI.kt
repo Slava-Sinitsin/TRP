@@ -1,5 +1,13 @@
 package com.example.trp.data.network
 
+import com.example.trp.data.mappers.disciplines.DisciplineResponse
+import com.example.trp.data.mappers.tasks.Output
+import com.example.trp.data.mappers.tasks.Students
+import com.example.trp.data.mappers.tasks.TaskResponse
+import com.example.trp.data.mappers.tasks.Tasks
+import com.example.trp.data.mappers.tasks.solution.GetSolutionResponse
+import com.example.trp.data.mappers.tasks.solution.PostSolutionResponse
+import com.example.trp.data.mappers.teacherappointments.TeacherAppointmentsResponse
 import com.example.trp.data.mappers.user.User
 import retrofit2.Response
 import retrofit2.http.Body
@@ -19,41 +27,47 @@ interface UserAPI {
     suspend fun getTasksResponse(
         @Header("Authorization") token: String,
         @Path("id") id: Int
-    ): Response<com.example.trp.data.mappers.tasks.Tasks>
+    ): Response<Tasks>
 
     @GET("api/v2/tasks/{id}")
     suspend fun getTaskDescriptionResponse(
         @Header("Authorization") token: String,
         @Path("id") id: Int
-    ): Response<com.example.trp.data.mappers.tasks.TaskResponse>
+    ): Response<TaskResponse>
 
     @GET("api/v2/disciplines/{id}")
     suspend fun getDisciplineByID(
         @Header("Authorization") token: String,
         @Path("id") id: Int
-    ): Response<com.example.trp.data.mappers.disciplines.DisciplineResponse>
+    ): Response<DisciplineResponse>
 
     @GET("api/v2/tasks/{id}/solution")
     suspend fun getTaskSolution(
         @Header("Authorization") token: String,
         @Path("id") taskId: Int
-    ): Response<com.example.trp.data.mappers.tasks.solution.GetSolutionResponse>
+    ): Response<GetSolutionResponse>
 
     @POST("api/v2/tasks/{id}/solution")
     suspend fun postTaskSolution(
         @Header("Authorization") token: String,
         @Path("id") taskId: Int,
         @Body code: String
-    ): Response<com.example.trp.data.mappers.tasks.solution.PostSolutionResponse>
+    ): Response<PostSolutionResponse>
 
     @GET("api/v2/teacher-appointments/all")
     suspend fun teacherAppointments(
         @Header("Authorization") token: String,
-    ): Response<com.example.trp.data.mappers.teacherappointments.TeacherAppointmentsResponse>
+    ): Response<TeacherAppointmentsResponse>
 
     @GET("api/v2/groups/{id}/students")
     suspend fun getStudents(
         @Header("Authorization") token: String,
         @Path("id") id: Int
-    ): Response<com.example.trp.data.mappers.tasks.Students>
+    ): Response<Students>
+
+    @POST("api/v2/tasks/{taskId}/solution/execute/student")
+    suspend fun runCode(
+        @Header("Authorization") token: String,
+        @Path("taskId") taskId: Int
+    ): Response<Output>
 }

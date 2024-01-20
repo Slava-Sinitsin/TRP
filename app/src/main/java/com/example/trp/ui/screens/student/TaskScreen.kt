@@ -175,7 +175,7 @@ fun OutputText(
                 .height(100.dp)
                 .horizontalScroll(rememberScrollState()),
             value = viewModel.outputText,
-            onValueChange = { viewModel.updateOutputText(it) },
+            onValueChange = { },
             shape = RoundedCornerShape(8.dp),
             colors = TextFieldDefaults.textFieldColors(
                 containerColor = TRPTheme.colors.secondaryBackground,
