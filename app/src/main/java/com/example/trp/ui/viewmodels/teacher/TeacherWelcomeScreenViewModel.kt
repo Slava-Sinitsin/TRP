@@ -45,7 +45,7 @@ class TeacherWelcomeScreenViewModel @AssistedInject constructor(
 
     init {
         viewModelScope.launch {
-            user = repository.getUser()
+            user = repository.user
         }
     }
 

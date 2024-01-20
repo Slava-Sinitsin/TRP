@@ -32,8 +32,8 @@ class AuthScreenViewModel @Inject constructor(val repository: UserAPIRepositoryI
 
     init {
         viewModelScope.launch {
-            logValue = repository.user.login ?: "android_teacher"
-            passValue = repository.user.password ?: "rebustubus"
+            logValue = repository.getActiveUser().login ?: "android_student"
+            passValue = repository.getActiveUser().password ?: "rebustubus"
         }
     }
 
@@ -52,11 +52,11 @@ class AuthScreenViewModel @Inject constructor(val repository: UserAPIRepositoryI
     }
 
     @Suppress("SameParameterValue")
-    private suspend fun loggedChange(newIsLogged: Boolean) {
-        if (repository.getUser().role == "ROLE_STUDENT") {
+    private fun loggedChange(newIsLogged: Boolean) {
+        if (repository.user.role == "ROLE_STUDENT") {
             destination = Graph.STUDENT_WELCOME
             isLogged = newIsLogged
-        } else if (repository.getUser().role == "ROLE_TEACHER") {
+        } else if (repository.user.role == "ROLE_TEACHER") {
             destination = Graph.TEACHER_WELCOME
             isLogged = newIsLogged
         }
@@ -73,12 +73,11 @@ class AuthScreenViewModel @Inject constructor(val repository: UserAPIRepositoryI
             try {
                 repository.login(logValue, passValue).let { user ->
                     if (user.message == "OK") {
-                        repository.addUserInformation()
                         repository.disciplinesChanged = true
                         repository.getDisciplines()
                         loggedChange(true)
                     } else {
-                        messageChange(user.message!!)
+                        user.message?.let { messageChange(it) }
                     }
                 }
             } catch (e: SocketTimeoutException) {

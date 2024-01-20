@@ -1,12 +1,12 @@
 package com.example.trp.domain.di
 
-import android.content.Context
-import com.example.trp.data.datamanagers.UserDataManager
+import android.app.Application
+import androidx.room.Room
+import com.example.trp.data.userdb.UserDB
 import com.example.trp.domain.repository.UserAPIRepositoryImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -15,13 +15,19 @@ import javax.inject.Singleton
 object RepositoryModule {
     @Provides
     @Singleton
-    fun provideUserDataManager(@ApplicationContext context: Context): UserDataManager {
-        return UserDataManager(context = context)
+    fun provideUserDB(app: Application): UserDB {
+        return Room.databaseBuilder(
+            context = app,
+            klass = UserDB::class.java,
+            name = "User.db"
+        ).build()
     }
 
     @Provides
     @Singleton
-    fun provideUserRepository(userDataManager: UserDataManager): UserAPIRepositoryImpl {
-        return UserAPIRepositoryImpl(userDataManager = userDataManager)
+    fun provideUserRepository(
+        userDB: UserDB
+    ): UserAPIRepositoryImpl {
+        return UserAPIRepositoryImpl(userDB = userDB)
     }
 }
