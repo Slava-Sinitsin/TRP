@@ -7,25 +7,25 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class TeacherBottomBarScreen(
-    val route: String,
     val title: String,
-    val icon: ImageVector
+    val icon: ImageVector,
+    val route: String,
 ) {
     object TeacherDisciplines : TeacherBottomBarScreen(
-        route = "checklist",
         title = "Checklist",
-        icon = Icons.Filled.Checklist
+        icon = Icons.Filled.Checklist,
+        route = "checklist",
     )
 
     object Home : TeacherBottomBarScreen(
-        route = "home",
         title = "Home",
-        icon = Icons.Filled.Home
+        icon = Icons.Filled.Home,
+        route = "home"
     )
 
     object Me : TeacherBottomBarScreen(
-        route = "me",
         title = "Me",
-        icon = Icons.Filled.Person
+        icon = Icons.Filled.Person,
+        route = "me",
     )
 }

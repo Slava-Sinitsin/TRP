@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.trp.data.mappers.tasks.Task
 import com.example.trp.domain.repository.UserAPIRepositoryImpl
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -48,7 +49,7 @@ class TasksScreenViewModel @AssistedInject constructor(
         }
     }
 
-    fun getTask(index: Int): com.example.trp.data.mappers.tasks.Task {
+    fun getTask(index: Int): Task {
         return tasks[index]
     }
 
