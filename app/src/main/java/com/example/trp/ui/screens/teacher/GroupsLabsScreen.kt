@@ -1,48 +1,62 @@
 package com.example.trp.ui.screens.teacher
 
 import android.app.Activity
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
+import androidx.compose.material3.TabPosition
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterStart
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.trp.domain.di.ViewModelFactoryProvider
+import com.example.trp.ui.screens.teacher.tabs.DisabledInteractionSource
 import com.example.trp.ui.theme.TRPTheme
-import com.example.trp.ui.viewmodels.teacher.GroupsScreenViewModel
+import com.example.trp.ui.viewmodels.teacher.GroupsLabsScreenViewModel
 import dagger.hilt.android.EntryPointAccessors
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun GroupsScreen(disciplineId: Int, onGroupClick: (index: Int) -> Unit) {
+fun GroupsLabsScreen(disciplineId: Int, onGroupClick: (index: Int) -> Unit) {
     val factory = EntryPointAccessors.fromActivity(
         LocalContext.current as Activity,
         ViewModelFactoryProvider::class.java
-    ).groupsScreenViewModelFactory()
-    val viewModel: GroupsScreenViewModel = viewModel(
-        factory = GroupsScreenViewModel.provideGroupsScreenViewModel(
+    ).groupsLabsScreenViewModelFactory()
+    val viewModel: GroupsLabsScreenViewModel = viewModel(
+        factory = GroupsLabsScreenViewModel.provideGroupsScreenViewModel(
             factory,
             disciplineId,
             onGroupClick
@@ -58,21 +72,42 @@ fun GroupsScreen(disciplineId: Int, onGroupClick: (index: Int) -> Unit) {
             viewModel.selectedTabIndex = pagerState.currentPage
         }
     }
+    val indicator = @Composable { tabPositions: List<TabPosition> ->
+        MyNewIndicator(
+            Modifier.myTabIndicatorOffset(tabPositions[viewModel.selectedTabIndex])
+        )
+    }
 
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             TabRow(
+                modifier = Modifier
+                    .background(TRPTheme.colors.primaryBackground)
+                    .padding(5.dp)
+                    .clip(
+                        shape = RoundedCornerShape(20.dp)
+                    ),
                 selectedTabIndex = viewModel.selectedTabIndex,
                 containerColor = TRPTheme.colors.secondaryBackground,
-                contentColor = TRPTheme.colors.myYellow
+                indicator = indicator,
+                divider = {}
             ) {
                 viewModel.groupsLabsScreens.forEachIndexed { index, item ->
                     Tab(
+                        modifier = Modifier
+                            .clip(shape = RoundedCornerShape(20.dp))
+                            .padding(bottom = 3.dp)
+                            .zIndex(2f),
                         selected = index == viewModel.selectedTabIndex,
+                        interactionSource = DisabledInteractionSource(),
                         onClick = { viewModel.selectedTabIndex = index },
-                        text = { Text(text = item.title) },
-                        icon = { Icon(imageVector = item.icon, contentDescription = item.title) },
-                        selectedContentColor = TRPTheme.colors.myYellow
+                        text = {
+                            Text(
+                                text = item.title,
+                                color = TRPTheme.colors.secondaryText,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     )
                 }
             }
@@ -94,8 +129,40 @@ fun GroupsScreen(disciplineId: Int, onGroupClick: (index: Int) -> Unit) {
     }
 }
 
+fun Modifier.myTabIndicatorOffset(
+    currentTabPosition: TabPosition
+): Modifier = composed {
+    val currentTabWidth by animateDpAsState(
+        targetValue = currentTabPosition.width,
+        animationSpec = tween(durationMillis = 100, easing = FastOutSlowInEasing), label = ""
+    )
+    val indicatorOffset by animateDpAsState(
+        targetValue = currentTabPosition.left,
+        animationSpec = tween(durationMillis = 100, easing = FastOutSlowInEasing), label = ""
+    )
+    wrapContentSize(CenterStart)
+        .width(currentTabWidth)
+        .offset(x = indicatorOffset)
+}
+
 @Composable
-fun Groups(viewModel: GroupsScreenViewModel) {
+fun MyNewIndicator(modifier: Modifier = Modifier) {
+    Column(
+        modifier
+            .fillMaxSize()
+            .padding(5.dp)
+            .background(
+                TRPTheme.colors.myYellow,
+                RoundedCornerShape(20.dp),
+            ),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+    }
+}
+
+@Composable
+fun Groups(viewModel: GroupsLabsScreenViewModel) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         items(viewModel.teacherAppointments.size) { index ->
             Group(
@@ -109,7 +176,7 @@ fun Groups(viewModel: GroupsScreenViewModel) {
 
 @Composable
 fun Group(
-    viewModel: GroupsScreenViewModel,
+    viewModel: GroupsLabsScreenViewModel,
     index: Int
 ) {
     Button(
@@ -140,7 +207,7 @@ fun Group(
 
 @Composable
 fun Tasks(
-    viewModel: GroupsScreenViewModel
+    viewModel: GroupsLabsScreenViewModel
 ) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         items(count = viewModel.tasks.size) { index ->
@@ -152,7 +219,7 @@ fun Tasks(
 
 @Composable
 fun Task(
-    viewModel: GroupsScreenViewModel,
+    viewModel: GroupsLabsScreenViewModel,
     index: Int
 ) {
     Button(

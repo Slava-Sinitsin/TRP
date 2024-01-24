@@ -14,7 +14,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
 
-class GroupsScreenViewModel @AssistedInject constructor(
+class GroupsLabsScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
     @Assisted
     val disciplineId: Int,
@@ -35,7 +35,7 @@ class GroupsScreenViewModel @AssistedInject constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(disciplineId: Int, onGroupClick: (id: Int) -> Unit): GroupsScreenViewModel
+        fun create(disciplineId: Int, onGroupClick: (id: Int) -> Unit): GroupsLabsScreenViewModel
     }
 
     @Suppress("UNCHECKED_CAST")
