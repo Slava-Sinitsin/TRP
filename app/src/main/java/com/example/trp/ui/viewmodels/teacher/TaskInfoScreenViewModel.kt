@@ -24,6 +24,7 @@ class TaskInfoScreenViewModel @AssistedInject constructor(
     var taskFunctionName by mutableStateOf("")
     var taskLanguage by mutableStateOf("")
     var readOnlyMode by mutableStateOf(true)
+    var applyButtonEnabled by mutableStateOf(true)
 
     @AssistedFactory
     interface Factory {
@@ -46,7 +47,7 @@ class TaskInfoScreenViewModel @AssistedInject constructor(
 
     init {
         viewModelScope.launch {
-            task = repository.getTask(taskId)
+            task = repository.getTaskProperties(taskId)
             taskTitle = task.title ?: ""
             taskDescription = task.description ?: ""
             taskFunctionName = task.functionName ?: ""
@@ -55,18 +56,22 @@ class TaskInfoScreenViewModel @AssistedInject constructor(
     }
 
     fun updateTitleValue(newTitleValue: String) {
+        applyButtonEnabled = newTitleValue.isNotEmpty()
         taskTitle = newTitleValue
     }
 
     fun updateDescriptionValue(newDescriptionValue: String) {
+        applyButtonEnabled = newDescriptionValue.isNotEmpty()
         taskDescription = newDescriptionValue
     }
 
     fun updateFunctionNameValue(newFunctionNameValue: String) {
+        applyButtonEnabled = newFunctionNameValue.isNotEmpty()
         taskFunctionName = newFunctionNameValue
     }
 
     fun updateLanguageValue(newLanguageValue: String) {
+        applyButtonEnabled = newLanguageValue.isNotEmpty()
         taskLanguage = newLanguageValue
     }
 
@@ -76,19 +81,21 @@ class TaskInfoScreenViewModel @AssistedInject constructor(
 
     fun onSaveButtonClick() {
         viewModelScope.launch {
-            repository.putTask(
-                Task(
-                    id = task.id,
-                    disciplineId = task.disciplineId,
-                    title = taskTitle,
-                    description = taskDescription,
-                    functionName = taskFunctionName,
-                    language = taskLanguage
+            if (taskTitle != "" && taskDescription != "" && taskFunctionName != "" && taskLanguage != "") {
+                repository.putTask(
+                    Task(
+                        id = task.id,
+                        disciplineId = task.disciplineId,
+                        title = taskTitle,
+                        description = taskDescription,
+                        functionName = taskFunctionName,
+                        language = taskLanguage
+                    )
                 )
-            )
-            task = repository.getTask(taskId)
+                task = repository.getTask(taskId)
+                readOnlyMode = true
+            }
         }
-        readOnlyMode = true
     }
 
     fun onRollBackIconClick() {

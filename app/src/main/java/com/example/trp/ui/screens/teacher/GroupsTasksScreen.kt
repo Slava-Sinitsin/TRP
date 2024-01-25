@@ -34,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterStart
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -45,12 +46,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.trp.domain.di.ViewModelFactoryProvider
 import com.example.trp.ui.screens.teacher.tabs.DisabledInteractionSource
 import com.example.trp.ui.theme.TRPTheme
-import com.example.trp.ui.viewmodels.teacher.GroupsLabsScreenViewModel
+import com.example.trp.ui.viewmodels.teacher.GroupsTasksScreenViewModel
 import dagger.hilt.android.EntryPointAccessors
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun GroupsLabsScreen(
+fun GroupsTasksScreen(
     disciplineId: Int,
     onGroupClick: (index: Int) -> Unit,
     onTaskClick: (id: Int) -> Unit
@@ -58,9 +59,9 @@ fun GroupsLabsScreen(
     val factory = EntryPointAccessors.fromActivity(
         LocalContext.current as Activity,
         ViewModelFactoryProvider::class.java
-    ).groupsLabsScreenViewModelFactory()
-    val viewModel: GroupsLabsScreenViewModel = viewModel(
-        factory = GroupsLabsScreenViewModel.provideGroupsScreenViewModel(
+    ).groupsTasksScreenViewModelFactory()
+    val viewModel: GroupsTasksScreenViewModel = viewModel(
+        factory = GroupsTasksScreenViewModel.provideGroupsScreenViewModel(
             factory,
             disciplineId,
             onGroupClick,
@@ -97,7 +98,7 @@ fun GroupsLabsScreen(
                 indicator = indicator,
                 divider = {}
             ) {
-                viewModel.groupsLabsScreens.forEachIndexed { index, item ->
+                viewModel.groupsTasksScreens.forEachIndexed { index, item ->
                     Tab(
                         modifier = Modifier
                             .clip(shape = RoundedCornerShape(20.dp))
@@ -122,7 +123,7 @@ fun GroupsLabsScreen(
                     .weight(1f)
                     .background(TRPTheme.colors.primaryBackground),
                 state = pagerState,
-                pageCount = viewModel.groupsLabsScreens.size
+                pageCount = viewModel.groupsTasksScreens.size
             ) { index ->
                 if (index == 0) {
                     Groups(viewModel = viewModel)
@@ -167,7 +168,7 @@ fun MyNewIndicator(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun Groups(viewModel: GroupsLabsScreenViewModel) {
+fun Groups(viewModel: GroupsTasksScreenViewModel) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         items(viewModel.teacherAppointments.size) { index ->
             Group(
@@ -181,7 +182,7 @@ fun Groups(viewModel: GroupsLabsScreenViewModel) {
 
 @Composable
 fun Group(
-    viewModel: GroupsLabsScreenViewModel,
+    viewModel: GroupsTasksScreenViewModel,
     index: Int
 ) {
     Button(
@@ -212,9 +213,10 @@ fun Group(
 
 @Composable
 fun Tasks(
-    viewModel: GroupsLabsScreenViewModel
+    viewModel: GroupsTasksScreenViewModel
 ) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
+        item { AddTask(viewModel = viewModel) }
         items(count = viewModel.tasks.size) { index ->
             Task(viewModel = viewModel, index = index)
         }
@@ -224,7 +226,7 @@ fun Tasks(
 
 @Composable
 fun Task(
-    viewModel: GroupsLabsScreenViewModel,
+    viewModel: GroupsTasksScreenViewModel,
     index: Int
 ) {
     Button(
@@ -249,6 +251,35 @@ fun Task(
             text = viewModel.getTask(index = index).title.toString(),
             color = TRPTheme.colors.primaryText,
             fontSize = 25.sp
+        )
+    }
+}
+
+@Composable
+fun AddTask(
+    viewModel: GroupsTasksScreenViewModel
+) {
+    Button(
+        modifier = Modifier
+            .padding(8.dp)
+            .fillMaxSize(),
+        onClick = { viewModel.onAddTaskButtonClick() },
+        elevation = ButtonDefaults.buttonElevation(
+            defaultElevation = 10.dp
+        ),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = TRPTheme.colors.cardButtonColor
+        ),
+        shape = RoundedCornerShape(30.dp)
+    ) {
+        Text(
+            modifier = Modifier
+                .fillMaxSize()
+                .alpha(0.6f),
+            text = "+",
+            color = TRPTheme.colors.primaryText,
+            fontSize = 45.sp,
+            textAlign = TextAlign.Center,
         )
     }
 }

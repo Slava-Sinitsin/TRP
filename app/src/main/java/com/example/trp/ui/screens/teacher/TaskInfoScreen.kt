@@ -16,9 +16,9 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -82,7 +82,7 @@ fun TaskInfoCenterAlignedTopAppBar(
         ),
         title = {
             Text(
-                text = viewModel.taskTitle,
+                text = viewModel.task.title ?: "",
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 fontSize = 20.sp
@@ -109,10 +109,13 @@ fun TaskInfoCenterAlignedTopAppBar(
                 }
             }
             if (!viewModel.readOnlyMode) {
-                IconButton(onClick = { viewModel.onSaveButtonClick() }) {
+                IconButton(
+                    onClick = { viewModel.onSaveButtonClick() },
+                    enabled = viewModel.applyButtonEnabled
+                ) {
                     Icon(
                         imageVector = Icons.Filled.Done,
-                        contentDescription = "ApplyTaskPropertiesButton"
+                        contentDescription = "ApplyTaskPropertiesButton",
                     )
                 }
             }
@@ -134,7 +137,7 @@ fun TitleField(
             .alpha(0.6f)
             .padding(start = 5.dp, top = paddingValues.calculateTopPadding() + 10.dp)
     )
-    TextField(
+    OutlinedTextField(
         modifier = Modifier
             .fillMaxWidth()
             .height(100.dp)
@@ -156,9 +159,12 @@ fun TitleField(
             cursorColor = TRPTheme.colors.primaryText,
             focusedIndicatorColor = Color.Transparent,
             disabledIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent
+            unfocusedIndicatorColor = Color.Transparent,
+            errorIndicatorColor = TRPTheme.colors.errorColor,
+            errorCursorColor = TRPTheme.colors.primaryText
         ),
-        readOnly = viewModel.readOnlyMode
+        readOnly = viewModel.readOnlyMode,
+        isError = viewModel.taskTitle.isEmpty()
     )
 }
 
@@ -173,7 +179,7 @@ fun DescriptionField(viewModel: TaskInfoScreenViewModel) {
             .alpha(0.6f)
             .padding(start = 5.dp, top = 10.dp)
     )
-    TextField(
+    OutlinedTextField(
         modifier = Modifier
             .fillMaxWidth()
             .height(100.dp)
@@ -195,9 +201,12 @@ fun DescriptionField(viewModel: TaskInfoScreenViewModel) {
             cursorColor = TRPTheme.colors.primaryText,
             focusedIndicatorColor = Color.Transparent,
             disabledIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent
+            unfocusedIndicatorColor = Color.Transparent,
+            errorIndicatorColor = TRPTheme.colors.errorColor,
+            errorCursorColor = TRPTheme.colors.primaryText
         ),
-        readOnly = viewModel.readOnlyMode
+        readOnly = viewModel.readOnlyMode,
+        isError = viewModel.taskDescription.isEmpty()
     )
 }
 
@@ -212,7 +221,7 @@ fun FunctionNameField(viewModel: TaskInfoScreenViewModel) {
             .alpha(0.6f)
             .padding(start = 5.dp, top = 10.dp)
     )
-    TextField(
+    OutlinedTextField(
         modifier = Modifier
             .fillMaxWidth()
             .height(100.dp)
@@ -234,9 +243,12 @@ fun FunctionNameField(viewModel: TaskInfoScreenViewModel) {
             cursorColor = TRPTheme.colors.primaryText,
             focusedIndicatorColor = Color.Transparent,
             disabledIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent
+            unfocusedIndicatorColor = Color.Transparent,
+            errorIndicatorColor = TRPTheme.colors.errorColor,
+            errorCursorColor = TRPTheme.colors.primaryText
         ),
-        readOnly = viewModel.readOnlyMode
+        readOnly = viewModel.readOnlyMode,
+        isError = viewModel.taskFunctionName.isEmpty()
     )
 }
 
@@ -251,7 +263,7 @@ fun LanguageField(viewModel: TaskInfoScreenViewModel) {
             .alpha(0.6f)
             .padding(start = 5.dp, top = 10.dp)
     )
-    TextField(
+    OutlinedTextField(
         modifier = Modifier
             .fillMaxWidth()
             .height(100.dp)
@@ -273,8 +285,11 @@ fun LanguageField(viewModel: TaskInfoScreenViewModel) {
             cursorColor = TRPTheme.colors.primaryText,
             focusedIndicatorColor = Color.Transparent,
             disabledIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent
+            unfocusedIndicatorColor = Color.Transparent,
+            errorIndicatorColor = TRPTheme.colors.errorColor,
+            errorCursorColor = TRPTheme.colors.primaryText
         ),
-        readOnly = viewModel.readOnlyMode
+        readOnly = viewModel.readOnlyMode,
+        isError = viewModel.taskLanguage.isEmpty()
     )
 }

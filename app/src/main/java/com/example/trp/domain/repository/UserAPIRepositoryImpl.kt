@@ -227,6 +227,22 @@ class UserAPIRepositoryImpl(
         return task
     }
 
+    suspend fun getTaskProperties(taskId: Int): Task {
+        if (taskChanged) {
+            val taskResponse =
+                user.token?.let { getTaskDescriptionResponse(it, taskId) }
+            taskResponse?.body()?.let {
+                task = it.task ?: Task()
+                if (task != Task()) {
+                    taskDisciplineData = getTaskDisciplineData()
+                }
+            } ?: taskResponse?.errorBody()?.let {
+                task = Task()
+            }
+        }
+        return task
+    }
+
     private suspend fun getTaskDisciplineData(): DisciplineData {
         val disciplineDataResponse = user.token?.let { token ->
             task.disciplineId?.let { disciplineId -> getDisciplineByID(token, disciplineId) }

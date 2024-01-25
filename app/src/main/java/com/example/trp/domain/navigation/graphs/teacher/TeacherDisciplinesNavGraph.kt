@@ -7,7 +7,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
 import com.example.trp.domain.navigation.graphs.common.Graph
-import com.example.trp.ui.screens.teacher.GroupsLabsScreen
+import com.example.trp.ui.screens.teacher.GroupsTasksScreen
 import com.example.trp.ui.screens.teacher.StudentsScreen
 import com.example.trp.ui.screens.teacher.TaskInfoScreen
 
@@ -24,7 +24,7 @@ fun NavGraphBuilder.groupsNavGraph(navController: NavHostController) {
         composable(route = "${GroupsScreen.Groups.route}/{$TEACHER_DISCIPLINES_ID}") {
             val disciplineId = it.arguments?.getInt(TEACHER_DISCIPLINES_ID)
             disciplineId?.let { id ->
-                GroupsLabsScreen(
+                GroupsTasksScreen(
                     disciplineId = id,
                     onGroupClick = { groupId ->
                         navController.navigate("${GroupsScreen.GroupInfo.route}/$groupId")

@@ -8,13 +8,13 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.trp.data.mappers.tasks.Task
 import com.example.trp.domain.repository.UserAPIRepositoryImpl
-import com.example.trp.ui.screens.teacher.tabs.GroupsLabsTabs
+import com.example.trp.ui.screens.teacher.tabs.GroupsTasksTabs
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
 
-class GroupsLabsScreenViewModel @AssistedInject constructor(
+class GroupsTasksScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
     @Assisted
     val disciplineId: Int,
@@ -28,9 +28,9 @@ class GroupsLabsScreenViewModel @AssistedInject constructor(
     var tasks by mutableStateOf(repository.tasks)
         private set
 
-    val groupsLabsScreens = listOf(
-        GroupsLabsTabs.Groups,
-        GroupsLabsTabs.Labs
+    val groupsTasksScreens = listOf(
+        GroupsTasksTabs.Groups,
+        GroupsTasksTabs.Tasks
     )
 
     var selectedTabIndex by mutableStateOf(0)
@@ -43,7 +43,7 @@ class GroupsLabsScreenViewModel @AssistedInject constructor(
             onGroupClick: (id: Int) -> Unit,
             @Assisted("onTaskClick")
             onTaskClick: (id: Int) -> Unit
-        ): GroupsLabsScreenViewModel
+        ): GroupsTasksScreenViewModel
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -85,5 +85,9 @@ class GroupsLabsScreenViewModel @AssistedInject constructor(
 
     fun navigateToTask(index: Int) {
         getTask(index = index).let { task -> task.id?.let { id -> onTaskClick(id) } }
+    }
+
+    fun onAddTaskButtonClick() {
+
     }
 }
