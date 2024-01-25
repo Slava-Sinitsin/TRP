@@ -3,6 +3,7 @@ package com.example.trp.data.network
 import com.example.trp.data.mappers.disciplines.DisciplineResponse
 import com.example.trp.data.mappers.tasks.Output
 import com.example.trp.data.mappers.tasks.Students
+import com.example.trp.data.mappers.tasks.Task
 import com.example.trp.data.mappers.tasks.TaskResponse
 import com.example.trp.data.mappers.tasks.Tasks
 import com.example.trp.data.mappers.tasks.solution.GetSolutionResponse
@@ -11,9 +12,11 @@ import com.example.trp.data.mappers.teacherappointments.TeacherAppointmentsRespo
 import com.example.trp.data.mappers.user.User
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 
 interface UserAPI {
@@ -70,4 +73,23 @@ interface UserAPI {
         @Header("Authorization") token: String,
         @Path("taskId") taskId: Int
     ): Response<Output>
+
+    @PUT("api/v2/tasks/{id}")
+    suspend fun putTask(
+        @Header("Authorization") token: String,
+        @Path("id") taskId: Int,
+        @Body task: Task
+    ): Response<Task>
+
+    @DELETE("api/v2/tasks/{id}")
+    suspend fun deleteTask(
+        @Header("Authorization") token: String,
+        @Path("id") taskId: Int,
+    ): Response<Task>
+
+    @POST("api/v2/tasks")
+    suspend fun postTask(
+        @Header("Authorization") token: String,
+        @Body task: Task
+    ): Response<Task>
 }

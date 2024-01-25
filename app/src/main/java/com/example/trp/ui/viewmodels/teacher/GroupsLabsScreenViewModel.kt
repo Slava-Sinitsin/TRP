@@ -18,8 +18,10 @@ class GroupsLabsScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
     @Assisted
     val disciplineId: Int,
-    @Assisted
-    val onGroupClick: (id: Int) -> Unit
+    @Assisted("onGroupClick")
+    val onGroupClick: (id: Int) -> Unit,
+    @Assisted("onTaskClick")
+    val onTaskClick: (id: Int) -> Unit
 ) : ViewModel() {
     var teacherAppointments by mutableStateOf(repository.teacherAppointments)
         private set
@@ -35,7 +37,13 @@ class GroupsLabsScreenViewModel @AssistedInject constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(disciplineId: Int, onGroupClick: (id: Int) -> Unit): GroupsLabsScreenViewModel
+        fun create(
+            disciplineId: Int,
+            @Assisted("onGroupClick")
+            onGroupClick: (id: Int) -> Unit,
+            @Assisted("onTaskClick")
+            onTaskClick: (id: Int) -> Unit
+        ): GroupsLabsScreenViewModel
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -43,11 +51,12 @@ class GroupsLabsScreenViewModel @AssistedInject constructor(
         fun provideGroupsScreenViewModel(
             factory: Factory,
             disciplineId: Int,
-            onGroupClick: (id: Int) -> Unit
+            onGroupClick: (id: Int) -> Unit,
+            onTaskClick: (id: Int) -> Unit
         ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return factory.create(disciplineId, onGroupClick) as T
+                    return factory.create(disciplineId, onGroupClick, onTaskClick) as T
                 }
             }
         }
@@ -75,6 +84,6 @@ class GroupsLabsScreenViewModel @AssistedInject constructor(
     }
 
     fun navigateToTask(index: Int) {
-        getTask(index = index).let { task -> task.id?.let { /*id -> onTaskClick(id) TODO*/ } }
+        getTask(index = index).let { task -> task.id?.let { id -> onTaskClick(id) } }
     }
 }

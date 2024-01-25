@@ -3,5 +3,8 @@ package com.example.trp.data.mappers.tasks
 import com.google.gson.annotations.SerializedName
 
 data class TaskResponse(
-    @SerializedName("data") val task: com.example.trp.data.mappers.tasks.Task? = null
+    @SerializedName("status") val status: Int? = null,
+    @SerializedName("message") val message: String? = null,
+    @SerializedName("error") val error: String? = null,
+    @SerializedName("data") val task: Task? = null
 )

@@ -107,6 +107,18 @@ class UserAPIRepositoryImpl(
         return ApiService.userAPI.runCode("Bearer $token", taskId)
     }
 
+    override suspend fun putTask(token: String, taskId: Int, task: Task): Response<Task> {
+        return ApiService.userAPI.putTask("Bearer $token", taskId, task)
+    }
+
+    override suspend fun deleteTask(token: String, taskId: Int): Response<Task> {
+        return ApiService.userAPI.deleteTask("Bearer $token", taskId)
+    }
+
+    override suspend fun postTask(token: String, task: Task): Response<Task> {
+        return ApiService.userAPI.postTask("Bearer $token", task)
+    }
+
     suspend fun getActiveUser(): User {
         user = mainDB.userDAO.getActiveUser() ?: User()
         return user
@@ -191,7 +203,6 @@ class UserAPIRepositoryImpl(
                 user.token?.let { getTasksResponse(it, disciplineId) }
             response?.body()?.let {
                 tasks = it.data ?: emptyList()
-
             } ?: response?.errorBody()?.let {
                 tasks = emptyList()
             }
@@ -260,5 +271,11 @@ class UserAPIRepositoryImpl(
             getStudents(token, groupId)
         }
         return studentsResponse?.body()?.data ?: emptyList()
+    }
+
+    suspend fun putTask(task: Task) {
+        user.token?.let { token ->
+            task.id?.let { taskId -> putTask(token, taskId, task) }
+        }
     }
 }

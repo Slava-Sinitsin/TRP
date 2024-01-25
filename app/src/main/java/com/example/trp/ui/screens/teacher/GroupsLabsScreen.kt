@@ -50,7 +50,11 @@ import dagger.hilt.android.EntryPointAccessors
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun GroupsLabsScreen(disciplineId: Int, onGroupClick: (index: Int) -> Unit) {
+fun GroupsLabsScreen(
+    disciplineId: Int,
+    onGroupClick: (index: Int) -> Unit,
+    onTaskClick: (id: Int) -> Unit
+) {
     val factory = EntryPointAccessors.fromActivity(
         LocalContext.current as Activity,
         ViewModelFactoryProvider::class.java
@@ -59,7 +63,8 @@ fun GroupsLabsScreen(disciplineId: Int, onGroupClick: (index: Int) -> Unit) {
         factory = GroupsLabsScreenViewModel.provideGroupsScreenViewModel(
             factory,
             disciplineId,
-            onGroupClick
+            onGroupClick,
+            onTaskClick
         )
     )
 
