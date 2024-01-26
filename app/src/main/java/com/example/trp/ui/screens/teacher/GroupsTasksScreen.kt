@@ -53,8 +53,9 @@ import dagger.hilt.android.EntryPointAccessors
 @Composable
 fun GroupsTasksScreen(
     disciplineId: Int,
-    onGroupClick: (index: Int) -> Unit,
-    onTaskClick: (id: Int) -> Unit
+    onGroupClick: (groupId: Int) -> Unit,
+    onTaskClick: (taskId: Int) -> Unit,
+    onAddTaskClick: (taskId: Int) -> Unit
 ) {
     val factory = EntryPointAccessors.fromActivity(
         LocalContext.current as Activity,
@@ -65,7 +66,8 @@ fun GroupsTasksScreen(
             factory,
             disciplineId,
             onGroupClick,
-            onTaskClick
+            onTaskClick,
+            onAddTaskClick
         )
     )
 

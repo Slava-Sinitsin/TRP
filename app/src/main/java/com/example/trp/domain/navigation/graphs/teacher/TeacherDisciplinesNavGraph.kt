@@ -7,11 +7,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
 import com.example.trp.domain.navigation.graphs.common.Graph
+import com.example.trp.ui.screens.teacher.AddNewTaskScreen
 import com.example.trp.ui.screens.teacher.GroupsTasksScreen
 import com.example.trp.ui.screens.teacher.StudentsScreen
 import com.example.trp.ui.screens.teacher.TaskInfoScreen
 
-private const val TEACHER_DISCIPLINES_ID = "student_discipline_id"
+private const val TEACHER_DISCIPLINES_ID = "teacher_discipline_id"
 private const val GROUP_ID = "group_id"
 private const val TASK_ID = "task_id"
 
@@ -31,6 +32,9 @@ fun NavGraphBuilder.groupsNavGraph(navController: NavHostController) {
                     },
                     onTaskClick = { taskId ->
                         navController.navigate("${GroupsScreen.TaskInfo.route}/$taskId")
+                    },
+                    onAddTaskClick = { disciplineId ->
+                        navController.navigate("${GroupsScreen.AddNewTask.route}/$disciplineId")
                     }
                 )
             }
@@ -54,8 +58,17 @@ fun NavGraphBuilder.groupsNavGraph(navController: NavHostController) {
             arguments = listOf(navArgument(TASK_ID) { type = NavType.IntType })
         ) {
             val taskId = it.arguments?.getInt(TASK_ID)
-            taskId?.let {
-                TaskInfoScreen(taskId = taskId)
+            taskId?.let { id ->
+                TaskInfoScreen(taskId = id)
+            }
+        }
+        composable(
+            route = "${GroupsScreen.AddNewTask.route}/{$TEACHER_DISCIPLINES_ID}",
+            arguments = listOf(navArgument(TEACHER_DISCIPLINES_ID) { type = NavType.IntType })
+        ) {
+            val disciplineId = it.arguments?.getInt(TEACHER_DISCIPLINES_ID)
+            disciplineId?.let { id ->
+                AddNewTaskScreen(disciplineId = id, navController = navController)
             }
         }
     }
@@ -65,5 +78,6 @@ sealed class GroupsScreen(val route: String) {
     object Groups : GroupsScreen(route = "checklist_GROUPS")
     object GroupInfo : GroupsScreen(route = "checklist_GROUP_INFO")
     object TaskInfo : GroupsScreen(route = "checklist_TASK_INFO")
+    object AddNewTask : GroupsScreen(route = "checklist_ADD_NEW_TASK")
     object StudentInfo : GroupsScreen(route = "checklist_STUDENT_INFO")
 }

@@ -4,7 +4,6 @@ import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -12,9 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,24 +31,27 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import com.example.trp.domain.di.ViewModelFactoryProvider
 import com.example.trp.ui.theme.TRPTheme
-import com.example.trp.ui.viewmodels.teacher.TaskInfoScreenViewModel
+import com.example.trp.ui.viewmodels.teacher.AddNewTaskScreenViewModel
 import dagger.hilt.android.EntryPointAccessors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaskInfoScreen(
-    taskId: Int
+fun AddNewTaskScreen(
+    disciplineId: Int,
+    navController: NavHostController
 ) {
     val factory = EntryPointAccessors.fromActivity(
         LocalContext.current as Activity,
         ViewModelFactoryProvider::class.java
-    ).studentInfoScreenViewModelFactory()
-    val viewModel: TaskInfoScreenViewModel = viewModel(
-        factory = TaskInfoScreenViewModel.provideTaskInfoScreenViewModel(
+    ).addNewTaskScreenViewModelFactory()
+    val viewModel: AddNewTaskScreenViewModel = viewModel(
+        factory = AddNewTaskScreenViewModel.provideAddNewTaskScreenViewModel(
             factory,
-            taskId
+            disciplineId,
+            navController
         )
     )
     Scaffold(
@@ -75,7 +75,7 @@ fun TaskInfoScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskInfoCenterAlignedTopAppBar(
-    viewModel: TaskInfoScreenViewModel
+    viewModel: AddNewTaskScreenViewModel
 ) {
     TopAppBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -84,49 +84,29 @@ fun TaskInfoCenterAlignedTopAppBar(
         ),
         title = {
             Text(
-                text = viewModel.task.title ?: "",
+                text = "Add new task",
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 fontSize = 20.sp
             )
         },
         navigationIcon = {
-            if (!viewModel.readOnlyMode) {
-                IconButton(onClick = { viewModel.onRollBackIconClick() }) {
-                    Icon(
-                        imageVector = Icons.Filled.Close,
-                        contentDescription = "Navigation icon"
-
-                    )
-                }
+            IconButton(onClick = { viewModel.onRollBackIconClick() }) {
+                Icon(
+                    imageVector = Icons.Filled.Close,
+                    contentDescription = "CloseButton"
+                )
             }
         },
         actions = {
-            if (viewModel.readOnlyMode) {
-                Row {
-                    IconButton(onClick = { viewModel.onDeleteButtonClick() }) {
-                        Icon(
-                            imageVector = Icons.Filled.Delete,
-                            contentDescription = "DeleteTask"
-                        )
-                    }
-                    IconButton(onClick = { viewModel.onEditButtonClick() }) {
-                        Icon(
-                            imageVector = Icons.Filled.Edit,
-                            contentDescription = "EditTaskPropertiesButton"
-                        )
-                    }
-                }
-            } else {
-                IconButton(
-                    onClick = { viewModel.onSaveButtonClick() },
-                    enabled = viewModel.applyButtonEnabled
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Done,
-                        contentDescription = "ApplyTaskPropertiesButton",
-                    )
-                }
+            IconButton(
+                onClick = { viewModel.onSaveButtonClick() },
+                enabled = viewModel.applyButtonEnabled
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Done,
+                    contentDescription = "ApplyAddTaskButton",
+                )
             }
         },
     )
@@ -135,7 +115,7 @@ fun TaskInfoCenterAlignedTopAppBar(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TitleField(
-    viewModel: TaskInfoScreenViewModel,
+    viewModel: AddNewTaskScreenViewModel,
     paddingValues: PaddingValues
 ) {
     Text(
@@ -172,14 +152,13 @@ fun TitleField(
             errorIndicatorColor = TRPTheme.colors.errorColor,
             errorCursorColor = TRPTheme.colors.primaryText
         ),
-        readOnly = viewModel.readOnlyMode,
         isError = viewModel.taskTitle.isEmpty()
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DescriptionField(viewModel: TaskInfoScreenViewModel) {
+fun DescriptionField(viewModel: AddNewTaskScreenViewModel) {
     Text(
         text = "Description",
         color = TRPTheme.colors.primaryText,
@@ -214,14 +193,13 @@ fun DescriptionField(viewModel: TaskInfoScreenViewModel) {
             errorIndicatorColor = TRPTheme.colors.errorColor,
             errorCursorColor = TRPTheme.colors.primaryText
         ),
-        readOnly = viewModel.readOnlyMode,
         isError = viewModel.taskDescription.isEmpty()
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FunctionNameField(viewModel: TaskInfoScreenViewModel) {
+fun FunctionNameField(viewModel: AddNewTaskScreenViewModel) {
     Text(
         text = "Function name",
         color = TRPTheme.colors.primaryText,
@@ -256,14 +234,13 @@ fun FunctionNameField(viewModel: TaskInfoScreenViewModel) {
             errorIndicatorColor = TRPTheme.colors.errorColor,
             errorCursorColor = TRPTheme.colors.primaryText
         ),
-        readOnly = viewModel.readOnlyMode,
         isError = viewModel.taskFunctionName.isEmpty()
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LanguageField(viewModel: TaskInfoScreenViewModel) {
+fun LanguageField(viewModel: AddNewTaskScreenViewModel) {
     Text(
         text = "Language",
         color = TRPTheme.colors.primaryText,
@@ -298,7 +275,6 @@ fun LanguageField(viewModel: TaskInfoScreenViewModel) {
             errorIndicatorColor = TRPTheme.colors.errorColor,
             errorCursorColor = TRPTheme.colors.primaryText
         ),
-        readOnly = viewModel.readOnlyMode,
         isError = viewModel.taskLanguage.isEmpty()
     )
 }

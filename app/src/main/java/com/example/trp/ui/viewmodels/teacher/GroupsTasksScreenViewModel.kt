@@ -19,9 +19,11 @@ class GroupsTasksScreenViewModel @AssistedInject constructor(
     @Assisted
     val disciplineId: Int,
     @Assisted("onGroupClick")
-    val onGroupClick: (id: Int) -> Unit,
+    val onGroupClick: (groupId: Int) -> Unit,
     @Assisted("onTaskClick")
-    val onTaskClick: (id: Int) -> Unit
+    val onTaskClick: (taskId: Int) -> Unit,
+    @Assisted("onAddTaskClick")
+    val onAddTaskClick: (disciplineId: Int) -> Unit
 ) : ViewModel() {
     var teacherAppointments by mutableStateOf(repository.teacherAppointments)
         private set
@@ -42,7 +44,9 @@ class GroupsTasksScreenViewModel @AssistedInject constructor(
             @Assisted("onGroupClick")
             onGroupClick: (id: Int) -> Unit,
             @Assisted("onTaskClick")
-            onTaskClick: (id: Int) -> Unit
+            onTaskClick: (id: Int) -> Unit,
+            @Assisted("onAddTaskClick")
+            onAddTaskClick: (id: Int) -> Unit
         ): GroupsTasksScreenViewModel
     }
 
@@ -51,12 +55,18 @@ class GroupsTasksScreenViewModel @AssistedInject constructor(
         fun provideGroupsScreenViewModel(
             factory: Factory,
             disciplineId: Int,
-            onGroupClick: (id: Int) -> Unit,
-            onTaskClick: (id: Int) -> Unit
+            onGroupClick: (groupId: Int) -> Unit,
+            onTaskClick: (taskId: Int) -> Unit,
+            onAddTaskClick: (disciplineId: Int) -> Unit
         ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return factory.create(disciplineId, onGroupClick, onTaskClick) as T
+                    return factory.create(
+                        disciplineId,
+                        onGroupClick,
+                        onTaskClick,
+                        onAddTaskClick
+                    ) as T
                 }
             }
         }
@@ -80,14 +90,14 @@ class GroupsTasksScreenViewModel @AssistedInject constructor(
     }
 
     fun navigateToStudents(index: Int) {
-        getGroup(index = index).let { task -> task.id?.let { id -> onGroupClick(id) } }
+        getGroup(index = index).let { task -> task.id?.let { groupId -> onGroupClick(groupId) } }
     }
 
     fun navigateToTask(index: Int) {
-        getTask(index = index).let { task -> task.id?.let { id -> onTaskClick(id) } }
+        getTask(index = index).let { task -> task.id?.let { taskId -> onTaskClick(taskId) } }
     }
 
     fun onAddTaskButtonClick() {
-
+        onAddTaskClick(disciplineId)
     }
 }

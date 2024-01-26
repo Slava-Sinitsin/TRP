@@ -294,4 +294,16 @@ class UserAPIRepositoryImpl(
             task.id?.let { taskId -> putTask(token, taskId, task) }
         }
     }
+
+    suspend fun postTask(task: Task) {
+        user.token?.let { token ->
+            postTask(token, task)
+        }
+    }
+
+    suspend fun deleteTask(taskId: Int) {
+        user.token?.let { token ->
+            deleteTask(token, taskId)
+        }
+    }
 }
