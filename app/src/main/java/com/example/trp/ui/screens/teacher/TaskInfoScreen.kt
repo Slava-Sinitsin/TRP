@@ -15,6 +15,9 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,6 +37,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import com.example.trp.domain.di.ViewModelFactoryProvider
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.teacher.TaskInfoScreenViewModel
@@ -42,7 +46,8 @@ import dagger.hilt.android.EntryPointAccessors
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskInfoScreen(
-    taskId: Int
+    taskId: Int,
+    navController: NavHostController
 ) {
     val factory = EntryPointAccessors.fromActivity(
         LocalContext.current as Activity,
@@ -51,7 +56,8 @@ fun TaskInfoScreen(
     val viewModel: TaskInfoScreenViewModel = viewModel(
         factory = TaskInfoScreenViewModel.provideTaskInfoScreenViewModel(
             factory,
-            taskId
+            taskId,
+            navController
         )
     )
     Scaffold(
@@ -68,6 +74,9 @@ fun TaskInfoScreen(
             DescriptionField(viewModel = viewModel)
             FunctionNameField(viewModel = viewModel)
             LanguageField(viewModel = viewModel)
+            if (viewModel.showDeleteDialog) {
+                DeleteDialog(viewModel)
+            }
         }
     }
 }
@@ -150,7 +159,8 @@ fun TitleField(
         modifier = Modifier
             .fillMaxWidth()
             .height(100.dp)
-            .padding(vertical = 5.dp, horizontal = 5.dp),
+            .padding(vertical = 5.dp, horizontal = 5.dp)
+            .alpha(viewModel.readOnlyAlpha),
         textStyle = TextStyle.Default.copy(fontSize = 15.sp),
         value = viewModel.taskTitle,
         onValueChange = { viewModel.updateTitleValue(it) },
@@ -192,7 +202,8 @@ fun DescriptionField(viewModel: TaskInfoScreenViewModel) {
         modifier = Modifier
             .fillMaxWidth()
             .height(100.dp)
-            .padding(vertical = 5.dp, horizontal = 5.dp),
+            .padding(vertical = 5.dp, horizontal = 5.dp)
+            .alpha(viewModel.readOnlyAlpha),
         textStyle = TextStyle.Default.copy(fontSize = 15.sp),
         value = viewModel.taskDescription,
         onValueChange = { viewModel.updateDescriptionValue(it) },
@@ -234,7 +245,8 @@ fun FunctionNameField(viewModel: TaskInfoScreenViewModel) {
         modifier = Modifier
             .fillMaxWidth()
             .height(100.dp)
-            .padding(vertical = 5.dp, horizontal = 5.dp),
+            .padding(vertical = 5.dp, horizontal = 5.dp)
+            .alpha(viewModel.readOnlyAlpha),
         textStyle = TextStyle.Default.copy(fontSize = 15.sp),
         value = viewModel.taskFunctionName,
         onValueChange = { viewModel.updateFunctionNameValue(it) },
@@ -276,7 +288,8 @@ fun LanguageField(viewModel: TaskInfoScreenViewModel) {
         modifier = Modifier
             .fillMaxWidth()
             .height(100.dp)
-            .padding(vertical = 5.dp, horizontal = 5.dp),
+            .padding(vertical = 5.dp, horizontal = 5.dp)
+            .alpha(viewModel.readOnlyAlpha),
         textStyle = TextStyle.Default.copy(fontSize = 15.sp),
         value = viewModel.taskLanguage,
         onValueChange = { viewModel.updateLanguageValue(it) },
@@ -300,5 +313,47 @@ fun LanguageField(viewModel: TaskInfoScreenViewModel) {
         ),
         readOnly = viewModel.readOnlyMode,
         isError = viewModel.taskLanguage.isEmpty()
+    )
+}
+
+@Composable
+fun DeleteDialog(viewModel: TaskInfoScreenViewModel) {
+    AlertDialog(
+        onDismissRequest = {},
+        title = {
+            Text(
+                text = "Delete task",
+                color = TRPTheme.colors.primaryText
+            )
+        },
+        containerColor = TRPTheme.colors.primaryBackground,
+        text = {
+            Text(
+                text = "Are you sure you want to delete \"${viewModel.task.title}?\"",
+                color = TRPTheme.colors.primaryText
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = { viewModel.onConfirmButtonClick() },
+                colors = ButtonDefaults.buttonColors(TRPTheme.colors.errorColor)
+            ) {
+                Text(
+                    text = "Confirm",
+                    color = TRPTheme.colors.secondaryText
+                )
+            }
+        },
+        dismissButton = {
+            Button(
+                onClick = { viewModel.onDismissButtonClick() },
+                colors = ButtonDefaults.buttonColors(TRPTheme.colors.myYellow)
+            ) {
+                Text(
+                    text = "Dismiss",
+                    color = TRPTheme.colors.secondaryText
+                )
+            }
+        }
     )
 }

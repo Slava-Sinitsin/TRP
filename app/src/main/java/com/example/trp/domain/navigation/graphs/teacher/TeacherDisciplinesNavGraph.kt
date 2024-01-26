@@ -59,7 +59,7 @@ fun NavGraphBuilder.groupsNavGraph(navController: NavHostController) {
         ) {
             val taskId = it.arguments?.getInt(TASK_ID)
             taskId?.let { id ->
-                TaskInfoScreen(taskId = id)
+                TaskInfoScreen(taskId = id, navController = navController)
             }
         }
         composable(

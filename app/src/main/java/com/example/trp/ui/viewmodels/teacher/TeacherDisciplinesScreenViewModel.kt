@@ -12,7 +12,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
 
-class TeacherDisciplinesViewModel @AssistedInject constructor(
+class TeacherDisciplinesScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
     @Assisted
     val onDisciplineClick: (id: Int) -> Unit
@@ -22,12 +22,12 @@ class TeacherDisciplinesViewModel @AssistedInject constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(onDisciplineClick: (id: Int) -> Unit): TeacherDisciplinesViewModel
+        fun create(onDisciplineClick: (id: Int) -> Unit): TeacherDisciplinesScreenViewModel
     }
 
     @Suppress("UNCHECKED_CAST")
     companion object {
-        fun provideTeacherDisciplinesViewModel(
+        fun provideTeacherDisciplinesScreenViewModel(
             factory: Factory,
             onDisciplineClick: (id: Int) -> Unit
         ): ViewModelProvider.Factory {

@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.trp.domain.di.ViewModelFactoryProvider
 import com.example.trp.ui.theme.TRPTheme
-import com.example.trp.ui.viewmodels.teacher.TeacherDisciplinesViewModel
+import com.example.trp.ui.viewmodels.teacher.TeacherDisciplinesScreenViewModel
 import dagger.hilt.android.EntryPointAccessors
 
 @Composable
@@ -28,9 +28,9 @@ fun TeacherDisciplinesScreen(onDisciplineClick: (index: Int) -> Unit) {
     val factory = EntryPointAccessors.fromActivity(
         LocalContext.current as Activity,
         ViewModelFactoryProvider::class.java
-    ).teacherDisciplinesViewModelFactory()
-    val viewModel: TeacherDisciplinesViewModel = viewModel(
-        factory = TeacherDisciplinesViewModel.provideTeacherDisciplinesViewModel(
+    ).teacherDisciplinesScreenViewModelFactory()
+    val viewModel: TeacherDisciplinesScreenViewModel = viewModel(
+        factory = TeacherDisciplinesScreenViewModel.provideTeacherDisciplinesScreenViewModel(
             factory,
             onDisciplineClick
         )
@@ -40,7 +40,7 @@ fun TeacherDisciplinesScreen(onDisciplineClick: (index: Int) -> Unit) {
 }
 
 @Composable
-fun Groups(viewModel: TeacherDisciplinesViewModel) {
+fun Groups(viewModel: TeacherDisciplinesScreenViewModel) {
     LazyColumn {
         items(viewModel.disciplines.size) { index ->
             Group(
@@ -54,7 +54,7 @@ fun Groups(viewModel: TeacherDisciplinesViewModel) {
 
 @Composable
 fun Group(
-    viewModel: TeacherDisciplinesViewModel,
+    viewModel: TeacherDisciplinesScreenViewModel,
     index: Int
 ) {
     Button(

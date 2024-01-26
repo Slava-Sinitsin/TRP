@@ -183,6 +183,7 @@ class UserAPIRepositoryImpl(
 
     suspend fun getDisciplines(): List<DisciplineData> {
         if (disciplinesChanged) {
+            mainDB.disciplinesDAO.deleteAllDisciplines()
             val response = user.token?.let { getDisciplinesResponse(it) }
             response?.body()?.let {
                 it.list?.forEach { discipline ->

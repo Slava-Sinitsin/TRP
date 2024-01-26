@@ -13,4 +13,7 @@ interface DisciplinesDAO {
 
     @Query("SELECT * FROM DisciplineData")
     suspend fun getDisciplines(): List<DisciplineData>?
+
+    @Query("DELETE FROM DisciplineData")
+    suspend fun deleteAllDisciplines()
 }
