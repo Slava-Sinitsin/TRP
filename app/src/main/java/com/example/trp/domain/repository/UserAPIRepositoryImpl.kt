@@ -4,6 +4,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.example.trp.data.maindb.MainDB
+import com.example.trp.data.mappers.StudentAppointments
+import com.example.trp.data.mappers.StudentAppointmentsResponse
 import com.example.trp.data.mappers.disciplines.DisciplineData
 import com.example.trp.data.mappers.disciplines.DisciplineResponse
 import com.example.trp.data.mappers.disciplines.Disciplines
@@ -117,6 +119,10 @@ class UserAPIRepositoryImpl(
 
     override suspend fun postTask(token: String, task: Task): Response<Task> {
         return ApiService.userAPI.postTask("Bearer $token", task)
+    }
+
+    override suspend fun getStudentAppointments(token: String): Response<StudentAppointmentsResponse> {
+        return ApiService.userAPI.getStudentAppointments("Bearer $token")
     }
 
     suspend fun getActiveUser(): User {
@@ -287,7 +293,8 @@ class UserAPIRepositoryImpl(
         val studentsResponse = user.token?.let { token ->
             getStudents(token, groupId)
         }
-        return studentsResponse?.body()?.data ?: emptyList()
+        students = studentsResponse?.body()?.data ?: emptyList()
+        return students
     }
 
     suspend fun putTask(task: Task) {
@@ -306,5 +313,11 @@ class UserAPIRepositoryImpl(
         user.token?.let { token ->
             deleteTask(token, taskId)
         }
+    }
+
+    suspend fun getStudentAppointments(): List<StudentAppointments> {
+        return user.token?.let { token ->
+            getStudentAppointments(token)
+        }?.body()?.data ?: emptyList()
     }
 }

@@ -52,7 +52,7 @@ fun TaskInfoScreen(
     val factory = EntryPointAccessors.fromActivity(
         LocalContext.current as Activity,
         ViewModelFactoryProvider::class.java
-    ).studentInfoScreenViewModelFactory()
+    ).taskInfoScreenViewModelFactory()
     val viewModel: TaskInfoScreenViewModel = viewModel(
         factory = TaskInfoScreenViewModel.provideTaskInfoScreenViewModel(
             factory,

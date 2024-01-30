@@ -9,11 +9,13 @@ import androidx.navigation.navArgument
 import com.example.trp.domain.navigation.graphs.common.Graph
 import com.example.trp.ui.screens.teacher.AddNewTaskScreen
 import com.example.trp.ui.screens.teacher.GroupsTasksScreen
+import com.example.trp.ui.screens.teacher.StudentInfoScreen
 import com.example.trp.ui.screens.teacher.StudentsScreen
 import com.example.trp.ui.screens.teacher.TaskInfoScreen
 
 private const val TEACHER_DISCIPLINES_ID = "teacher_discipline_id"
 private const val GROUP_ID = "group_id"
+private const val STUDENT_ID = "student_id"
 private const val TASK_ID = "task_id"
 
 fun NavGraphBuilder.groupsNavGraph(navController: NavHostController) {
@@ -48,8 +50,19 @@ fun NavGraphBuilder.groupsNavGraph(navController: NavHostController) {
                 StudentsScreen(
                     groupId = id,
                     onStudentClick = { studentId ->
-                        // navController.navigate("${GroupsScreen.StudentInfo.route}/$studentId") TODO
+                        navController.navigate("${GroupsScreen.StudentInfo.route}/$studentId")
                     }
+                )
+            }
+        }
+        composable(
+            route = "${GroupsScreen.StudentInfo.route}/{$STUDENT_ID}",
+            arguments = listOf(navArgument(STUDENT_ID) { type = NavType.IntType })
+        ) {
+            val studentId = it.arguments?.getInt(STUDENT_ID)
+            studentId?.let { id ->
+                StudentInfoScreen(
+                    studentId = id,
                 )
             }
         }

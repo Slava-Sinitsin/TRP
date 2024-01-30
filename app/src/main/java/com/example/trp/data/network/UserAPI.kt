@@ -1,5 +1,6 @@
 package com.example.trp.data.network
 
+import com.example.trp.data.mappers.StudentAppointmentsResponse
 import com.example.trp.data.mappers.disciplines.DisciplineResponse
 import com.example.trp.data.mappers.tasks.Output
 import com.example.trp.data.mappers.tasks.Students
@@ -92,4 +93,9 @@ interface UserAPI {
         @Header("Authorization") token: String,
         @Body task: Task
     ): Response<Task>
+
+    @GET("api/v2/student-appointments")
+    suspend fun getStudentAppointments(
+        @Header("Authorization") token: String
+    ): Response<StudentAppointmentsResponse>
 }

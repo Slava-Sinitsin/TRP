@@ -8,5 +8,5 @@ data class Task(
     @SerializedName("title") val title: String? = null,
     @SerializedName("description") val description: String? = null,
     @SerializedName("functionName") val functionName: String? = null,
-    @SerializedName("language") val language: String? = null,
+    @SerializedName("language") val language: String? = null
 )
