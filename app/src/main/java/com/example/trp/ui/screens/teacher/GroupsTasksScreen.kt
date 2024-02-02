@@ -218,7 +218,7 @@ fun Tasks(
     viewModel: GroupsTasksScreenViewModel
 ) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
-        item { AddTask(viewModel = viewModel) }
+        item { AddTaskToDiscipline(viewModel = viewModel) }
         items(count = viewModel.tasks.size) { index ->
             Task(viewModel = viewModel, index = index)
         }
@@ -258,7 +258,7 @@ fun Task(
 }
 
 @Composable
-fun AddTask(
+fun AddTaskToDiscipline(
     viewModel: GroupsTasksScreenViewModel
 ) {
     Button(
@@ -281,7 +281,7 @@ fun AddTask(
             text = "+",
             color = TRPTheme.colors.primaryText,
             fontSize = 45.sp,
-            textAlign = TextAlign.Center,
+            textAlign = TextAlign.Center
         )
     }
 }

@@ -4,6 +4,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.example.trp.data.maindb.MainDB
+import com.example.trp.data.mappers.PostStudentAppointmentsBody
+import com.example.trp.data.mappers.PostStudentAppointmentsResponse
 import com.example.trp.data.mappers.StudentAppointments
 import com.example.trp.data.mappers.StudentAppointmentsResponse
 import com.example.trp.data.mappers.disciplines.DisciplineData
@@ -52,6 +54,8 @@ class UserAPIRepositoryImpl(
     var teacherAppointments by mutableStateOf(emptyList<TeacherAppointmentsData>())
 
     var students by mutableStateOf(emptyList<Student>())
+
+    var studentAppointments by mutableStateOf(emptyList<StudentAppointments>())
 
     override suspend fun getUserResponse(authRequest: AuthRequest): Response<User> {
         return ApiService.userAPI.getUserResponse(authRequest)
@@ -123,6 +127,16 @@ class UserAPIRepositoryImpl(
 
     override suspend fun getStudentAppointments(token: String): Response<StudentAppointmentsResponse> {
         return ApiService.userAPI.getStudentAppointments("Bearer $token")
+    }
+
+    override suspend fun postStudentAppointments(
+        token: String,
+        postStudentAppointmentsBody: PostStudentAppointmentsBody
+    ): Response<PostStudentAppointmentsResponse> {
+        return ApiService.userAPI.postStudentAppointments(
+            "Bearer $token",
+            postStudentAppointmentsBody
+        )
     }
 
     suspend fun getActiveUser(): User {
@@ -283,10 +297,10 @@ class UserAPIRepositoryImpl(
     }
 
     suspend fun getTeacherAppointments(): List<TeacherAppointmentsData> {
-        val teacherAppointmentsResponse = user.token?.let { token ->
+        teacherAppointments = user.token?.let { token ->
             teacherAppointments(token)
-        }
-        return teacherAppointmentsResponse?.body()?.data ?: emptyList()
+        }?.body()?.data ?: emptyList()
+        return teacherAppointments
     }
 
     suspend fun getStudents(groupId: Int): List<Student> {
@@ -316,8 +330,16 @@ class UserAPIRepositoryImpl(
     }
 
     suspend fun getStudentAppointments(): List<StudentAppointments> {
-        return user.token?.let { token ->
+        studentAppointments = user.token?.let { token ->
             getStudentAppointments(token)
         }?.body()?.data ?: emptyList()
+        return studentAppointments
+    }
+
+    suspend fun postStudentAppointments(postStudentAppointmentsBody: PostStudentAppointmentsBody) {
+        user.token?.let { token ->
+            postStudentAppointments(token, postStudentAppointmentsBody)
+        }
+        studentAppointments = getStudentAppointments()
     }
 }

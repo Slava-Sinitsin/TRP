@@ -81,6 +81,10 @@ class TaskInfoScreenViewModel @AssistedInject constructor(
         taskLanguage = newLanguageValue
     }
 
+    fun onBackIconButtonClick() {
+        navController.popBackStack()
+    }
+
     fun onEditButtonClick() {
         readOnlyMode = false
         readOnlyAlpha = 1f
@@ -104,7 +108,7 @@ class TaskInfoScreenViewModel @AssistedInject constructor(
         }
     }
 
-    fun onRollBackIconClick() {
+    fun onRollBackIconButtonClick() {
         taskTitle = task.title ?: ""
         taskDescription = task.description ?: ""
         taskFunctionName = task.functionName ?: ""

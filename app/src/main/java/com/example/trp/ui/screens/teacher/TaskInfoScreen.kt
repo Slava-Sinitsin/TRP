@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
@@ -100,12 +101,18 @@ fun TaskInfoCenterAlignedTopAppBar(
             )
         },
         navigationIcon = {
-            if (!viewModel.readOnlyMode) {
-                IconButton(onClick = { viewModel.onRollBackIconClick() }) {
+            if (viewModel.readOnlyMode) {
+                IconButton(onClick = { viewModel.onBackIconButtonClick() }) {
+                    Icon(
+                        imageVector = Icons.Filled.ArrowBack,
+                        contentDescription = "NavigationBackIcon"
+                    )
+                }
+            } else {
+                IconButton(onClick = { viewModel.onRollBackIconButtonClick() }) {
                     Icon(
                         imageVector = Icons.Filled.Close,
-                        contentDescription = "Navigation icon"
-
+                        contentDescription = "NavigationIcon"
                     )
                 }
             }
@@ -137,7 +144,7 @@ fun TaskInfoCenterAlignedTopAppBar(
                     )
                 }
             }
-        },
+        }
     )
 }
 

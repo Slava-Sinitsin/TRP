@@ -1,5 +1,7 @@
 package com.example.trp.data.network
 
+import com.example.trp.data.mappers.PostStudentAppointmentsBody
+import com.example.trp.data.mappers.PostStudentAppointmentsResponse
 import com.example.trp.data.mappers.StudentAppointmentsResponse
 import com.example.trp.data.mappers.disciplines.DisciplineResponse
 import com.example.trp.data.mappers.tasks.Output
@@ -98,4 +100,10 @@ interface UserAPI {
     suspend fun getStudentAppointments(
         @Header("Authorization") token: String
     ): Response<StudentAppointmentsResponse>
+
+    @POST("api/v2/student-appointments")
+    suspend fun postStudentAppointments(
+        @Header("Authorization") token: String,
+        @Body postStudentAppointmentsBody: PostStudentAppointmentsBody
+    ): Response<PostStudentAppointmentsResponse>
 }

@@ -8,6 +8,7 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
 import com.example.trp.domain.navigation.graphs.common.Graph
 import com.example.trp.ui.screens.teacher.AddNewTaskScreen
+import com.example.trp.ui.screens.teacher.AddTaskToStudentScreen
 import com.example.trp.ui.screens.teacher.GroupsTasksScreen
 import com.example.trp.ui.screens.teacher.StudentInfoScreen
 import com.example.trp.ui.screens.teacher.StudentsScreen
@@ -51,7 +52,8 @@ fun NavGraphBuilder.groupsNavGraph(navController: NavHostController) {
                     groupId = id,
                     onStudentClick = { studentId ->
                         navController.navigate("${GroupsScreen.StudentInfo.route}/$studentId")
-                    }
+                    },
+                    navController = navController
                 )
             }
         }
@@ -63,6 +65,22 @@ fun NavGraphBuilder.groupsNavGraph(navController: NavHostController) {
             studentId?.let { id ->
                 StudentInfoScreen(
                     studentId = id,
+                    onAddTaskToStudentClick = { studentId ->
+                        navController.navigate("${GroupsScreen.AddTaskToStudent.route}/$studentId")
+                    },
+                    navController = navController
+                )
+            }
+        }
+        composable(
+            route = "${GroupsScreen.AddTaskToStudent.route}/{$STUDENT_ID}",
+            arguments = listOf(navArgument(STUDENT_ID) { type = NavType.IntType })
+        ) {
+            val studentId = it.arguments?.getInt(STUDENT_ID)
+            studentId?.let { id ->
+                AddTaskToStudentScreen(
+                    studentId = id,
+                    navController = navController
                 )
             }
         }
@@ -93,4 +111,5 @@ sealed class GroupsScreen(val route: String) {
     object TaskInfo : GroupsScreen(route = "checklist_TASK_INFO")
     object AddNewTask : GroupsScreen(route = "checklist_ADD_NEW_TASK")
     object StudentInfo : GroupsScreen(route = "checklist_STUDENT_INFO")
+    object AddTaskToStudent : GroupsScreen(route = "checklist_ADD_TASK_TO_STUDENT")
 }

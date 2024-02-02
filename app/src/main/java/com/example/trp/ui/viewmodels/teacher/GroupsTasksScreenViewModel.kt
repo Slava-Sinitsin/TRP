@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.trp.data.mappers.tasks.Task
+import com.example.trp.data.mappers.teacherappointments.Group
 import com.example.trp.domain.repository.UserAPIRepositoryImpl
 import com.example.trp.ui.screens.teacher.tabs.GroupsTasksTabs
 import dagger.assisted.Assisted
@@ -80,9 +81,9 @@ class GroupsTasksScreenViewModel @AssistedInject constructor(
         }
     }
 
-    fun getGroup(index: Int): com.example.trp.data.mappers.teacherappointments.Group {
+    fun getGroup(index: Int): Group {
         return teacherAppointments[index].group
-            ?: com.example.trp.data.mappers.teacherappointments.Group()
+            ?: Group()
     }
 
     fun getTask(index: Int): Task {
