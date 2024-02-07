@@ -15,7 +15,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
 
-class GroupsTasksScreenViewModel @AssistedInject constructor(
+class TeacherGroupsTasksScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
     @Assisted
     val disciplineId: Int,
@@ -48,12 +48,12 @@ class GroupsTasksScreenViewModel @AssistedInject constructor(
             onTaskClick: (id: Int) -> Unit,
             @Assisted("onAddTaskClick")
             onAddTaskClick: (id: Int) -> Unit
-        ): GroupsTasksScreenViewModel
+        ): TeacherGroupsTasksScreenViewModel
     }
 
     @Suppress("UNCHECKED_CAST")
     companion object {
-        fun provideGroupsScreenViewModel(
+        fun provideTeacherGroupsTasksScreenViewModel(
             factory: Factory,
             disciplineId: Int,
             onGroupClick: (groupId: Int) -> Unit,

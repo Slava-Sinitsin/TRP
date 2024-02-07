@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.trp.ui.screens.admin.AdminWelcomeScreen
 import com.example.trp.ui.screens.common.SplashScreen
 import com.example.trp.ui.screens.student.StudentWelcomeScreen
 import com.example.trp.ui.screens.teacher.TeacherWelcomeScreen
@@ -28,6 +29,9 @@ fun RootNavGraph(navController: NavHostController) {
         composable(route = Graph.TEACHER_WELCOME) {
             TeacherWelcomeScreen()
         }
+        composable(route = Graph.ADMIN_WELCOME) {
+            AdminWelcomeScreen()
+        }
     }
 }
 
@@ -39,4 +43,6 @@ object Graph {
     const val STUDENT_DISCIPLINES = "student_disciplines_graph"
     const val TEACHER_WELCOME = "teacher_welcome_graph"
     const val TEACHER_DISCIPLINES = "teacher_disciplines_graph"
+    const val ADMIN_WELCOME = "admin_welcome_graph"
+    const val ADMIN_DISCIPLINES = "admin_disciplines_graph"
 }

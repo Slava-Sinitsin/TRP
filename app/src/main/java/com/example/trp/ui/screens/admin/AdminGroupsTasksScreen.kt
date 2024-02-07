@@ -1,4 +1,4 @@
-package com.example.trp.ui.screens.teacher
+package com.example.trp.ui.screens.admin
 
 import android.app.Activity
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -46,12 +46,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.trp.domain.di.ViewModelFactoryProvider
 import com.example.trp.ui.screens.teacher.tabs.DisabledInteractionSource
 import com.example.trp.ui.theme.TRPTheme
-import com.example.trp.ui.viewmodels.teacher.GroupsTasksScreenViewModel
+import com.example.trp.ui.viewmodels.admin.AdminGroupsTasksScreenViewModel
 import dagger.hilt.android.EntryPointAccessors
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun GroupsTasksScreen(
+fun AdminGroupsTasksScreen(
     disciplineId: Int,
     onGroupClick: (groupId: Int) -> Unit,
     onTaskClick: (taskId: Int) -> Unit,
@@ -60,9 +60,9 @@ fun GroupsTasksScreen(
     val factory = EntryPointAccessors.fromActivity(
         LocalContext.current as Activity,
         ViewModelFactoryProvider::class.java
-    ).groupsTasksScreenViewModelFactory()
-    val viewModel: GroupsTasksScreenViewModel = viewModel(
-        factory = GroupsTasksScreenViewModel.provideGroupsScreenViewModel(
+    ).adminGroupsTasksScreenViewModelFactory()
+    val viewModel: AdminGroupsTasksScreenViewModel = viewModel(
+        factory = AdminGroupsTasksScreenViewModel.provideAdminGroupsTasksScreenViewModel(
             factory,
             disciplineId,
             onGroupClick,
@@ -170,7 +170,7 @@ fun MyNewIndicator(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun Groups(viewModel: GroupsTasksScreenViewModel) {
+fun Groups(viewModel: AdminGroupsTasksScreenViewModel) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         items(viewModel.teacherAppointments.size) { index ->
             Group(
@@ -184,7 +184,7 @@ fun Groups(viewModel: GroupsTasksScreenViewModel) {
 
 @Composable
 fun Group(
-    viewModel: GroupsTasksScreenViewModel,
+    viewModel: AdminGroupsTasksScreenViewModel,
     index: Int
 ) {
     Button(
@@ -215,7 +215,7 @@ fun Group(
 
 @Composable
 fun Tasks(
-    viewModel: GroupsTasksScreenViewModel
+    viewModel: AdminGroupsTasksScreenViewModel
 ) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         item { AddTaskToDiscipline(viewModel = viewModel) }
@@ -228,7 +228,7 @@ fun Tasks(
 
 @Composable
 fun Task(
-    viewModel: GroupsTasksScreenViewModel,
+    viewModel: AdminGroupsTasksScreenViewModel,
     index: Int
 ) {
     Button(
@@ -259,7 +259,7 @@ fun Task(
 
 @Composable
 fun AddTaskToDiscipline(
-    viewModel: GroupsTasksScreenViewModel
+    viewModel: AdminGroupsTasksScreenViewModel
 ) {
     Button(
         modifier = Modifier

@@ -1,4 +1,4 @@
-package com.example.trp.ui.viewmodels.teacher
+package com.example.trp.ui.viewmodels.admin
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -13,7 +13,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
 
-class TeacherDisciplinesScreenViewModel @AssistedInject constructor(
+class AdminDisciplinesScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
     @Assisted
     val onDisciplineClick: (id: Int) -> Unit
@@ -23,12 +23,12 @@ class TeacherDisciplinesScreenViewModel @AssistedInject constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(onDisciplineClick: (id: Int) -> Unit): TeacherDisciplinesScreenViewModel
+        fun create(onDisciplineClick: (id: Int) -> Unit): AdminDisciplinesScreenViewModel
     }
 
     @Suppress("UNCHECKED_CAST")
     companion object {
-        fun provideTeacherDisciplinesScreenViewModel(
+        fun provideAdminDisciplinesScreenViewModel(
             factory: Factory,
             onDisciplineClick: (id: Int) -> Unit
         ): ViewModelProvider.Factory {

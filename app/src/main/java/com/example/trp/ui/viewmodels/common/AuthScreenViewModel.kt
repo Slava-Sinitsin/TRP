@@ -53,12 +53,21 @@ class AuthScreenViewModel @Inject constructor(val repository: UserAPIRepositoryI
 
     @Suppress("SameParameterValue")
     private fun loggedChange(newIsLogged: Boolean) {
-        if (repository.user.role == "ROLE_STUDENT") {
-            destination = Graph.STUDENT_WELCOME
-            isLogged = newIsLogged
-        } else if (repository.user.role == "ROLE_TEACHER") {
-            destination = Graph.TEACHER_WELCOME
-            isLogged = newIsLogged
+        when (repository.user.role) {
+            "ROLE_STUDENT" -> {
+                destination = Graph.STUDENT_WELCOME
+                isLogged = newIsLogged
+            }
+
+            "ROLE_TEACHER" -> {
+                destination = Graph.TEACHER_WELCOME
+                isLogged = newIsLogged
+            }
+
+            "ROLE_ADMIN" -> {
+                destination = Graph.ADMIN_WELCOME
+                isLogged = newIsLogged
+            }
         }
     }
 
