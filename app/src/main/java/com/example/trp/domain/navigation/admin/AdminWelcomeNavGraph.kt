@@ -1,11 +1,11 @@
-package com.example.trp.domain.navigation.graphs.admin
+package com.example.trp.domain.navigation.admin
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.trp.domain.navigation.graphs.common.Graph
-import com.example.trp.ui.screens.MeScreen
+import com.example.trp.domain.navigation.common.Graph
+import com.example.trp.ui.screens.common.MeScreen
 import com.example.trp.ui.screens.admin.AdminBottomBarScreen
 import com.example.trp.ui.screens.admin.AdminDisciplinesScreen
 import com.example.trp.ui.screens.admin.AdminHomeScreen

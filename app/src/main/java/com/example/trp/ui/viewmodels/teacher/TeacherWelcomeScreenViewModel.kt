@@ -9,7 +9,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
-import com.example.trp.domain.repository.UserAPIRepositoryImpl
+import com.example.trp.data.repository.UserAPIRepositoryImpl
 import com.example.trp.ui.screens.teacher.TeacherBottomBarScreen
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory

@@ -1,4 +1,4 @@
-package com.example.trp.domain.navigation.graphs.common
+package com.example.trp.domain.navigation.common
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController

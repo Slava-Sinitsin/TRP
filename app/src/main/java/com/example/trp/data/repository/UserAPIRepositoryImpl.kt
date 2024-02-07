@@ -1,4 +1,4 @@
-package com.example.trp.domain.repository
+package com.example.trp.data.repository
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

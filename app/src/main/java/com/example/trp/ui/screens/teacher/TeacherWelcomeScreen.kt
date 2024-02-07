@@ -23,7 +23,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.trp.domain.di.ViewModelFactoryProvider
-import com.example.trp.domain.navigation.graphs.teacher.TeacherWelcomeNavGraph
+import com.example.trp.domain.navigation.teacher.TeacherWelcomeNavGraph
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.teacher.TeacherWelcomeScreenViewModel
 import dagger.hilt.android.EntryPointAccessors

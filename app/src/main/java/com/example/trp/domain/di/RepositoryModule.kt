@@ -3,7 +3,7 @@ package com.example.trp.domain.di
 import android.app.Application
 import androidx.room.Room
 import com.example.trp.data.maindb.MainDB
-import com.example.trp.domain.repository.UserAPIRepositoryImpl
+import com.example.trp.data.repository.UserAPIRepositoryImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

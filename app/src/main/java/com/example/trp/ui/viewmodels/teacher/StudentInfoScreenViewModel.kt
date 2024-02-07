@@ -10,7 +10,7 @@ import androidx.navigation.NavHostController
 import com.example.trp.data.mappers.StudentAppointments
 import com.example.trp.data.mappers.tasks.Student
 import com.example.trp.data.mappers.tasks.Task
-import com.example.trp.domain.repository.UserAPIRepositoryImpl
+import com.example.trp.data.repository.UserAPIRepositoryImpl
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
