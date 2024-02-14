@@ -16,25 +16,31 @@ import kotlinx.coroutines.launch
 class AdminDisciplinesScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
     @Assisted
-    val onDisciplineClick: (id: Int) -> Unit
+    val onDisciplineClick: (id: Int) -> Unit,
+    @Assisted
+    val onAddDisciplineClick: () -> Unit
 ) : ViewModel() {
     var disciplines by mutableStateOf(repository.disciplines)
         private set
 
     @AssistedFactory
     interface Factory {
-        fun create(onDisciplineClick: (id: Int) -> Unit): AdminDisciplinesScreenViewModel
+        fun create(
+            onDisciplineClick: (id: Int) -> Unit,
+            onAddDisciplineClick: () -> Unit
+        ): AdminDisciplinesScreenViewModel
     }
 
     @Suppress("UNCHECKED_CAST")
     companion object {
         fun provideAdminDisciplinesScreenViewModel(
             factory: Factory,
-            onDisciplineClick: (id: Int) -> Unit
+            onDisciplineClick: (id: Int) -> Unit,
+            onAddDisciplineClick: () -> Unit
         ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return factory.create(onDisciplineClick) as T
+                    return factory.create(onDisciplineClick, onAddDisciplineClick) as T
                 }
             }
         }
@@ -54,5 +60,9 @@ class AdminDisciplinesScreenViewModel @AssistedInject constructor(
         getGroup(index = index).let { group ->
             group.id?.let { id -> onDisciplineClick(id) }
         }
+    }
+
+    fun onAddDisciplineButtonClick() {
+        onAddDisciplineClick()
     }
 }

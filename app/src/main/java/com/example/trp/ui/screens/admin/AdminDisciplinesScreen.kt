@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -24,7 +25,10 @@ import com.example.trp.ui.viewmodels.admin.AdminDisciplinesScreenViewModel
 import dagger.hilt.android.EntryPointAccessors
 
 @Composable
-fun AdminDisciplinesScreen(onDisciplineClick: (index: Int) -> Unit) {
+fun AdminDisciplinesScreen(
+    onDisciplineClick: (index: Int) -> Unit,
+    onAddDisciplineClick: () -> Unit
+) {
     val factory = EntryPointAccessors.fromActivity(
         LocalContext.current as Activity,
         ViewModelFactoryProvider::class.java
@@ -32,7 +36,8 @@ fun AdminDisciplinesScreen(onDisciplineClick: (index: Int) -> Unit) {
     val viewModel: AdminDisciplinesScreenViewModel = viewModel(
         factory = AdminDisciplinesScreenViewModel.provideAdminDisciplinesScreenViewModel(
             factory,
-            onDisciplineClick
+            onDisciplineClick,
+            onAddDisciplineClick
         )
     )
 
@@ -42,6 +47,7 @@ fun AdminDisciplinesScreen(onDisciplineClick: (index: Int) -> Unit) {
 @Composable
 fun Groups(viewModel: AdminDisciplinesScreenViewModel) {
     LazyColumn {
+        item { AddDiscipline(viewModel = viewModel) }
         items(viewModel.disciplines.size) { index ->
             Group(
                 viewModel = viewModel,
@@ -49,6 +55,35 @@ fun Groups(viewModel: AdminDisciplinesScreenViewModel) {
             )
         }
         item { Spacer(modifier = Modifier.size(100.dp)) }
+    }
+}
+
+@Composable
+fun AddDiscipline(
+    viewModel: AdminDisciplinesScreenViewModel
+) {
+    Button(
+        modifier = Modifier
+            .padding(8.dp)
+            .fillMaxSize(),
+        onClick = { viewModel.onAddDisciplineButtonClick() },
+        elevation = ButtonDefaults.buttonElevation(
+            defaultElevation = 10.dp
+        ),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = TRPTheme.colors.cardButtonColor
+        ),
+        shape = RoundedCornerShape(30.dp)
+    ) {
+        Text(
+            modifier = Modifier
+                .fillMaxSize()
+                .alpha(0.6f),
+            text = "+",
+            color = TRPTheme.colors.primaryText,
+            fontSize = 45.sp,
+            textAlign = TextAlign.Center
+        )
     }
 }
 

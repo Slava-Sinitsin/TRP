@@ -4,6 +4,8 @@ import com.example.trp.data.mappers.PostStudentAppointmentsBody
 import com.example.trp.data.mappers.PostStudentAppointmentsResponse
 import com.example.trp.data.mappers.StudentAppointmentsResponse
 import com.example.trp.data.mappers.disciplines.DisciplineResponse
+import com.example.trp.data.mappers.disciplines.PostNewDisciplineBody
+import com.example.trp.data.mappers.disciplines.PostNewDisciplineResponse
 import com.example.trp.data.mappers.tasks.Output
 import com.example.trp.data.mappers.tasks.Students
 import com.example.trp.data.mappers.tasks.Task
@@ -106,4 +108,10 @@ interface UserAPI {
         @Header("Authorization") token: String,
         @Body postStudentAppointmentsBody: PostStudentAppointmentsBody
     ): Response<PostStudentAppointmentsResponse>
+
+    @POST("/api/v2/disciplines")
+    suspend fun postNewDiscipline(
+        @Header("Authorization") token: String,
+        @Body postNewDisciplineBody: PostNewDisciplineBody
+    ): Response<PostNewDisciplineResponse>
 }

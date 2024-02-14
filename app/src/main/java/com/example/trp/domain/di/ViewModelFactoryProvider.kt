@@ -1,5 +1,6 @@
 package com.example.trp.domain.di
 
+import com.example.trp.ui.viewmodels.admin.AddNewDisciplineScreenViewModel
 import com.example.trp.ui.viewmodels.admin.AdminDisciplinesScreenViewModel
 import com.example.trp.ui.viewmodels.admin.AdminGroupsTasksScreenViewModel
 import com.example.trp.ui.viewmodels.admin.AdminWelcomeScreenViewModel
@@ -39,4 +40,5 @@ interface ViewModelFactoryProvider {
     fun adminWelcomeScreenViewModelFactory(): AdminWelcomeScreenViewModel.Factory
     fun adminDisciplinesScreenViewModelFactory(): AdminDisciplinesScreenViewModel.Factory
     fun adminGroupsTasksScreenViewModelFactory(): AdminGroupsTasksScreenViewModel.Factory
+    fun adminAddNewDisciplineScreenViewModelFactory(): AddNewDisciplineScreenViewModel.Factory
 }

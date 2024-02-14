@@ -11,6 +11,8 @@ import com.example.trp.data.mappers.StudentAppointmentsResponse
 import com.example.trp.data.mappers.disciplines.DisciplineData
 import com.example.trp.data.mappers.disciplines.DisciplineResponse
 import com.example.trp.data.mappers.disciplines.Disciplines
+import com.example.trp.data.mappers.disciplines.PostNewDisciplineBody
+import com.example.trp.data.mappers.disciplines.PostNewDisciplineResponse
 import com.example.trp.data.mappers.tasks.Output
 import com.example.trp.data.mappers.tasks.Student
 import com.example.trp.data.mappers.tasks.Students
@@ -136,6 +138,16 @@ class UserAPIRepositoryImpl(
         return ApiService.userAPI.postStudentAppointments(
             "Bearer $token",
             postStudentAppointmentsBody
+        )
+    }
+
+    override suspend fun postNewDiscipline(
+        token: String,
+        postNewDisciplineBody: PostNewDisciplineBody
+    ): Response<PostNewDisciplineResponse> {
+        return ApiService.userAPI.postNewDiscipline(
+            "Bearer $token",
+            postNewDisciplineBody
         )
     }
 
@@ -341,5 +353,13 @@ class UserAPIRepositoryImpl(
             postStudentAppointments(token, postStudentAppointmentsBody)
         }
         studentAppointments = getStudentAppointments()
+    }
+
+    suspend fun postNewDiscipline(postNewDisciplineBody: PostNewDisciplineBody) {
+        user.token?.let { token ->
+            postNewDiscipline(token, postNewDisciplineBody)
+        }
+        disciplinesChanged = true
+        disciplines = getDisciplines()
     }
 }
