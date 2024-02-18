@@ -77,7 +77,7 @@ fun AdminGroupsTasksScreen(
     }
     LaunchedEffect(pagerState.currentPage, pagerState.isScrollInProgress) {
         if (!pagerState.isScrollInProgress) {
-            viewModel.selectedTabIndex = pagerState.currentPage
+            viewModel.setPagerState(pagerState.currentPage)
         }
     }
     val indicator = @Composable { tabPositions: List<TabPosition> ->
@@ -108,7 +108,7 @@ fun AdminGroupsTasksScreen(
                             .zIndex(2f),
                         selected = index == viewModel.selectedTabIndex,
                         interactionSource = DisabledInteractionSource(),
-                        onClick = { viewModel.selectedTabIndex = index },
+                        onClick = { viewModel.setPagerState(index) },
                         text = {
                             Text(
                                 text = item.title,

@@ -23,27 +23,27 @@ fun NavGraphBuilder.groupsNavGraph(navController: NavHostController) {
     navigation(
         route = "${Graph.TEACHER_DISCIPLINES}/{$TEACHER_DISCIPLINES_ID}",
         arguments = listOf(navArgument(TEACHER_DISCIPLINES_ID) { type = NavType.IntType }),
-        startDestination = "${TeacherGroupsScreen.Groups.route}/{$TEACHER_DISCIPLINES_ID}"
+        startDestination = "${TeacherGroupsTasksScreen.GroupsTasks.route}/{$TEACHER_DISCIPLINES_ID}"
     ) {
-        composable(route = "${TeacherGroupsScreen.Groups.route}/{$TEACHER_DISCIPLINES_ID}") {
+        composable(route = "${TeacherGroupsTasksScreen.GroupsTasks.route}/{$TEACHER_DISCIPLINES_ID}") {
             val disciplineId = it.arguments?.getInt(TEACHER_DISCIPLINES_ID)
             disciplineId?.let { id ->
                 TeacherGroupsTasksScreen(
                     disciplineId = id,
                     onGroupClick = { groupId ->
-                        navController.navigate("${TeacherGroupsScreen.GroupInfo.route}/$groupId")
+                        navController.navigate("${TeacherGroupsTasksScreen.GroupInfo.route}/$groupId")
                     },
                     onTaskClick = { taskId ->
-                        navController.navigate("${TeacherGroupsScreen.TaskInfo.route}/$taskId")
+                        navController.navigate("${TeacherGroupsTasksScreen.TaskInfo.route}/$taskId")
                     },
                     onAddTaskClick = { disciplineId ->
-                        navController.navigate("${TeacherGroupsScreen.AddNewTask.route}/$disciplineId")
+                        navController.navigate("${TeacherGroupsTasksScreen.AddNewTask.route}/$disciplineId")
                     }
                 )
             }
         }
         composable(
-            route = "${TeacherGroupsScreen.GroupInfo.route}/{$GROUP_ID}",
+            route = "${TeacherGroupsTasksScreen.GroupInfo.route}/{$GROUP_ID}",
             arguments = listOf(navArgument(GROUP_ID) { type = NavType.IntType })
         ) {
             val groupId = it.arguments?.getInt(GROUP_ID)
@@ -51,14 +51,14 @@ fun NavGraphBuilder.groupsNavGraph(navController: NavHostController) {
                 StudentsScreen(
                     groupId = id,
                     onStudentClick = { studentId ->
-                        navController.navigate("${TeacherGroupsScreen.StudentInfo.route}/$studentId")
+                        navController.navigate("${TeacherGroupsTasksScreen.StudentInfo.route}/$studentId")
                     },
                     navController = navController
                 )
             }
         }
         composable(
-            route = "${TeacherGroupsScreen.StudentInfo.route}/{$STUDENT_ID}",
+            route = "${TeacherGroupsTasksScreen.StudentInfo.route}/{$STUDENT_ID}",
             arguments = listOf(navArgument(STUDENT_ID) { type = NavType.IntType })
         ) {
             val studentId = it.arguments?.getInt(STUDENT_ID)
@@ -66,14 +66,14 @@ fun NavGraphBuilder.groupsNavGraph(navController: NavHostController) {
                 StudentInfoScreen(
                     studentId = id,
                     onAddTaskToStudentClick = { studentId ->
-                        navController.navigate("${TeacherGroupsScreen.AddTaskToStudent.route}/$studentId")
+                        navController.navigate("${TeacherGroupsTasksScreen.AddTaskToStudent.route}/$studentId")
                     },
                     navController = navController
                 )
             }
         }
         composable(
-            route = "${TeacherGroupsScreen.AddTaskToStudent.route}/{$STUDENT_ID}",
+            route = "${TeacherGroupsTasksScreen.AddTaskToStudent.route}/{$STUDENT_ID}",
             arguments = listOf(navArgument(STUDENT_ID) { type = NavType.IntType })
         ) {
             val studentId = it.arguments?.getInt(STUDENT_ID)
@@ -85,16 +85,21 @@ fun NavGraphBuilder.groupsNavGraph(navController: NavHostController) {
             }
         }
         composable(
-            route = "${TeacherGroupsScreen.TaskInfo.route}/{$TASK_ID}",
+            route = "${TeacherGroupsTasksScreen.TaskInfo.route}/{$TASK_ID}",
             arguments = listOf(navArgument(TASK_ID) { type = NavType.IntType })
         ) {
             val taskId = it.arguments?.getInt(TASK_ID)
             taskId?.let { id ->
-                TaskTestsInfoScreen(taskId = id, navController = navController)
+                TaskTestsInfoScreen(
+                    taskId = id,
+                    navController = navController,
+                    onAddTestClick = { },
+                    onTestClick = { }
+                )
             }
         }
         composable(
-            route = "${TeacherGroupsScreen.AddNewTask.route}/{$TEACHER_DISCIPLINES_ID}",
+            route = "${TeacherGroupsTasksScreen.AddNewTask.route}/{$TEACHER_DISCIPLINES_ID}",
             arguments = listOf(navArgument(TEACHER_DISCIPLINES_ID) { type = NavType.IntType })
         ) {
             val disciplineId = it.arguments?.getInt(TEACHER_DISCIPLINES_ID)
@@ -105,11 +110,11 @@ fun NavGraphBuilder.groupsNavGraph(navController: NavHostController) {
     }
 }
 
-sealed class TeacherGroupsScreen(val route: String) {
-    object Groups : TeacherGroupsScreen(route = "checklist_GROUPS")
-    object GroupInfo : TeacherGroupsScreen(route = "checklist_GROUP_INFO")
-    object TaskInfo : TeacherGroupsScreen(route = "checklist_TASK_INFO")
-    object AddNewTask : TeacherGroupsScreen(route = "checklist_ADD_NEW_TASK")
-    object StudentInfo : TeacherGroupsScreen(route = "checklist_STUDENT_INFO")
-    object AddTaskToStudent : TeacherGroupsScreen(route = "checklist_ADD_TASK_TO_STUDENT")
+sealed class TeacherGroupsTasksScreen(val route: String) {
+    object GroupsTasks : TeacherGroupsTasksScreen(route = "checklist_GROUPS_TASKS")
+    object GroupInfo : TeacherGroupsTasksScreen(route = "checklist_GROUP_INFO")
+    object TaskInfo : TeacherGroupsTasksScreen(route = "checklist_TASK_INFO")
+    object AddNewTask : TeacherGroupsTasksScreen(route = "checklist_ADD_NEW_TASK")
+    object StudentInfo : TeacherGroupsTasksScreen(route = "checklist_STUDENT_INFO")
+    object AddTaskToStudent : TeacherGroupsTasksScreen(route = "checklist_ADD_TASK_TO_STUDENT")
 }

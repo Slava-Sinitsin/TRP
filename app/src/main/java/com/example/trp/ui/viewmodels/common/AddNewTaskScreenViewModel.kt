@@ -56,18 +56,18 @@ class AddNewTaskScreenViewModel @AssistedInject constructor(
     }
 
     fun updateDescriptionValue(newDescriptionValue: String) {
-        applyButtonEnabled = newDescriptionValue.isNotEmpty()
         taskDescription = newDescriptionValue
+        applyButtonEnabled = taskDescription.isNotEmpty()
     }
 
     fun updateFunctionNameValue(newFunctionNameValue: String) {
-        applyButtonEnabled = newFunctionNameValue.isNotEmpty()
         taskFunctionName = newFunctionNameValue
+        applyButtonEnabled = taskFunctionName.isNotEmpty()
     }
 
     fun updateLanguageValue(newLanguageValue: String) {
-        applyButtonEnabled = newLanguageValue.isNotEmpty()
         taskLanguage = newLanguageValue
+        applyButtonEnabled = taskLanguage.isNotEmpty()
     }
 
     fun onRollBackIconClick() {

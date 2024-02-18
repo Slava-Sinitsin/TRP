@@ -37,6 +37,7 @@ class AdminGroupsTasksScreenViewModel @AssistedInject constructor(
     )
 
     var selectedTabIndex by mutableStateOf(0)
+        private set
 
     @AssistedFactory
     interface Factory {
@@ -100,5 +101,9 @@ class AdminGroupsTasksScreenViewModel @AssistedInject constructor(
 
     fun onAddTaskButtonClick() {
         onAddTaskClick(disciplineId)
+    }
+
+    fun setPagerState(index: Int) {
+        selectedTabIndex = index
     }
 }

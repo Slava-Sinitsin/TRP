@@ -1,14 +1,19 @@
 package com.example.trp.ui.screens.common
 
 import android.app.Activity
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -24,31 +29,45 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabPosition
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.trp.domain.di.ViewModelFactoryProvider
+import com.example.trp.ui.components.tabs.DisabledInteractionSource
+import com.example.trp.ui.screens.admin.MyNewIndicator
+import com.example.trp.ui.screens.admin.myTabIndicatorOffset
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.common.TaskTestsInfoScreenViewModel
 import dagger.hilt.android.EntryPointAccessors
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun TaskTestsInfoScreen(
     taskId: Int,
-    navController: NavHostController
+    navController: NavHostController,
+    onAddTestClick: (taskId: Int) -> Unit,
+    onTestClick: (testId: Int) -> Unit
 ) {
     val factory = EntryPointAccessors.fromActivity(
         LocalContext.current as Activity,
@@ -61,6 +80,22 @@ fun TaskTestsInfoScreen(
             navController
         )
     )
+
+    val pagerState = rememberPagerState(0)
+    LaunchedEffect(viewModel.selectedTabIndex) {
+        pagerState.animateScrollToPage(viewModel.selectedTabIndex)
+    }
+    LaunchedEffect(pagerState.currentPage, pagerState.isScrollInProgress) {
+        if (!pagerState.isScrollInProgress) {
+            viewModel.setPagerState(pagerState.currentPage)
+        }
+    }
+    val indicator = @Composable { tabPositions: List<TabPosition> ->
+        MyNewIndicator(
+            Modifier.myTabIndicatorOffset(tabPositions[viewModel.selectedTabIndex])
+        )
+    }
+
     Scaffold(
         modifier = Modifier
             .fillMaxSize(),
@@ -68,13 +103,59 @@ fun TaskTestsInfoScreen(
     ) { scaffoldPadding ->
         Column(
             modifier = Modifier
+                .padding(top = scaffoldPadding.calculateTopPadding())
                 .fillMaxSize()
                 .background(TRPTheme.colors.primaryBackground)
         ) {
-            TitleField(viewModel = viewModel, paddingValues = scaffoldPadding)
-            DescriptionField(viewModel = viewModel)
-            FunctionNameField(viewModel = viewModel)
-            LanguageField(viewModel = viewModel)
+            TabRow(
+                modifier = Modifier
+                    .background(TRPTheme.colors.primaryBackground)
+                    .padding(5.dp)
+                    .clip(
+                        shape = RoundedCornerShape(20.dp)
+                    ),
+                selectedTabIndex = viewModel.selectedTabIndex,
+                containerColor = TRPTheme.colors.secondaryBackground,
+                indicator = indicator,
+                divider = {}
+            ) {
+                viewModel.taskTestsScreens.forEachIndexed { index, item ->
+                    Tab(
+                        modifier = Modifier
+                            .clip(shape = RoundedCornerShape(20.dp))
+                            .padding(bottom = 3.dp)
+                            .zIndex(2f),
+                        selected = index == viewModel.selectedTabIndex,
+                        interactionSource = DisabledInteractionSource(),
+                        onClick = { viewModel.setPagerState(index) },
+                        text = {
+                            Text(
+                                text = item.title,
+                                color = TRPTheme.colors.secondaryText,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    )
+                }
+            }
+            HorizontalPager(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .background(TRPTheme.colors.primaryBackground),
+                state = pagerState,
+                pageCount = viewModel.taskTestsScreens.size
+            ) { index ->
+                if (index == 0) {
+                    TaskInfoScreen(viewModel = viewModel)
+                } else if (index == 1) {
+                    TestsScreen(
+                        viewModel = viewModel,
+                        onTestClick = onTestClick,
+                        onAddTestClick = onAddTestClick
+                    )
+                }
+            }
             if (viewModel.showDeleteDialog) {
                 DeleteDialog(viewModel)
             }
@@ -148,11 +229,22 @@ fun TaskInfoCenterAlignedTopAppBar(
     )
 }
 
+@Composable
+fun TaskInfoScreen(
+    viewModel: TaskTestsInfoScreenViewModel
+) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        TitleField(viewModel = viewModel)
+        DescriptionField(viewModel = viewModel)
+        FunctionNameField(viewModel = viewModel)
+        LanguageField(viewModel = viewModel)
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TitleField(
-    viewModel: TaskTestsInfoScreenViewModel,
-    paddingValues: PaddingValues
+    viewModel: TaskTestsInfoScreenViewModel
 ) {
     Text(
         text = "Title",
@@ -160,7 +252,7 @@ fun TitleField(
         fontSize = 15.sp,
         modifier = Modifier
             .alpha(0.6f)
-            .padding(start = 5.dp, top = paddingValues.calculateTopPadding() + 10.dp)
+            .padding(start = 5.dp)
     )
     OutlinedTextField(
         modifier = Modifier
@@ -363,4 +455,89 @@ fun DeleteDialog(viewModel: TaskTestsInfoScreenViewModel) {
             }
         }
     )
+}
+
+@Composable
+fun TestsScreen(
+    viewModel: TaskTestsInfoScreenViewModel,
+    onTestClick: (testId: Int) -> Unit,
+    onAddTestClick: (taskId: Int) -> Unit
+) {
+    LazyColumn(modifier = Modifier.fillMaxSize()) {
+        item { AddTestToTask(viewModel = viewModel, onAddTestClick = onAddTestClick) }
+        items(count = 20) { index ->
+            Test(viewModel = viewModel, index = index, onTestClick = onTestClick)
+        }
+        item { Spacer(modifier = Modifier.size(100.dp)) }
+    }
+}
+
+@Composable
+fun AddTestToTask(
+    viewModel: TaskTestsInfoScreenViewModel,
+    onAddTestClick: (taskId: Int) -> Unit
+) {
+    Button(
+        modifier = Modifier
+            .padding(8.dp)
+            .fillMaxSize(),
+        onClick = { onAddTestClick(viewModel.taskId) },
+        elevation = ButtonDefaults.buttonElevation(
+            defaultElevation = 10.dp
+        ),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = TRPTheme.colors.cardButtonColor
+        ),
+        shape = RoundedCornerShape(30.dp)
+    ) {
+        Text(
+            modifier = Modifier
+                .fillMaxSize()
+                .alpha(0.6f),
+            text = "+",
+            color = TRPTheme.colors.primaryText,
+            fontSize = 45.sp,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+fun Test(
+    viewModel: TaskTestsInfoScreenViewModel,
+    index: Int,
+    onTestClick: (testId: Int) -> Unit
+) {
+    Button(
+        modifier = Modifier
+            .padding(8.dp)
+            .fillMaxSize(),
+        onClick = {
+            viewModel.getTest(index = index).let { task ->
+                task.id?.let { groupId ->
+                    onTestClick(
+                        groupId
+                    )
+                }
+            }
+        },
+        elevation = ButtonDefaults.buttonElevation(
+            defaultElevation = 10.dp
+        ),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = TRPTheme.colors.cardButtonColor
+        ),
+        shape = RoundedCornerShape(30.dp)
+    ) {
+        Text(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 16.dp, bottom = 16.dp)
+                .align(Alignment.CenterVertically),
+            textAlign = TextAlign.Start,
+            text = viewModel.getTest(index = index).title.toString(),
+            color = TRPTheme.colors.primaryText,
+            fontSize = 25.sp
+        )
+    }
 }

@@ -4,15 +4,16 @@ import com.example.trp.ui.viewmodels.admin.AddNewDisciplineScreenViewModel
 import com.example.trp.ui.viewmodels.admin.AdminDisciplinesScreenViewModel
 import com.example.trp.ui.viewmodels.admin.AdminGroupsTasksScreenViewModel
 import com.example.trp.ui.viewmodels.admin.AdminWelcomeScreenViewModel
+import com.example.trp.ui.viewmodels.common.AddNewTaskScreenViewModel
+import com.example.trp.ui.viewmodels.common.AddNewTestScreenViewModel
+import com.example.trp.ui.viewmodels.common.TaskTestsInfoScreenViewModel
 import com.example.trp.ui.viewmodels.student.StudentDisciplinesScreenViewModel
 import com.example.trp.ui.viewmodels.student.StudentWelcomeScreenViewModel
 import com.example.trp.ui.viewmodels.student.TaskScreenViewModel
 import com.example.trp.ui.viewmodels.student.TasksScreenViewModel
-import com.example.trp.ui.viewmodels.common.AddNewTaskScreenViewModel
 import com.example.trp.ui.viewmodels.teacher.AddTaskToStudentScreenViewModel
 import com.example.trp.ui.viewmodels.teacher.StudentInfoScreenViewModel
 import com.example.trp.ui.viewmodels.teacher.StudentsScreenViewModel
-import com.example.trp.ui.viewmodels.common.TaskTestsInfoScreenViewModel
 import com.example.trp.ui.viewmodels.teacher.TeacherDisciplinesScreenViewModel
 import com.example.trp.ui.viewmodels.teacher.TeacherGroupsTasksScreenViewModel
 import com.example.trp.ui.viewmodels.teacher.TeacherWelcomeScreenViewModel
@@ -41,4 +42,5 @@ interface ViewModelFactoryProvider {
     fun adminDisciplinesScreenViewModelFactory(): AdminDisciplinesScreenViewModel.Factory
     fun adminGroupsTasksScreenViewModelFactory(): AdminGroupsTasksScreenViewModel.Factory
     fun adminAddNewDisciplineScreenViewModelFactory(): AddNewDisciplineScreenViewModel.Factory
+    fun adminAddNewTestScreenViewModelFactory(): AddNewTestScreenViewModel.Factory
 }

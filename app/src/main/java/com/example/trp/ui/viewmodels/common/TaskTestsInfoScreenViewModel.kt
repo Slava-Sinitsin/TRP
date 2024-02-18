@@ -8,7 +8,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import com.example.trp.data.mappers.tasks.Task
+import com.example.trp.data.mappers.tasks.Test
 import com.example.trp.data.repository.UserAPIRepositoryImpl
+import com.example.trp.ui.components.tabs.TaskTestsTabs
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -22,14 +24,34 @@ class TaskTestsInfoScreenViewModel @AssistedInject constructor(
     val navController: NavHostController
 ) : ViewModel() {
     var task by mutableStateOf(repository.task)
+        private set
     var taskTitle by mutableStateOf("")
+        private set
     var taskDescription by mutableStateOf("")
+        private set
     var taskFunctionName by mutableStateOf("")
+        private set
     var taskLanguage by mutableStateOf("")
+        private set
     var readOnlyMode by mutableStateOf(true)
+        private set
     var readOnlyAlpha by mutableStateOf(0.6f)
+        private set
     var applyButtonEnabled by mutableStateOf(true)
+        private set
     var showDeleteDialog by mutableStateOf(false)
+        private set
+
+    val taskTestsScreens = listOf(
+        TaskTestsTabs.TaskInfo,
+        TaskTestsTabs.Tests
+    )
+
+    var selectedTabIndex by mutableStateOf(0)
+        private set
+
+    var tests by mutableStateOf(List(20) { Test() })
+        private set
 
     @AssistedFactory
     interface Factory {
@@ -129,5 +151,13 @@ class TaskTestsInfoScreenViewModel @AssistedInject constructor(
 
     fun onDismissButtonClick() {
         showDeleteDialog = false
+    }
+
+    fun setPagerState(index: Int) {
+        selectedTabIndex = index
+    }
+
+    fun getTest(index: Int): Test {
+        return tests[index]
     }
 }
