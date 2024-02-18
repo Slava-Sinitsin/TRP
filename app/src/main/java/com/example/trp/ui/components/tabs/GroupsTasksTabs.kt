@@ -1,4 +1,4 @@
-package com.example.trp.ui.screens.teacher.tabs
+package com.example.trp.ui.components.tabs
 
 sealed class GroupsTasksTabs(
     val title: String,

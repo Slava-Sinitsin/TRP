@@ -1,4 +1,4 @@
-package com.example.trp.ui.screens.teacher
+package com.example.trp.ui.screens.common
 
 import android.app.Activity
 import androidx.compose.foundation.background
@@ -34,7 +34,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.trp.domain.di.ViewModelFactoryProvider
 import com.example.trp.ui.theme.TRPTheme
-import com.example.trp.ui.viewmodels.teacher.AddNewTaskScreenViewModel
+import com.example.trp.ui.viewmodels.common.AddNewTaskScreenViewModel
 import dagger.hilt.android.EntryPointAccessors
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -9,7 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.trp.data.mappers.tasks.Task
 import com.example.trp.data.mappers.teacherappointments.Group
 import com.example.trp.data.repository.UserAPIRepositoryImpl
-import com.example.trp.ui.screens.teacher.tabs.GroupsTasksTabs
+import com.example.trp.ui.components.tabs.GroupsTasksTabs
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject

@@ -1,4 +1,4 @@
-package com.example.trp.ui.viewmodels.teacher
+package com.example.trp.ui.viewmodels.common
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -14,39 +14,50 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
 
-class AddNewTaskScreenViewModel @AssistedInject constructor(
+class TaskTestsInfoScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
     @Assisted
-    val disciplineId: Int,
+    val taskId: Int,
     @Assisted
     val navController: NavHostController
 ) : ViewModel() {
+    var task by mutableStateOf(repository.task)
     var taskTitle by mutableStateOf("")
     var taskDescription by mutableStateOf("")
     var taskFunctionName by mutableStateOf("")
     var taskLanguage by mutableStateOf("")
-    var applyButtonEnabled by mutableStateOf(false)
+    var readOnlyMode by mutableStateOf(true)
+    var readOnlyAlpha by mutableStateOf(0.6f)
+    var applyButtonEnabled by mutableStateOf(true)
+    var showDeleteDialog by mutableStateOf(false)
 
     @AssistedFactory
     interface Factory {
-        fun create(
-            disciplineId: Int,
-            navController: NavHostController
-        ): AddNewTaskScreenViewModel
+        fun create(studentId: Int, navController: NavHostController): TaskTestsInfoScreenViewModel
     }
 
     @Suppress("UNCHECKED_CAST")
     companion object {
-        fun provideAddNewTaskScreenViewModel(
+        fun provideTaskInfoScreenViewModel(
             factory: Factory,
-            disciplineId: Int,
+            studentId: Int,
             navController: NavHostController
         ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return factory.create(disciplineId, navController) as T
+                    return factory.create(studentId, navController) as T
                 }
             }
+        }
+    }
+
+    init {
+        viewModelScope.launch {
+            task = repository.getTaskProperties(taskId)
+            taskTitle = task.title ?: ""
+            taskDescription = task.description ?: ""
+            taskFunctionName = task.functionName ?: ""
+            taskLanguage = task.language ?: ""
         }
     }
 
@@ -70,22 +81,53 @@ class AddNewTaskScreenViewModel @AssistedInject constructor(
         taskLanguage = newLanguageValue
     }
 
-    fun onRollBackIconClick() {
+    fun onBackIconButtonClick() {
         navController.popBackStack()
+    }
+
+    fun onEditButtonClick() {
+        readOnlyMode = false
+        readOnlyAlpha = 1f
     }
 
     fun onSaveButtonClick() {
         viewModelScope.launch {
-            repository.postTask(
+            repository.putTask(
                 Task(
-                    disciplineId = disciplineId,
+                    id = task.id,
+                    disciplineId = task.disciplineId,
                     title = taskTitle,
                     description = taskDescription,
                     functionName = taskFunctionName,
                     language = taskLanguage
                 )
             )
+            task = repository.getTask(taskId)
+            readOnlyMode = true
+            readOnlyAlpha = 0.6f
         }
+    }
+
+    fun onRollBackIconButtonClick() {
+        taskTitle = task.title ?: ""
+        taskDescription = task.description ?: ""
+        taskFunctionName = task.functionName ?: ""
+        taskLanguage = task.language ?: ""
+        readOnlyMode = true
+        readOnlyAlpha = 0.6f
+    }
+
+    fun onDeleteButtonClick() {
+        showDeleteDialog = true
+    }
+
+    fun onConfirmButtonClick() {
+        viewModelScope.launch { task.id?.let { repository.deleteTask(it) } }
+        showDeleteDialog = false
         navController.popBackStack()
+    }
+
+    fun onDismissButtonClick() {
+        showDeleteDialog = false
     }
 }

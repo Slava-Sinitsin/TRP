@@ -1,4 +1,4 @@
-package com.example.trp.ui.screens.teacher
+package com.example.trp.ui.screens.common
 
 import android.app.Activity
 import androidx.compose.foundation.background
@@ -41,12 +41,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.trp.domain.di.ViewModelFactoryProvider
 import com.example.trp.ui.theme.TRPTheme
-import com.example.trp.ui.viewmodels.teacher.TaskInfoScreenViewModel
+import com.example.trp.ui.viewmodels.common.TaskTestsInfoScreenViewModel
 import dagger.hilt.android.EntryPointAccessors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaskInfoScreen(
+fun TaskTestsInfoScreen(
     taskId: Int,
     navController: NavHostController
 ) {
@@ -54,8 +54,8 @@ fun TaskInfoScreen(
         LocalContext.current as Activity,
         ViewModelFactoryProvider::class.java
     ).taskInfoScreenViewModelFactory()
-    val viewModel: TaskInfoScreenViewModel = viewModel(
-        factory = TaskInfoScreenViewModel.provideTaskInfoScreenViewModel(
+    val viewModel: TaskTestsInfoScreenViewModel = viewModel(
+        factory = TaskTestsInfoScreenViewModel.provideTaskInfoScreenViewModel(
             factory,
             taskId,
             navController
@@ -85,7 +85,7 @@ fun TaskInfoScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskInfoCenterAlignedTopAppBar(
-    viewModel: TaskInfoScreenViewModel
+    viewModel: TaskTestsInfoScreenViewModel
 ) {
     TopAppBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -151,7 +151,7 @@ fun TaskInfoCenterAlignedTopAppBar(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TitleField(
-    viewModel: TaskInfoScreenViewModel,
+    viewModel: TaskTestsInfoScreenViewModel,
     paddingValues: PaddingValues
 ) {
     Text(
@@ -196,7 +196,7 @@ fun TitleField(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DescriptionField(viewModel: TaskInfoScreenViewModel) {
+fun DescriptionField(viewModel: TaskTestsInfoScreenViewModel) {
     Text(
         text = "Description",
         color = TRPTheme.colors.primaryText,
@@ -239,7 +239,7 @@ fun DescriptionField(viewModel: TaskInfoScreenViewModel) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FunctionNameField(viewModel: TaskInfoScreenViewModel) {
+fun FunctionNameField(viewModel: TaskTestsInfoScreenViewModel) {
     Text(
         text = "Function name",
         color = TRPTheme.colors.primaryText,
@@ -282,7 +282,7 @@ fun FunctionNameField(viewModel: TaskInfoScreenViewModel) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LanguageField(viewModel: TaskInfoScreenViewModel) {
+fun LanguageField(viewModel: TaskTestsInfoScreenViewModel) {
     Text(
         text = "Language",
         color = TRPTheme.colors.primaryText,
@@ -324,7 +324,7 @@ fun LanguageField(viewModel: TaskInfoScreenViewModel) {
 }
 
 @Composable
-fun DeleteDialog(viewModel: TaskInfoScreenViewModel) {
+fun DeleteDialog(viewModel: TaskTestsInfoScreenViewModel) {
     AlertDialog(
         onDismissRequest = {},
         title = {

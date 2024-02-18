@@ -1,4 +1,4 @@
-package com.example.trp.ui.blanks
+package com.example.trp.ui.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior

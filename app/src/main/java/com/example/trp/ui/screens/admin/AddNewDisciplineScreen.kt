@@ -42,8 +42,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.trp.domain.di.ViewModelFactoryProvider
-import com.example.trp.ui.blanks.NumberPicker
-import com.example.trp.ui.blanks.rememberPickerState
+import com.example.trp.ui.components.NumberPicker
+import com.example.trp.ui.components.rememberPickerState
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.admin.AddNewDisciplineScreenViewModel
 import dagger.hilt.android.EntryPointAccessors

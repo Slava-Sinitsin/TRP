@@ -1,4 +1,4 @@
-package com.example.trp.ui.screens.teacher.tabs
+package com.example.trp.ui.components.tabs
 
 import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource

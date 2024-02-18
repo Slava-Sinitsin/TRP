@@ -44,7 +44,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.trp.domain.di.ViewModelFactoryProvider
-import com.example.trp.ui.screens.teacher.tabs.DisabledInteractionSource
+import com.example.trp.ui.components.tabs.DisabledInteractionSource
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.teacher.TeacherGroupsTasksScreenViewModel
 import dagger.hilt.android.EntryPointAccessors

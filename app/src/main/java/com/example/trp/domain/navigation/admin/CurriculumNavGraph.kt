@@ -8,8 +8,11 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
 import com.example.trp.domain.navigation.common.Graph
 import com.example.trp.ui.screens.admin.AdminGroupsTasksScreen
+import com.example.trp.ui.screens.common.AddNewTaskScreen
+import com.example.trp.ui.screens.common.TaskTestsInfoScreen
 
 private const val ADMIN_DISCIPLINES_ID = "admin_discipline_id"
+private const val ADMIN_TASK_ID = "admin_task_id"
 
 fun NavGraphBuilder.curriculumNavGraph(navController: NavHostController) {
     navigation(
@@ -26,12 +29,30 @@ fun NavGraphBuilder.curriculumNavGraph(navController: NavHostController) {
                         // navController.navigate("${AdminGroupsScreen.GroupInfo.route}/$groupId") TODO
                     },
                     onTaskClick = { taskId ->
-                        // navController.navigate("${AdminGroupsScreen.TaskInfo.route}/$taskId") TODO
+                        navController.navigate("${AdminGroupsScreen.TaskInfo.route}/$taskId")
                     },
                     onAddTaskClick = { disciplineId ->
-                        // navController.navigate("${AdminGroupsScreen.AddNewTask.route}/$disciplineId") TODO
+                        navController.navigate("${AdminGroupsScreen.AddNewTask.route}/$disciplineId")
                     }
                 )
+            }
+        }
+        composable(
+            route = "${AdminGroupsScreen.AddNewTask.route}/{$ADMIN_DISCIPLINES_ID}",
+            arguments = listOf(navArgument(ADMIN_DISCIPLINES_ID) { type = NavType.IntType })
+        ) {
+            val disciplineId = it.arguments?.getInt(ADMIN_DISCIPLINES_ID)
+            disciplineId?.let { id ->
+                AddNewTaskScreen(disciplineId = id, navController = navController)
+            }
+        }
+        composable(
+            route = "${AdminGroupsScreen.TaskInfo.route}/{$ADMIN_TASK_ID}",
+            arguments = listOf(navArgument(ADMIN_TASK_ID) { type = NavType.IntType })
+        ) {
+            val taskId = it.arguments?.getInt(ADMIN_TASK_ID)
+            taskId?.let { id ->
+                TaskTestsInfoScreen(taskId = id, navController = navController)
             }
         }
     }
