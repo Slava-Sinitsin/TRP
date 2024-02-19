@@ -4,6 +4,7 @@ import com.example.trp.data.mappers.PostStudentAppointmentsBody
 import com.example.trp.data.mappers.PostStudentAppointmentsResponse
 import com.example.trp.data.mappers.StudentAppointmentsResponse
 import com.example.trp.data.mappers.disciplines.DisciplineResponse
+import com.example.trp.data.mappers.disciplines.Disciplines
 import com.example.trp.data.mappers.disciplines.PostNewDisciplineBody
 import com.example.trp.data.mappers.disciplines.PostNewDisciplineResponse
 import com.example.trp.data.mappers.tasks.Output
@@ -14,6 +15,7 @@ import com.example.trp.data.mappers.tasks.Tasks
 import com.example.trp.data.mappers.tasks.solution.GetSolutionResponse
 import com.example.trp.data.mappers.tasks.solution.PostSolutionResponse
 import com.example.trp.data.mappers.teacherappointments.TeacherAppointmentsResponse
+import com.example.trp.data.mappers.user.AuthRequest
 import com.example.trp.data.mappers.user.User
 import retrofit2.Response
 import retrofit2.http.Body
@@ -26,10 +28,10 @@ import retrofit2.http.Path
 
 interface UserAPI {
     @POST("auth/login")
-    suspend fun getUserResponse(@Body authRequest: com.example.trp.data.mappers.user.AuthRequest): Response<User>
+    suspend fun getUserResponse(@Body authRequest: AuthRequest): Response<User>
 
     @GET("api/v2/disciplines")
-    suspend fun getDisciplinesResponse(@Header("Authorization") token: String): Response<com.example.trp.data.mappers.disciplines.Disciplines>
+    suspend fun getDisciplinesResponse(@Header("Authorization") token: String): Response<Disciplines>
 
     @GET("/api/v2/disciplines/{id}/tasks")
     suspend fun getTasksResponse(
