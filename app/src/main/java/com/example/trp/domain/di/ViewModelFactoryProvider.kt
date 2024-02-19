@@ -6,7 +6,7 @@ import com.example.trp.ui.viewmodels.admin.AdminGroupsTasksScreenViewModel
 import com.example.trp.ui.viewmodels.admin.AdminWelcomeScreenViewModel
 import com.example.trp.ui.viewmodels.common.AddNewTaskScreenViewModel
 import com.example.trp.ui.viewmodels.common.AddNewTestScreenViewModel
-import com.example.trp.ui.viewmodels.common.TaskTestsInfoScreenViewModel
+import com.example.trp.ui.viewmodels.common.TaskInfoTestsScreenViewModel
 import com.example.trp.ui.viewmodels.student.StudentDisciplinesScreenViewModel
 import com.example.trp.ui.viewmodels.student.StudentWelcomeScreenViewModel
 import com.example.trp.ui.viewmodels.student.TaskScreenViewModel
@@ -33,7 +33,7 @@ interface ViewModelFactoryProvider {
     fun teacherDisciplinesScreenViewModelFactory(): TeacherDisciplinesScreenViewModel.Factory
     fun teacherGroupsTasksScreenViewModelFactory(): TeacherGroupsTasksScreenViewModel.Factory
     fun studentsScreenViewModelFactory(): StudentsScreenViewModel.Factory
-    fun taskInfoScreenViewModelFactory(): TaskTestsInfoScreenViewModel.Factory
+    fun taskInfoTestsScreenViewModelFactory(): TaskInfoTestsScreenViewModel.Factory
     fun addNewTaskScreenViewModelFactory(): AddNewTaskScreenViewModel.Factory
     fun studentInfoScreenViewModelFactory(): StudentInfoScreenViewModel.Factory
     fun addTaskToStudentScreenViewModelFactory(): AddTaskToStudentScreenViewModel.Factory

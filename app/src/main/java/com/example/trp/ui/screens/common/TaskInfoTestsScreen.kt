@@ -1,9 +1,12 @@
 package com.example.trp.ui.screens.common
 
 import android.app.Activity
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,6 +20,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
@@ -38,10 +42,15 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
@@ -58,12 +67,12 @@ import com.example.trp.ui.components.tabs.DisabledInteractionSource
 import com.example.trp.ui.screens.admin.MyNewIndicator
 import com.example.trp.ui.screens.admin.myTabIndicatorOffset
 import com.example.trp.ui.theme.TRPTheme
-import com.example.trp.ui.viewmodels.common.TaskTestsInfoScreenViewModel
+import com.example.trp.ui.viewmodels.common.TaskInfoTestsScreenViewModel
 import dagger.hilt.android.EntryPointAccessors
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun TaskTestsInfoScreen(
+fun TaskInfoTestsScreen(
     taskId: Int,
     navController: NavHostController,
     onAddTestClick: (taskId: Int) -> Unit,
@@ -72,9 +81,9 @@ fun TaskTestsInfoScreen(
     val factory = EntryPointAccessors.fromActivity(
         LocalContext.current as Activity,
         ViewModelFactoryProvider::class.java
-    ).taskInfoScreenViewModelFactory()
-    val viewModel: TaskTestsInfoScreenViewModel = viewModel(
-        factory = TaskTestsInfoScreenViewModel.provideTaskInfoScreenViewModel(
+    ).taskInfoTestsScreenViewModelFactory()
+    val viewModel: TaskInfoTestsScreenViewModel = viewModel(
+        factory = TaskInfoTestsScreenViewModel.provideTaskInfoTestsScreenViewModel(
             factory,
             taskId,
             navController
@@ -166,7 +175,7 @@ fun TaskTestsInfoScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskInfoCenterAlignedTopAppBar(
-    viewModel: TaskTestsInfoScreenViewModel
+    viewModel: TaskInfoTestsScreenViewModel
 ) {
     TopAppBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -231,7 +240,7 @@ fun TaskInfoCenterAlignedTopAppBar(
 
 @Composable
 fun TaskInfoScreen(
-    viewModel: TaskTestsInfoScreenViewModel
+    viewModel: TaskInfoTestsScreenViewModel
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         TitleField(viewModel = viewModel)
@@ -244,7 +253,7 @@ fun TaskInfoScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TitleField(
-    viewModel: TaskTestsInfoScreenViewModel
+    viewModel: TaskInfoTestsScreenViewModel
 ) {
     Text(
         text = "Title",
@@ -288,7 +297,7 @@ fun TitleField(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DescriptionField(viewModel: TaskTestsInfoScreenViewModel) {
+fun DescriptionField(viewModel: TaskInfoTestsScreenViewModel) {
     Text(
         text = "Description",
         color = TRPTheme.colors.primaryText,
@@ -331,7 +340,7 @@ fun DescriptionField(viewModel: TaskTestsInfoScreenViewModel) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FunctionNameField(viewModel: TaskTestsInfoScreenViewModel) {
+fun FunctionNameField(viewModel: TaskInfoTestsScreenViewModel) {
     Text(
         text = "Function name",
         color = TRPTheme.colors.primaryText,
@@ -374,7 +383,7 @@ fun FunctionNameField(viewModel: TaskTestsInfoScreenViewModel) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LanguageField(viewModel: TaskTestsInfoScreenViewModel) {
+fun LanguageField(viewModel: TaskInfoTestsScreenViewModel) {
     Text(
         text = "Language",
         color = TRPTheme.colors.primaryText,
@@ -416,7 +425,7 @@ fun LanguageField(viewModel: TaskTestsInfoScreenViewModel) {
 }
 
 @Composable
-fun DeleteDialog(viewModel: TaskTestsInfoScreenViewModel) {
+fun DeleteDialog(viewModel: TaskInfoTestsScreenViewModel) {
     AlertDialog(
         onDismissRequest = {},
         title = {
@@ -459,7 +468,7 @@ fun DeleteDialog(viewModel: TaskTestsInfoScreenViewModel) {
 
 @Composable
 fun TestsScreen(
-    viewModel: TaskTestsInfoScreenViewModel,
+    viewModel: TaskInfoTestsScreenViewModel,
     onTestClick: (testId: Int) -> Unit,
     onAddTestClick: (taskId: Int) -> Unit
 ) {
@@ -474,7 +483,7 @@ fun TestsScreen(
 
 @Composable
 fun AddTestToTask(
-    viewModel: TaskTestsInfoScreenViewModel,
+    viewModel: TaskInfoTestsScreenViewModel,
     onAddTestClick: (taskId: Int) -> Unit
 ) {
     Button(
@@ -488,10 +497,12 @@ fun AddTestToTask(
         colors = ButtonDefaults.buttonColors(
             containerColor = TRPTheme.colors.cardButtonColor
         ),
-        shape = RoundedCornerShape(30.dp)
+        shape = RoundedCornerShape(30.dp),
+        contentPadding = PaddingValues()
     ) {
         Text(
             modifier = Modifier
+                .padding(top = 10.dp, bottom = 10.dp)
                 .fillMaxSize()
                 .alpha(0.6f),
             text = "+",
@@ -504,14 +515,19 @@ fun AddTestToTask(
 
 @Composable
 fun Test(
-    viewModel: TaskTestsInfoScreenViewModel,
+    viewModel: TaskInfoTestsScreenViewModel,
     index: Int,
     onTestClick: (testId: Int) -> Unit
 ) {
+    var expandedState by remember { mutableStateOf(false) }
+    val rotationState by animateFloatAsState(
+        targetValue = if (expandedState) 180f else 0f,
+        label = "rotationState"
+    )
     Button(
         modifier = Modifier
             .padding(8.dp)
-            .fillMaxSize(),
+            .fillMaxWidth(),
         onClick = {
             viewModel.getTest(index = index).let { task ->
                 task.id?.let { groupId ->
@@ -521,23 +537,40 @@ fun Test(
                 }
             }
         },
-        elevation = ButtonDefaults.buttonElevation(
-            defaultElevation = 10.dp
-        ),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = TRPTheme.colors.cardButtonColor
-        ),
-        shape = RoundedCornerShape(30.dp)
+        elevation = ButtonDefaults.buttonElevation(defaultElevation = 10.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = TRPTheme.colors.cardButtonColor),
+        shape = RoundedCornerShape(30.dp),
+        contentPadding = PaddingValues()
     ) {
-        Text(
+        Column(
             modifier = Modifier
+                .padding(start = 16.dp, top = 16.dp, bottom = 16.dp)
                 .fillMaxSize()
-                .padding(top = 16.dp, bottom = 16.dp)
-                .align(Alignment.CenterVertically),
-            textAlign = TextAlign.Start,
-            text = viewModel.getTest(index = index).title.toString(),
-            color = TRPTheme.colors.primaryText,
-            fontSize = 25.sp
-        )
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = viewModel.getTest(index = index).title.toString(),
+                    fontSize = 25.sp
+                )
+                IconButton(
+                    modifier = Modifier.rotate(rotationState),
+                    onClick = { expandedState = !expandedState }) {
+                    Icon(
+                        imageVector = Icons.Filled.ArrowDropDown,
+                        contentDescription = "DropDownArrow"
+                    )
+                }
+            }
+            if (expandedState) {
+                Text(
+                    text = viewModel.getTest(index = index).title.toString(),
+                    fontSize = 25.sp
+                )
+            }
+        }
     }
 }

@@ -10,7 +10,7 @@ import com.example.trp.domain.navigation.common.Graph
 import com.example.trp.ui.screens.admin.AdminGroupsTasksScreen
 import com.example.trp.ui.screens.common.AddNewTaskScreen
 import com.example.trp.ui.screens.common.AddNewTestScreen
-import com.example.trp.ui.screens.common.TaskTestsInfoScreen
+import com.example.trp.ui.screens.common.TaskInfoTestsScreen
 
 private const val ADMIN_DISCIPLINES_ID = "admin_discipline_id"
 private const val ADMIN_TASK_ID = "admin_task_id"
@@ -53,7 +53,7 @@ fun NavGraphBuilder.curriculumNavGraph(navController: NavHostController) {
         ) {
             val taskId = it.arguments?.getInt(ADMIN_TASK_ID)
             taskId?.let { id ->
-                TaskTestsInfoScreen(
+                TaskInfoTestsScreen(
                     taskId = id,
                     navController = navController,
                     onAddTestClick = { navController.navigate("${AdminGroupsTasksScreen.AddNewTest.route}/$id") },

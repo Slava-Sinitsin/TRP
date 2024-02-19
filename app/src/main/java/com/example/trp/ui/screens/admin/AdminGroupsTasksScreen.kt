@@ -227,6 +227,35 @@ fun Tasks(
 }
 
 @Composable
+fun AddTaskToDiscipline(
+    viewModel: AdminGroupsTasksScreenViewModel
+) {
+    Button(
+        modifier = Modifier
+            .padding(8.dp)
+            .fillMaxSize(),
+        onClick = { viewModel.onAddTaskButtonClick() },
+        elevation = ButtonDefaults.buttonElevation(
+            defaultElevation = 10.dp
+        ),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = TRPTheme.colors.cardButtonColor
+        ),
+        shape = RoundedCornerShape(30.dp)
+    ) {
+        Text(
+            modifier = Modifier
+                .fillMaxSize()
+                .alpha(0.6f),
+            text = "+",
+            color = TRPTheme.colors.primaryText,
+            fontSize = 45.sp,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
 fun Task(
     viewModel: AdminGroupsTasksScreenViewModel,
     index: Int
@@ -253,35 +282,6 @@ fun Task(
             text = viewModel.getTask(index = index).title.toString(),
             color = TRPTheme.colors.primaryText,
             fontSize = 25.sp
-        )
-    }
-}
-
-@Composable
-fun AddTaskToDiscipline(
-    viewModel: AdminGroupsTasksScreenViewModel
-) {
-    Button(
-        modifier = Modifier
-            .padding(8.dp)
-            .fillMaxSize(),
-        onClick = { viewModel.onAddTaskButtonClick() },
-        elevation = ButtonDefaults.buttonElevation(
-            defaultElevation = 10.dp
-        ),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = TRPTheme.colors.cardButtonColor
-        ),
-        shape = RoundedCornerShape(30.dp)
-    ) {
-        Text(
-            modifier = Modifier
-                .fillMaxSize()
-                .alpha(0.6f),
-            text = "+",
-            color = TRPTheme.colors.primaryText,
-            fontSize = 45.sp,
-            textAlign = TextAlign.Center
         )
     }
 }

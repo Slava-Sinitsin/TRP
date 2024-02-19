@@ -16,7 +16,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
 
-class TaskTestsInfoScreenViewModel @AssistedInject constructor(
+class TaskInfoTestsScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
     @Assisted
     val taskId: Int,
@@ -55,12 +55,12 @@ class TaskTestsInfoScreenViewModel @AssistedInject constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(studentId: Int, navController: NavHostController): TaskTestsInfoScreenViewModel
+        fun create(studentId: Int, navController: NavHostController): TaskInfoTestsScreenViewModel
     }
 
     @Suppress("UNCHECKED_CAST")
     companion object {
-        fun provideTaskInfoScreenViewModel(
+        fun provideTaskInfoTestsScreenViewModel(
             factory: Factory,
             studentId: Int,
             navController: NavHostController

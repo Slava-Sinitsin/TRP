@@ -8,7 +8,7 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
 import com.example.trp.domain.navigation.common.Graph
 import com.example.trp.ui.screens.common.AddNewTaskScreen
-import com.example.trp.ui.screens.common.TaskTestsInfoScreen
+import com.example.trp.ui.screens.common.TaskInfoTestsScreen
 import com.example.trp.ui.screens.teacher.AddTaskToStudentScreen
 import com.example.trp.ui.screens.teacher.StudentInfoScreen
 import com.example.trp.ui.screens.teacher.StudentsScreen
@@ -90,7 +90,7 @@ fun NavGraphBuilder.groupsNavGraph(navController: NavHostController) {
         ) {
             val taskId = it.arguments?.getInt(TASK_ID)
             taskId?.let { id ->
-                TaskTestsInfoScreen(
+                TaskInfoTestsScreen(
                     taskId = id,
                     navController = navController,
                     onAddTestClick = { },
