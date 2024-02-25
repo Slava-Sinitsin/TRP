@@ -31,21 +31,24 @@ fun DisciplinesScreen(onDisciplineClick: (index: Int) -> Unit) {
     ).studentDisciplinesScreenViewModelFactory()
     val viewModel: StudentDisciplinesScreenViewModel = viewModel(
         factory = StudentDisciplinesScreenViewModel.provideStudentDisciplinesScreenViewModel(
-            factory,
-            onDisciplineClick
+            factory
         )
     )
 
-    Groups(viewModel = viewModel)
+    Groups(viewModel = viewModel, onDisciplineClick = onDisciplineClick)
 }
 
 @Composable
-fun Groups(viewModel: StudentDisciplinesScreenViewModel) {
+fun Groups(
+    viewModel: StudentDisciplinesScreenViewModel,
+    onDisciplineClick: (index: Int) -> Unit
+) {
     LazyColumn {
         items(viewModel.disciplines.size) { index ->
             Discipline(
                 viewModel = viewModel,
-                index = index
+                index = index,
+                onDisciplineClick = onDisciplineClick
             )
         }
         item { Spacer(modifier = Modifier.size(100.dp)) }
@@ -55,13 +58,18 @@ fun Groups(viewModel: StudentDisciplinesScreenViewModel) {
 @Composable
 fun Discipline(
     viewModel: StudentDisciplinesScreenViewModel,
-    index: Int
+    index: Int,
+    onDisciplineClick: (index: Int) -> Unit
 ) {
     Button(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxSize(),
-        onClick = { viewModel.navigateToTasks(index = index) },
+        onClick = {
+            viewModel.getDiscipline(index = index).let { discipline ->
+                discipline.id?.let { id -> onDisciplineClick(id) }
+            }
+        },
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 10.dp
         ),

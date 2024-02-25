@@ -7,33 +7,29 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.trp.data.repository.UserAPIRepositoryImpl
-import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
 
 class StudentDisciplinesScreenViewModel @AssistedInject constructor(
-    val repository: UserAPIRepositoryImpl,
-    @Assisted
-    val onDisciplineClick: (id: Int) -> Unit
+    val repository: UserAPIRepositoryImpl
 ) : ViewModel() {
     var disciplines by mutableStateOf(repository.disciplines)
         private set
 
     @AssistedFactory
     interface Factory {
-        fun create(onDisciplineClick: (id: Int) -> Unit): StudentDisciplinesScreenViewModel
+        fun create(): StudentDisciplinesScreenViewModel
     }
 
     @Suppress("UNCHECKED_CAST")
     companion object {
         fun provideStudentDisciplinesScreenViewModel(
-            factory: Factory,
-            onDisciplineClick: (id: Int) -> Unit
+            factory: Factory
         ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return factory.create(onDisciplineClick) as T
+                    return factory.create() as T
                 }
             }
         }
@@ -48,11 +44,5 @@ class StudentDisciplinesScreenViewModel @AssistedInject constructor(
 
     fun getDiscipline(index: Int): com.example.trp.data.mappers.disciplines.DisciplineData {
         return disciplines[index]
-    }
-
-    fun navigateToTasks(index: Int) {
-        getDiscipline(index = index).let { discipline ->
-            discipline.id?.let { id -> onDisciplineClick(id) }
-        }
     }
 }

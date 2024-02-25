@@ -16,28 +16,25 @@ import kotlinx.coroutines.launch
 class TasksScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
     @Assisted
-    val disciplineId: Int,
-    @Assisted
-    val onTaskClick: (id: Int) -> Unit,
+    val disciplineId: Int
 ) : ViewModel() {
     var tasks by mutableStateOf(repository.tasks)
         private set
 
     @AssistedFactory
     interface Factory {
-        fun create(disciplineId: Int, onTaskClick: (id: Int) -> Unit): TasksScreenViewModel
+        fun create(disciplineId: Int): TasksScreenViewModel
     }
 
     @Suppress("UNCHECKED_CAST")
     companion object {
         fun provideTasksScreenViewModel(
             factory: Factory,
-            disciplineId: Int,
-            onTaskClick: (id: Int) -> Unit
+            disciplineId: Int
         ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return factory.create(disciplineId, onTaskClick) as T
+                    return factory.create(disciplineId) as T
                 }
             }
         }
@@ -51,9 +48,5 @@ class TasksScreenViewModel @AssistedInject constructor(
 
     fun getTask(index: Int): Task {
         return tasks[index]
-    }
-
-    fun navigateToTask(index: Int) {
-        getTask(index = index).let { task -> task.id?.let { id -> onTaskClick(id) } }
     }
 }

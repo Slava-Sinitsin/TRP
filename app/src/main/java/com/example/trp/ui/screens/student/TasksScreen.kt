@@ -35,23 +35,24 @@ fun TasksScreen(
     val viewModel: TasksScreenViewModel = viewModel(
         factory = TasksScreenViewModel.provideTasksScreenViewModel(
             factory,
-            disciplineId,
-            onTaskClick
+            disciplineId
         )
     )
 
     Tasks(
-        viewModel = viewModel
+        viewModel = viewModel,
+        onTaskClick = onTaskClick
     )
 }
 
 @Composable
 fun Tasks(
-    viewModel: TasksScreenViewModel
+    viewModel: TasksScreenViewModel,
+    onTaskClick: (id: Int) -> Unit
 ) {
     LazyColumn {
         items(count = viewModel.tasks.size) { index ->
-            Task(viewModel = viewModel, index = index)
+            Task(viewModel = viewModel, index = index, onTaskClick = onTaskClick)
         }
         item { Spacer(modifier = Modifier.size(100.dp)) }
     }
@@ -60,13 +61,16 @@ fun Tasks(
 @Composable
 fun Task(
     viewModel: TasksScreenViewModel,
-    index: Int
+    index: Int,
+    onTaskClick: (id: Int) -> Unit
 ) {
     Button(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxSize(),
-        onClick = { viewModel.navigateToTask(index = index) },
+        onClick = {
+            viewModel.getTask(index = index).let { task -> task.id?.let { id -> onTaskClick(id) } }
+        },
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 10.dp
         ),

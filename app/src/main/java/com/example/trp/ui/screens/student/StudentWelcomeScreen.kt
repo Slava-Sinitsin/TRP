@@ -19,6 +19,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -38,17 +40,17 @@ fun StudentWelcomeScreen(navController: NavHostController = rememberNavControlle
     ).studentWelcomeScreenViewModelFactory()
     val viewModel: StudentWelcomeScreenViewModel = viewModel(
         factory = StudentWelcomeScreenViewModel.provideStudentWelcomeScreenViewModel(
-            factory,
-            navController
+            factory
         )
     )
 
-    viewModel.navController.currentBackStackEntryAsState().value?.destination
+    navController.currentBackStackEntryAsState().value?.destination
     Scaffold(
         Modifier.padding(),
         bottomBar = {
             StudentNavigationBar(
-                viewModel = viewModel
+                viewModel = viewModel,
+                navController = navController
             )
         },
         containerColor = TRPTheme.colors.primaryBackground,
@@ -59,7 +61,8 @@ fun StudentWelcomeScreen(navController: NavHostController = rememberNavControlle
 
 @Composable
 fun StudentNavigationBar(
-    viewModel: StudentWelcomeScreenViewModel
+    viewModel: StudentWelcomeScreenViewModel,
+    navController: NavHostController
 ) {
     Surface(
         modifier = Modifier
@@ -83,9 +86,14 @@ fun StudentNavigationBar(
                     ),
                     icon = { Icon(screen.icon, contentDescription = screen.title) },
                     label = { Text(screen.title) },
-                    selected = viewModel.isSelected(screen),
+                    selected = navController.currentDestination?.hierarchy?.any {
+                        it.route?.startsWith(screen.route) == true
+                    } ?: false,
                     onClick = {
-                        viewModel.navigate(screen)
+                        navController.navigate(screen.route) {
+                            popUpTo(navController.graph.findStartDestination().id)
+                            launchSingleTop = true
+                        }
                     }
                 )
             }
