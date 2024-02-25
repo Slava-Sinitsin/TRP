@@ -54,8 +54,8 @@ import dagger.hilt.android.EntryPointAccessors
 fun TeacherGroupsTasksScreen(
     disciplineId: Int,
     onGroupClick: (groupId: Int) -> Unit,
-    onTaskClick: (taskId: Int) -> Unit,
-    onAddTaskClick: (taskId: Int) -> Unit
+    onAddTaskClick: (disciplineId: Int) -> Unit,
+    onTaskClick: (taskId: Int) -> Unit
 ) {
     val factory = EntryPointAccessors.fromActivity(
         LocalContext.current as Activity,
@@ -64,10 +64,7 @@ fun TeacherGroupsTasksScreen(
     val viewModel: TeacherGroupsTasksScreenViewModel = viewModel(
         factory = TeacherGroupsTasksScreenViewModel.provideTeacherGroupsTasksScreenViewModel(
             factory,
-            disciplineId,
-            onGroupClick,
-            onTaskClick,
-            onAddTaskClick
+            disciplineId
         )
     )
 
@@ -128,9 +125,13 @@ fun TeacherGroupsTasksScreen(
                 pageCount = viewModel.groupsTasksScreens.size
             ) { index ->
                 if (index == 0) {
-                    Groups(viewModel = viewModel)
+                    Groups(viewModel = viewModel, onGroupClick = onGroupClick)
                 } else if (index == 1) {
-                    Tasks(viewModel = viewModel)
+                    Tasks(
+                        viewModel = viewModel,
+                        onAddTaskClick = onAddTaskClick,
+                        onTaskClick = onTaskClick
+                    )
                 }
             }
         }
@@ -170,12 +171,16 @@ fun MyNewIndicator(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun Groups(viewModel: TeacherGroupsTasksScreenViewModel) {
+fun Groups(
+    viewModel: TeacherGroupsTasksScreenViewModel,
+    onGroupClick: (groupId: Int) -> Unit
+) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         items(viewModel.teacherAppointments.size) { index ->
             Group(
                 viewModel = viewModel,
-                index = index
+                index = index,
+                onGroupClick = onGroupClick
             )
         }
         item { Spacer(modifier = Modifier.size(100.dp)) }
@@ -185,13 +190,17 @@ fun Groups(viewModel: TeacherGroupsTasksScreenViewModel) {
 @Composable
 fun Group(
     viewModel: TeacherGroupsTasksScreenViewModel,
-    index: Int
+    index: Int,
+    onGroupClick: (groupId: Int) -> Unit
 ) {
     Button(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxSize(),
-        onClick = { viewModel.navigateToStudents(index = index) },
+        onClick = {
+            viewModel.getGroup(index = index)
+                .let { task -> task.id?.let { groupId -> onGroupClick(groupId) } }
+        },
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 10.dp
         ),
@@ -215,27 +224,68 @@ fun Group(
 
 @Composable
 fun Tasks(
-    viewModel: TeacherGroupsTasksScreenViewModel
+    viewModel: TeacherGroupsTasksScreenViewModel,
+    onAddTaskClick: (disciplineId: Int) -> Unit,
+    onTaskClick: (taskId: Int) -> Unit
 ) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
-        item { AddTaskToDiscipline(viewModel = viewModel) }
+        item {
+            AddTaskToDiscipline(
+                viewModel = viewModel,
+                onAddTaskClick = onAddTaskClick
+            )
+        }
         items(count = viewModel.tasks.size) { index ->
-            Task(viewModel = viewModel, index = index)
+            Task(viewModel = viewModel, index = index, onTaskClick = onTaskClick)
         }
         item { Spacer(modifier = Modifier.size(100.dp)) }
     }
 }
 
 @Composable
-fun Task(
+fun AddTaskToDiscipline(
     viewModel: TeacherGroupsTasksScreenViewModel,
-    index: Int
+    onAddTaskClick: (disciplineId: Int) -> Unit
 ) {
     Button(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxSize(),
-        onClick = { viewModel.navigateToTask(index = index) },
+        onClick = { onAddTaskClick(viewModel.disciplineId) },
+        elevation = ButtonDefaults.buttonElevation(
+            defaultElevation = 10.dp
+        ),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = TRPTheme.colors.cardButtonColor
+        ),
+        shape = RoundedCornerShape(30.dp)
+    ) {
+        Text(
+            modifier = Modifier
+                .fillMaxSize()
+                .alpha(0.6f),
+            text = "+",
+            color = TRPTheme.colors.primaryText,
+            fontSize = 45.sp,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+fun Task(
+    viewModel: TeacherGroupsTasksScreenViewModel,
+    index: Int,
+    onTaskClick: (taskId: Int) -> Unit
+) {
+    Button(
+        modifier = Modifier
+            .padding(8.dp)
+            .fillMaxSize(),
+        onClick = {
+            viewModel.getTask(index = index)
+                .let { task -> task.id?.let { taskId -> onTaskClick(taskId) } }
+        },
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 10.dp
         ),
@@ -253,35 +303,6 @@ fun Task(
             text = viewModel.getTask(index = index).title.toString(),
             color = TRPTheme.colors.primaryText,
             fontSize = 25.sp
-        )
-    }
-}
-
-@Composable
-fun AddTaskToDiscipline(
-    viewModel: TeacherGroupsTasksScreenViewModel
-) {
-    Button(
-        modifier = Modifier
-            .padding(8.dp)
-            .fillMaxSize(),
-        onClick = { viewModel.onAddTaskButtonClick() },
-        elevation = ButtonDefaults.buttonElevation(
-            defaultElevation = 10.dp
-        ),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = TRPTheme.colors.cardButtonColor
-        ),
-        shape = RoundedCornerShape(30.dp)
-    ) {
-        Text(
-            modifier = Modifier
-                .fillMaxSize()
-                .alpha(0.6f),
-            text = "+",
-            color = TRPTheme.colors.primaryText,
-            fontSize = 45.sp,
-            textAlign = TextAlign.Center
         )
     }
 }

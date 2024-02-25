@@ -56,14 +56,18 @@ fun AddTaskToStudentScreen(
     val viewModel: AddTaskToStudentScreenViewModel = viewModel(
         factory = AddTaskToStudentScreenViewModel.provideAddTaskToStudentScreenViewModel(
             factory,
-            studentId,
-            navController
+            studentId
         )
     )
     Scaffold(
         modifier = Modifier
             .fillMaxSize(),
-        topBar = { AddTaskToStudentCenterAlignedTopAppBar(viewModel = viewModel) }
+        topBar = {
+            AddTaskToStudentCenterAlignedTopAppBar(
+                viewModel = viewModel,
+                navController = navController
+            )
+        }
     ) { scaffoldPadding ->
         Tasks(viewModel = viewModel, paddingValues = scaffoldPadding)
     }
@@ -73,7 +77,8 @@ fun AddTaskToStudentScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddTaskToStudentCenterAlignedTopAppBar(
-    viewModel: AddTaskToStudentScreenViewModel
+    viewModel: AddTaskToStudentScreenViewModel,
+    navController: NavHostController
 ) {
     TopAppBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -83,7 +88,7 @@ fun AddTaskToStudentCenterAlignedTopAppBar(
         title = { Text(text = viewModel.student.fullName ?: "") },
         navigationIcon = {
             if (!viewModel.isTaskChanged) {
-                IconButton(onClick = { viewModel.onBackIconButtonClick() }) {
+                IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
                         imageVector = Icons.Filled.ArrowBack,
                         contentDescription = "BackIconButton"

@@ -6,7 +6,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavHostController
 import com.example.trp.data.mappers.tasks.Student
 import com.example.trp.data.mappers.teacherappointments.Group
 import com.example.trp.data.repository.UserAPIRepositoryImpl
@@ -18,11 +17,7 @@ import kotlinx.coroutines.launch
 class StudentsScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
     @Assisted
-    val groupId: Int,
-    @Assisted
-    val onStudentClick: (id: Int) -> Unit,
-    @Assisted
-    val navController: NavHostController
+    val groupId: Int
 ) : ViewModel() {
     var students by mutableStateOf(repository.students)
         private set
@@ -36,9 +31,7 @@ class StudentsScreenViewModel @AssistedInject constructor(
     @AssistedFactory
     interface Factory {
         fun create(
-            groupId: Int,
-            onStudentClick: (id: Int) -> Unit,
-            navController: NavHostController
+            groupId: Int
         ): StudentsScreenViewModel
     }
 
@@ -46,13 +39,11 @@ class StudentsScreenViewModel @AssistedInject constructor(
     companion object {
         fun provideStudentsScreenViewModel(
             factory: Factory,
-            groupId: Int,
-            onStudentClick: (id: Int) -> Unit,
-            navController: NavHostController
+            groupId: Int
         ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return factory.create(groupId, onStudentClick, navController) as T
+                    return factory.create(groupId) as T
                 }
             }
         }
@@ -68,14 +59,6 @@ class StudentsScreenViewModel @AssistedInject constructor(
 
     fun getStudent(index: Int): Student {
         return students[index]
-    }
-
-    fun navigateToStudent(index: Int) {
-        getStudent(index = index).let { student -> student.id?.let { id -> onStudentClick(id) } }
-    }
-
-    fun onBackIconButtonClick() {
-        navController.popBackStack()
     }
 
     fun onMenuButtonClick() {

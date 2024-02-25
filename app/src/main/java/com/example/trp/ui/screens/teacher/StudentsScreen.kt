@@ -52,24 +52,32 @@ fun StudentsScreen(
     val viewModel: StudentsScreenViewModel = viewModel(
         factory = StudentsScreenViewModel.provideStudentsScreenViewModel(
             factory,
-            groupId,
-            onStudentClick,
-            navController
+            groupId
         )
     )
     Scaffold(
         modifier = Modifier
             .fillMaxSize(),
-        topBar = { StudentsCenterAlignedTopAppBar(viewModel = viewModel) }
+        topBar = {
+            StudentsCenterAlignedTopAppBar(
+                viewModel = viewModel,
+                navController = navController
+            )
+        }
     ) { scaffoldPadding ->
-        Students(viewModel = viewModel, paddingValues = scaffoldPadding)
+        Students(
+            viewModel = viewModel,
+            paddingValues = scaffoldPadding,
+            onStudentClick = onStudentClick
+        )
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StudentsCenterAlignedTopAppBar(
-    viewModel: StudentsScreenViewModel
+    viewModel: StudentsScreenViewModel,
+    navController: NavHostController
 ) {
     TopAppBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -78,7 +86,7 @@ fun StudentsCenterAlignedTopAppBar(
         ),
         title = { Text(text = viewModel.group.name ?: "") },
         navigationIcon = {
-            IconButton(onClick = { viewModel.onBackIconButtonClick() }) {
+            IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
                     imageVector = Icons.Filled.ArrowBack,
                     contentDescription = "BackIconButton"
@@ -118,7 +126,8 @@ fun StudentsCenterAlignedTopAppBar(
 @Composable
 fun Students(
     viewModel: StudentsScreenViewModel,
-    paddingValues: PaddingValues
+    paddingValues: PaddingValues,
+    onStudentClick: (id: Int) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier
@@ -127,7 +136,7 @@ fun Students(
             .padding(top = paddingValues.calculateTopPadding())
     ) {
         items(count = viewModel.students.size) { index ->
-            Student(viewModel = viewModel, index = index)
+            Student(viewModel = viewModel, index = index, onStudentClick = onStudentClick)
         }
         item { Spacer(modifier = Modifier.size(100.dp)) }
     }
@@ -136,13 +145,17 @@ fun Students(
 @Composable
 fun Student(
     viewModel: StudentsScreenViewModel,
-    index: Int
+    index: Int,
+    onStudentClick: (id: Int) -> Unit
 ) {
     Button(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxSize(),
-        onClick = { viewModel.navigateToStudent(index = index) },
+        onClick = {
+            viewModel.getStudent(index = index)
+                .let { student -> student.id?.let { id -> onStudentClick(id) } }
+        },
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 10.dp
         ),

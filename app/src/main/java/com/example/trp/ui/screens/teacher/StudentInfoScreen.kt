@@ -49,17 +49,24 @@ fun StudentInfoScreen(
     val viewModel: StudentInfoScreenViewModel = viewModel(
         factory = StudentInfoScreenViewModel.provideStudentInfoScreenViewModel(
             factory,
-            studentId,
-            onAddTaskToStudentClick,
-            navController
+            studentId
         )
     )
     Scaffold(
         modifier = Modifier
             .fillMaxSize(),
-        topBar = { StudentInfoCenterAlignedTopAppBar(viewModel = viewModel) }
+        topBar = {
+            StudentInfoCenterAlignedTopAppBar(
+                viewModel = viewModel,
+                navController = navController
+            )
+        }
     ) { scaffoldPadding ->
-        Tasks(viewModel = viewModel, paddingValues = scaffoldPadding)
+        Tasks(
+            viewModel = viewModel,
+            paddingValues = scaffoldPadding,
+            onAddTaskToStudentClick = onAddTaskToStudentClick
+        )
     }
 
 }
@@ -67,7 +74,8 @@ fun StudentInfoScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StudentInfoCenterAlignedTopAppBar(
-    viewModel: StudentInfoScreenViewModel
+    viewModel: StudentInfoScreenViewModel,
+    navController: NavHostController
 ) {
     TopAppBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -76,7 +84,7 @@ fun StudentInfoCenterAlignedTopAppBar(
         ),
         title = { Text(text = viewModel.student.fullName ?: "") },
         navigationIcon = {
-            IconButton(onClick = { viewModel.onBackIconButtonClick() }) {
+            IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
                     imageVector = Icons.Filled.ArrowBack,
                     contentDescription = "BackIconButton"
@@ -90,7 +98,8 @@ fun StudentInfoCenterAlignedTopAppBar(
 @Composable
 fun Tasks(
     viewModel: StudentInfoScreenViewModel,
-    paddingValues: PaddingValues
+    paddingValues: PaddingValues,
+    onAddTaskToStudentClick: (id: Int) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier
@@ -98,7 +107,7 @@ fun Tasks(
             .background(TRPTheme.colors.primaryBackground)
             .padding(top = paddingValues.calculateTopPadding())
     ) {
-        item { AddTask(viewModel = viewModel) }
+        item { AddTask(viewModel = viewModel, onAddTaskToStudentClick = onAddTaskToStudentClick) }
         items(count = viewModel.studentAppointments.size) { index ->
             Task(viewModel = viewModel, index = index)
         }
@@ -140,13 +149,14 @@ fun Task(
 
 @Composable
 fun AddTask(
-    viewModel: StudentInfoScreenViewModel
+    viewModel: StudentInfoScreenViewModel,
+    onAddTaskToStudentClick: (id: Int) -> Unit
 ) {
     Button(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxSize(),
-        onClick = { viewModel.onAddTaskToStudentButtonClick() },
+        onClick = { onAddTaskToStudentClick(viewModel.studentId) },
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 10.dp
         ),

@@ -6,7 +6,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavHostController
 import com.example.trp.data.mappers.StudentAppointments
 import com.example.trp.data.mappers.tasks.Student
 import com.example.trp.data.mappers.tasks.Task
@@ -19,11 +18,7 @@ import kotlinx.coroutines.launch
 class StudentInfoScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
     @Assisted
-    val studentId: Int,
-    @Assisted
-    val onAddTaskToStudentClick: (studentId: Int) -> Unit,
-    @Assisted
-    val navController: NavHostController
+    val studentId: Int
 ) : ViewModel() {
     var studentAppointments by mutableStateOf(emptyList<StudentAppointments>())
         private set
@@ -35,9 +30,7 @@ class StudentInfoScreenViewModel @AssistedInject constructor(
     @AssistedFactory
     interface Factory {
         fun create(
-            studentId: Int,
-            onAddTaskToStudentClick: (studentId: Int) -> Unit,
-            navController: NavHostController
+            studentId: Int
         ): StudentInfoScreenViewModel
     }
 
@@ -45,13 +38,11 @@ class StudentInfoScreenViewModel @AssistedInject constructor(
     companion object {
         fun provideStudentInfoScreenViewModel(
             factory: Factory,
-            studentId: Int,
-            onAddTaskToStudentClick: (studentId: Int) -> Unit,
-            navController: NavHostController
+            studentId: Int
         ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return factory.create(studentId, onAddTaskToStudentClick, navController) as T
+                    return factory.create(studentId) as T
                 }
             }
         }
@@ -73,13 +64,5 @@ class StudentInfoScreenViewModel @AssistedInject constructor(
         return studentAppointments.find { studentAppointment ->
             studentAppointment.taskId == tasks.find { task -> task.id == tasks[index].id }?.id
         } ?: StudentAppointments()
-    }
-
-    fun onBackIconButtonClick() {
-        navController.popBackStack()
-    }
-
-    fun onAddTaskToStudentButtonClick() {
-        onAddTaskToStudentClick(studentId)
     }
 }

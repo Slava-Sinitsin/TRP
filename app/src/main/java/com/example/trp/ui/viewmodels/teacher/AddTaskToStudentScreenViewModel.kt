@@ -6,7 +6,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavHostController
 import com.example.trp.data.mappers.CheckBoxState
 import com.example.trp.data.mappers.PostStudentAppointmentsBody
 import com.example.trp.data.mappers.tasks.Student
@@ -20,9 +19,7 @@ import kotlinx.coroutines.launch
 class AddTaskToStudentScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
     @Assisted
-    val studentId: Int,
-    @Assisted
-    val navController: NavHostController
+    val studentId: Int
 ) : ViewModel() {
     var tasks by mutableStateOf(repository.tasks)
         private set
@@ -43,8 +40,7 @@ class AddTaskToStudentScreenViewModel @AssistedInject constructor(
     @AssistedFactory
     interface Factory {
         fun create(
-            studentId: Int,
-            navController: NavHostController
+            studentId: Int
         ): AddTaskToStudentScreenViewModel
     }
 
@@ -52,12 +48,11 @@ class AddTaskToStudentScreenViewModel @AssistedInject constructor(
     companion object {
         fun provideAddTaskToStudentScreenViewModel(
             factory: Factory,
-            studentId: Int,
-            navController: NavHostController
+            studentId: Int
         ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return factory.create(studentId, navController) as T
+                    return factory.create(studentId) as T
                 }
             }
         }
@@ -82,10 +77,6 @@ class AddTaskToStudentScreenViewModel @AssistedInject constructor(
 
     fun getTask(index: Int): Task {
         return tasks[index]
-    }
-
-    fun onBackIconButtonClick() {
-        navController.popBackStack()
     }
 
     fun onCheckBoxClick(index: Int) {
