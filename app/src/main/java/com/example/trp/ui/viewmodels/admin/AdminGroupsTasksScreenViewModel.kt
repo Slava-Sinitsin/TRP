@@ -18,13 +18,7 @@ import kotlinx.coroutines.launch
 class AdminGroupsTasksScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
     @Assisted
-    val disciplineId: Int,
-    @Assisted("onGroupClick")
-    val onGroupClick: (groupId: Int) -> Unit,
-    @Assisted("onTaskClick")
-    val onTaskClick: (taskId: Int) -> Unit,
-    @Assisted("onAddTaskClick")
-    val onAddTaskClick: (disciplineId: Int) -> Unit
+    val disciplineId: Int
 ) : ViewModel() {
     var teacherAppointments by mutableStateOf(repository.teacherAppointments)
         private set
@@ -41,34 +35,18 @@ class AdminGroupsTasksScreenViewModel @AssistedInject constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(
-            disciplineId: Int,
-            @Assisted("onGroupClick")
-            onGroupClick: (id: Int) -> Unit,
-            @Assisted("onTaskClick")
-            onTaskClick: (id: Int) -> Unit,
-            @Assisted("onAddTaskClick")
-            onAddTaskClick: (id: Int) -> Unit
-        ): AdminGroupsTasksScreenViewModel
+        fun create(disciplineId: Int): AdminGroupsTasksScreenViewModel
     }
 
     @Suppress("UNCHECKED_CAST")
     companion object {
         fun provideAdminGroupsTasksScreenViewModel(
             factory: Factory,
-            disciplineId: Int,
-            onGroupClick: (groupId: Int) -> Unit,
-            onTaskClick: (taskId: Int) -> Unit,
-            onAddTaskClick: (disciplineId: Int) -> Unit
+            disciplineId: Int
         ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return factory.create(
-                        disciplineId,
-                        onGroupClick,
-                        onTaskClick,
-                        onAddTaskClick
-                    ) as T
+                    return factory.create(disciplineId) as T
                 }
             }
         }
@@ -89,18 +67,6 @@ class AdminGroupsTasksScreenViewModel @AssistedInject constructor(
 
     fun getTask(index: Int): Task {
         return tasks[index]
-    }
-
-    fun navigateToStudents(index: Int) {
-        getGroup(index = index).let { task -> task.id?.let { groupId -> onGroupClick(groupId) } }
-    }
-
-    fun navigateToTask(index: Int) {
-        getTask(index = index).let { task -> task.id?.let { taskId -> onTaskClick(taskId) } }
-    }
-
-    fun onAddTaskButtonClick() {
-        onAddTaskClick(disciplineId)
     }
 
     fun setPagerState(index: Int) {

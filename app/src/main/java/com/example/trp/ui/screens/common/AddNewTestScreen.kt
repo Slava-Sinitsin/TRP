@@ -50,15 +50,14 @@ fun AddNewTestScreen(
     val viewModel: AddNewTestScreenViewModel = viewModel(
         factory = AddNewTestScreenViewModel.provideAddNewTestScreenViewModel(
             factory,
-            taskId,
-            navController
+            taskId
         )
     )
 
     Scaffold(
         modifier = Modifier
             .fillMaxSize(),
-        topBar = { AddNewTestTopAppBar(viewModel = viewModel) }
+        topBar = { AddNewTestTopAppBar(viewModel = viewModel, navController = navController) }
     ) { scaffoldPadding ->
         Column(
             modifier = Modifier
@@ -74,7 +73,8 @@ fun AddNewTestScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddNewTestTopAppBar(
-    viewModel: AddNewTestScreenViewModel
+    viewModel: AddNewTestScreenViewModel,
+    navController: NavHostController
 ) {
     TopAppBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -90,7 +90,7 @@ fun AddNewTestTopAppBar(
             )
         },
         navigationIcon = {
-            IconButton(onClick = { viewModel.onCloseButtonClick() }) {
+            IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
                     imageVector = Icons.Filled.Close,
                     contentDescription = "CloseButton"

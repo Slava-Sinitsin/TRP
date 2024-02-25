@@ -50,14 +50,18 @@ fun AddNewTaskScreen(
     val viewModel: AddNewTaskScreenViewModel = viewModel(
         factory = AddNewTaskScreenViewModel.provideAddNewTaskScreenViewModel(
             factory,
-            disciplineId,
-            navController
+            disciplineId
         )
     )
     Scaffold(
         modifier = Modifier
             .fillMaxSize(),
-        topBar = { TaskInfoCenterAlignedTopAppBar(viewModel = viewModel) }
+        topBar = {
+            TaskInfoCenterAlignedTopAppBar(
+                viewModel = viewModel,
+                navController = navController
+            )
+        }
     ) { scaffoldPadding ->
         Column(
             modifier = Modifier
@@ -75,7 +79,8 @@ fun AddNewTaskScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskInfoCenterAlignedTopAppBar(
-    viewModel: AddNewTaskScreenViewModel
+    viewModel: AddNewTaskScreenViewModel,
+    navController: NavHostController
 ) {
     TopAppBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -91,7 +96,7 @@ fun TaskInfoCenterAlignedTopAppBar(
             )
         },
         navigationIcon = {
-            IconButton(onClick = { viewModel.onRollBackIconClick() }) {
+            IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
                     imageVector = Icons.Filled.Close,
                     contentDescription = "CloseButton"
@@ -100,7 +105,10 @@ fun TaskInfoCenterAlignedTopAppBar(
         },
         actions = {
             IconButton(
-                onClick = { viewModel.onSaveButtonClick() },
+                onClick = {
+                    viewModel.beforeSaveButtonClick()
+                    navController.popBackStack()
+                },
                 enabled = viewModel.applyButtonEnabled
             ) {
                 Icon(

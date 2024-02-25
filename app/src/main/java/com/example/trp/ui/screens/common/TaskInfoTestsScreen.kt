@@ -85,8 +85,7 @@ fun TaskInfoTestsScreen(
     val viewModel: TaskInfoTestsScreenViewModel = viewModel(
         factory = TaskInfoTestsScreenViewModel.provideTaskInfoTestsScreenViewModel(
             factory,
-            taskId,
-            navController
+            taskId
         )
     )
 
@@ -108,7 +107,12 @@ fun TaskInfoTestsScreen(
     Scaffold(
         modifier = Modifier
             .fillMaxSize(),
-        topBar = { TaskInfoCenterAlignedTopAppBar(viewModel = viewModel) }
+        topBar = {
+            TaskInfoCenterAlignedTopAppBar(
+                viewModel = viewModel,
+                navController = navController
+            )
+        }
     ) { scaffoldPadding ->
         Column(
             modifier = Modifier
@@ -166,7 +170,7 @@ fun TaskInfoTestsScreen(
                 }
             }
             if (viewModel.showDeleteDialog) {
-                DeleteDialog(viewModel)
+                DeleteDialog(viewModel = viewModel, navController = navController)
             }
         }
     }
@@ -175,7 +179,8 @@ fun TaskInfoTestsScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskInfoCenterAlignedTopAppBar(
-    viewModel: TaskInfoTestsScreenViewModel
+    viewModel: TaskInfoTestsScreenViewModel,
+    navController: NavHostController
 ) {
     TopAppBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -192,7 +197,7 @@ fun TaskInfoCenterAlignedTopAppBar(
         },
         navigationIcon = {
             if (viewModel.readOnlyMode) {
-                IconButton(onClick = { viewModel.onBackIconButtonClick() }) {
+                IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
                         imageVector = Icons.Filled.ArrowBack,
                         contentDescription = "NavigationBackIcon"
@@ -425,7 +430,7 @@ fun LanguageField(viewModel: TaskInfoTestsScreenViewModel) {
 }
 
 @Composable
-fun DeleteDialog(viewModel: TaskInfoTestsScreenViewModel) {
+fun DeleteDialog(viewModel: TaskInfoTestsScreenViewModel, navController: NavHostController) {
     AlertDialog(
         onDismissRequest = {},
         title = {
@@ -443,7 +448,10 @@ fun DeleteDialog(viewModel: TaskInfoTestsScreenViewModel) {
         },
         confirmButton = {
             Button(
-                onClick = { viewModel.onConfirmButtonClick() },
+                onClick = {
+                    viewModel.beforeConfirmButtonClick()
+                    navController.popBackStack()
+                },
                 colors = ButtonDefaults.buttonColors(TRPTheme.colors.errorColor)
             ) {
                 Text(
@@ -554,6 +562,7 @@ fun Test(
             ) {
                 Text(
                     text = viewModel.getTest(index = index).title.toString(),
+                    color = TRPTheme.colors.primaryText,
                     fontSize = 25.sp
                 )
                 IconButton(
@@ -568,6 +577,7 @@ fun Test(
             if (expandedState) {
                 Text(
                     text = viewModel.getTest(index = index).title.toString(),
+                    color = TRPTheme.colors.primaryText,
                     fontSize = 25.sp
                 )
             }

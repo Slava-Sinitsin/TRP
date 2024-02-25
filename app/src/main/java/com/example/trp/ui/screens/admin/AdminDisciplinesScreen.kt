@@ -35,23 +35,30 @@ fun AdminDisciplinesScreen(
     ).adminDisciplinesScreenViewModelFactory()
     val viewModel: AdminDisciplinesScreenViewModel = viewModel(
         factory = AdminDisciplinesScreenViewModel.provideAdminDisciplinesScreenViewModel(
-            factory,
-            onDisciplineClick,
-            onAddDisciplineClick
+            factory
         )
     )
 
-    Groups(viewModel = viewModel)
+    Groups(
+        viewModel = viewModel,
+        onAddDisciplineClick = onAddDisciplineClick,
+        onDisciplineClick = onDisciplineClick
+    )
 }
 
 @Composable
-fun Groups(viewModel: AdminDisciplinesScreenViewModel) {
+fun Groups(
+    viewModel: AdminDisciplinesScreenViewModel,
+    onAddDisciplineClick: () -> Unit,
+    onDisciplineClick: (index: Int) -> Unit
+) {
     LazyColumn {
-        item { AddDiscipline(viewModel = viewModel) }
+        item { AddDiscipline(viewModel = viewModel, onAddDisciplineClick = onAddDisciplineClick) }
         items(viewModel.disciplines.size) { index ->
             Group(
                 viewModel = viewModel,
-                index = index
+                index = index,
+                onDisciplineClick = onDisciplineClick
             )
         }
         item { Spacer(modifier = Modifier.size(100.dp)) }
@@ -60,13 +67,14 @@ fun Groups(viewModel: AdminDisciplinesScreenViewModel) {
 
 @Composable
 fun AddDiscipline(
-    viewModel: AdminDisciplinesScreenViewModel
+    viewModel: AdminDisciplinesScreenViewModel,
+    onAddDisciplineClick: () -> Unit
 ) {
     Button(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxSize(),
-        onClick = { viewModel.onAddDisciplineButtonClick() },
+        onClick = { onAddDisciplineClick() },
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 10.dp
         ),
@@ -90,13 +98,18 @@ fun AddDiscipline(
 @Composable
 fun Group(
     viewModel: AdminDisciplinesScreenViewModel,
-    index: Int
+    index: Int,
+    onDisciplineClick: (index: Int) -> Unit
 ) {
     Button(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxSize(),
-        onClick = { viewModel.navigateToGroups(index = index) },
+        onClick = {
+            viewModel.getGroup(index = index).let { group ->
+                group.id?.let { id -> onDisciplineClick(id) }
+            }
+        },
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 10.dp
         ),

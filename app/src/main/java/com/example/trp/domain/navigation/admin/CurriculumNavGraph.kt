@@ -29,11 +29,11 @@ fun NavGraphBuilder.curriculumNavGraph(navController: NavHostController) {
                     onGroupClick = { groupId ->
                         // navController.navigate("${AdminGroupsScreen.GroupInfo.route}/$groupId") TODO
                     },
-                    onTaskClick = { taskId ->
-                        navController.navigate("${AdminGroupsTasksScreen.TaskInfo.route}/$taskId")
-                    },
                     onAddTaskClick = { disciplineId ->
                         navController.navigate("${AdminGroupsTasksScreen.AddNewTask.route}/$disciplineId")
+                    },
+                    onTaskClick = { taskId ->
+                        navController.navigate("${AdminGroupsTasksScreen.TaskInfo.route}/$taskId")
                     }
                 )
             }

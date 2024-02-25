@@ -5,8 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.trp.domain.navigation.common.Graph
 import com.example.trp.data.repository.UserAPIRepositoryImpl
+import com.example.trp.domain.navigation.common.Graph
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.net.ConnectException
@@ -59,7 +59,7 @@ class AuthScreenViewModel @Inject constructor(val repository: UserAPIRepositoryI
                 isLogged = newIsLogged
             }
 
-            "ROLE_TEACHER" -> {
+            "ROLE_LECTURE_TEACHER" -> {
                 destination = Graph.TEACHER_WELCOME
                 isLogged = newIsLogged
             }

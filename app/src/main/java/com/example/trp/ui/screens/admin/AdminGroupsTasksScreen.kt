@@ -54,8 +54,8 @@ import dagger.hilt.android.EntryPointAccessors
 fun AdminGroupsTasksScreen(
     disciplineId: Int,
     onGroupClick: (groupId: Int) -> Unit,
-    onTaskClick: (taskId: Int) -> Unit,
-    onAddTaskClick: (taskId: Int) -> Unit
+    onAddTaskClick: (disciplineId: Int) -> Unit,
+    onTaskClick: (taskId: Int) -> Unit
 ) {
     val factory = EntryPointAccessors.fromActivity(
         LocalContext.current as Activity,
@@ -64,10 +64,7 @@ fun AdminGroupsTasksScreen(
     val viewModel: AdminGroupsTasksScreenViewModel = viewModel(
         factory = AdminGroupsTasksScreenViewModel.provideAdminGroupsTasksScreenViewModel(
             factory,
-            disciplineId,
-            onGroupClick,
-            onTaskClick,
-            onAddTaskClick
+            disciplineId
         )
     )
 
@@ -128,9 +125,13 @@ fun AdminGroupsTasksScreen(
                 pageCount = viewModel.groupsTasksScreens.size
             ) { index ->
                 if (index == 0) {
-                    Groups(viewModel = viewModel)
+                    Groups(viewModel = viewModel, onGroupClick = onGroupClick)
                 } else if (index == 1) {
-                    Tasks(viewModel = viewModel)
+                    Tasks(
+                        viewModel = viewModel,
+                        onAddTaskClick = onAddTaskClick,
+                        onTaskClick = onTaskClick
+                    )
                 }
             }
         }
@@ -170,12 +171,13 @@ fun MyNewIndicator(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun Groups(viewModel: AdminGroupsTasksScreenViewModel) {
+fun Groups(viewModel: AdminGroupsTasksScreenViewModel, onGroupClick: (groupId: Int) -> Unit) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         items(viewModel.teacherAppointments.size) { index ->
             Group(
                 viewModel = viewModel,
-                index = index
+                index = index,
+                onGroupClick = onGroupClick
             )
         }
         item { Spacer(modifier = Modifier.size(100.dp)) }
@@ -185,13 +187,14 @@ fun Groups(viewModel: AdminGroupsTasksScreenViewModel) {
 @Composable
 fun Group(
     viewModel: AdminGroupsTasksScreenViewModel,
-    index: Int
+    index: Int,
+    onGroupClick: (groupId: Int) -> Unit
 ) {
     Button(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxSize(),
-        onClick = { viewModel.navigateToStudents(index = index) },
+        onClick = { viewModel.getGroup(index = index).let { task -> task.id?.let { groupId -> onGroupClick(groupId) } } },
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 10.dp
         ),
@@ -215,12 +218,14 @@ fun Group(
 
 @Composable
 fun Tasks(
-    viewModel: AdminGroupsTasksScreenViewModel
+    viewModel: AdminGroupsTasksScreenViewModel,
+    onAddTaskClick: (disciplineId: Int) -> Unit,
+    onTaskClick: (taskId: Int) -> Unit
 ) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
-        item { AddTaskToDiscipline(viewModel = viewModel) }
+        item { AddTaskToDiscipline(viewModel = viewModel, onAddTaskClick = onAddTaskClick) }
         items(count = viewModel.tasks.size) { index ->
-            Task(viewModel = viewModel, index = index)
+            Task(viewModel = viewModel, index = index, onTaskClick = onTaskClick)
         }
         item { Spacer(modifier = Modifier.size(100.dp)) }
     }
@@ -228,13 +233,14 @@ fun Tasks(
 
 @Composable
 fun AddTaskToDiscipline(
-    viewModel: AdminGroupsTasksScreenViewModel
+    viewModel: AdminGroupsTasksScreenViewModel,
+    onAddTaskClick: (disciplineId: Int) -> Unit
 ) {
     Button(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxSize(),
-        onClick = { viewModel.onAddTaskButtonClick() },
+        onClick = { onAddTaskClick(viewModel.disciplineId) },
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 10.dp
         ),
@@ -258,13 +264,14 @@ fun AddTaskToDiscipline(
 @Composable
 fun Task(
     viewModel: AdminGroupsTasksScreenViewModel,
-    index: Int
+    index: Int,
+    onTaskClick: (taskId: Int) -> Unit
 ) {
     Button(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxSize(),
-        onClick = { viewModel.navigateToTask(index = index) },
+        onClick = { viewModel.getTask(index = index).let { task -> task.id?.let { taskId -> onTaskClick(taskId) } } },
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 10.dp
         ),

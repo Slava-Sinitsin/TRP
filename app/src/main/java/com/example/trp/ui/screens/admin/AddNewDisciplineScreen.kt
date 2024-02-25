@@ -59,14 +59,18 @@ fun AddNewDisciplineScreen(
     ).adminAddNewDisciplineScreenViewModelFactory()
     val viewModel: AddNewDisciplineScreenViewModel = viewModel(
         factory = AddNewDisciplineScreenViewModel.provideAddNewDisciplineScreenViewModel(
-            factory,
-            navController
+            factory
         )
     )
     Scaffold(
         modifier = Modifier
             .fillMaxSize(),
-        topBar = { DisciplineInfoCenterAlignedTopAppBar(viewModel = viewModel) }
+        topBar = {
+            DisciplineInfoCenterAlignedTopAppBar(
+                viewModel = viewModel,
+                navController = navController
+            )
+        }
     ) { scaffoldPadding ->
         Column(
             modifier = Modifier
@@ -84,7 +88,8 @@ fun AddNewDisciplineScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DisciplineInfoCenterAlignedTopAppBar(
-    viewModel: AddNewDisciplineScreenViewModel
+    viewModel: AddNewDisciplineScreenViewModel,
+    navController: NavHostController
 ) {
     TopAppBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -100,7 +105,7 @@ fun DisciplineInfoCenterAlignedTopAppBar(
             )
         },
         navigationIcon = {
-            IconButton(onClick = { viewModel.onRollBackIconClick() }) {
+            IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
                     imageVector = Icons.Filled.Close,
                     contentDescription = "CloseButton"
@@ -109,7 +114,10 @@ fun DisciplineInfoCenterAlignedTopAppBar(
         },
         actions = {
             IconButton(
-                onClick = { viewModel.onSaveButtonClick() },
+                onClick = {
+                    viewModel.beforeSaveButtonClick()
+                    navController.popBackStack()
+                },
                 enabled = viewModel.applyButtonEnabled
             ) {
                 Icon(

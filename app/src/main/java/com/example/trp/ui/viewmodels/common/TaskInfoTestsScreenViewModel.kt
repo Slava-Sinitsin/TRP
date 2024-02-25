@@ -6,7 +6,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavHostController
 import com.example.trp.data.mappers.tasks.Task
 import com.example.trp.data.mappers.tasks.Test
 import com.example.trp.data.repository.UserAPIRepositoryImpl
@@ -19,9 +18,7 @@ import kotlinx.coroutines.launch
 class TaskInfoTestsScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
     @Assisted
-    val taskId: Int,
-    @Assisted
-    val navController: NavHostController
+    val taskId: Int
 ) : ViewModel() {
     var task by mutableStateOf(repository.task)
         private set
@@ -55,19 +52,18 @@ class TaskInfoTestsScreenViewModel @AssistedInject constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(studentId: Int, navController: NavHostController): TaskInfoTestsScreenViewModel
+        fun create(studentId: Int): TaskInfoTestsScreenViewModel
     }
 
     @Suppress("UNCHECKED_CAST")
     companion object {
         fun provideTaskInfoTestsScreenViewModel(
             factory: Factory,
-            studentId: Int,
-            navController: NavHostController
+            studentId: Int
         ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return factory.create(studentId, navController) as T
+                    return factory.create(studentId) as T
                 }
             }
         }
@@ -101,10 +97,6 @@ class TaskInfoTestsScreenViewModel @AssistedInject constructor(
     fun updateLanguageValue(newLanguageValue: String) {
         applyButtonEnabled = newLanguageValue.isNotEmpty()
         taskLanguage = newLanguageValue
-    }
-
-    fun onBackIconButtonClick() {
-        navController.popBackStack()
     }
 
     fun onEditButtonClick() {
@@ -143,10 +135,9 @@ class TaskInfoTestsScreenViewModel @AssistedInject constructor(
         showDeleteDialog = true
     }
 
-    fun onConfirmButtonClick() {
+    fun beforeConfirmButtonClick() {
         viewModelScope.launch { task.id?.let { repository.deleteTask(it) } }
         showDeleteDialog = false
-        navController.popBackStack()
     }
 
     fun onDismissButtonClick() {

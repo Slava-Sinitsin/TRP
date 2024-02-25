@@ -6,7 +6,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavHostController
 import com.example.trp.data.mappers.tasks.Task
 import com.example.trp.data.repository.UserAPIRepositoryImpl
 import dagger.assisted.Assisted
@@ -17,9 +16,7 @@ import kotlinx.coroutines.launch
 class AddNewTaskScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
     @Assisted
-    val disciplineId: Int,
-    @Assisted
-    val navController: NavHostController
+    val disciplineId: Int
 ) : ViewModel() {
     var taskTitle by mutableStateOf("")
     var taskDescription by mutableStateOf("")
@@ -30,8 +27,7 @@ class AddNewTaskScreenViewModel @AssistedInject constructor(
     @AssistedFactory
     interface Factory {
         fun create(
-            disciplineId: Int,
-            navController: NavHostController
+            disciplineId: Int
         ): AddNewTaskScreenViewModel
     }
 
@@ -39,12 +35,11 @@ class AddNewTaskScreenViewModel @AssistedInject constructor(
     companion object {
         fun provideAddNewTaskScreenViewModel(
             factory: Factory,
-            disciplineId: Int,
-            navController: NavHostController
+            disciplineId: Int
         ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return factory.create(disciplineId, navController) as T
+                    return factory.create(disciplineId) as T
                 }
             }
         }
@@ -70,11 +65,7 @@ class AddNewTaskScreenViewModel @AssistedInject constructor(
         applyButtonEnabled = taskLanguage.isNotEmpty()
     }
 
-    fun onRollBackIconClick() {
-        navController.popBackStack()
-    }
-
-    fun onSaveButtonClick() {
+    fun beforeSaveButtonClick() {
         viewModelScope.launch {
             repository.postTask(
                 Task(
@@ -86,6 +77,5 @@ class AddNewTaskScreenViewModel @AssistedInject constructor(
                 )
             )
         }
-        navController.popBackStack()
     }
 }
