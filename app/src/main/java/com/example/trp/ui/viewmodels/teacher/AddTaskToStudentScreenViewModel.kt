@@ -83,7 +83,16 @@ class AddTaskToStudentScreenViewModel @AssistedInject constructor(
         tasksCheckBoxStates = tasksCheckBoxStates.toMutableList().also {
             it[index] = CheckBoxState(isSelected = !it[index].isSelected)
         }
-        isTaskChanged = true
+        isTaskChanged = checkAllCheckBoxStates()
+    }
+
+    private fun checkAllCheckBoxStates(): Boolean {
+        tasksCheckBoxStates.filter { it.isEnable }.forEach {
+            if (it.isSelected) {
+                return true
+            }
+        }
+        return false
     }
 
     fun onRollBackIconButtonClick() {
@@ -91,7 +100,7 @@ class AddTaskToStudentScreenViewModel @AssistedInject constructor(
         isTaskChanged = false
     }
 
-    fun onApplyButtonClick() {
+    fun beforeApplyButtonClick() {
         viewModelScope.launch {
             tasksCheckBoxStates.forEachIndexed { index, it ->
                 if (it.isSelected && it.isEnable) {

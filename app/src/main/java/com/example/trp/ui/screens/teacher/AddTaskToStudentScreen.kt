@@ -106,7 +106,10 @@ fun AddTaskToStudentCenterAlignedTopAppBar(
         actions = {
             if (viewModel.isTaskChanged) {
                 IconButton(
-                    onClick = { viewModel.onApplyButtonClick() }
+                    onClick = {
+                        viewModel.beforeApplyButtonClick()
+                        navController.popBackStack()
+                    }
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Done,
