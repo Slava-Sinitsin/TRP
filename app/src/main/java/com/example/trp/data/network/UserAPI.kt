@@ -12,8 +12,7 @@ import com.example.trp.data.mappers.tasks.Students
 import com.example.trp.data.mappers.tasks.Task
 import com.example.trp.data.mappers.tasks.TaskResponse
 import com.example.trp.data.mappers.tasks.Tasks
-import com.example.trp.data.mappers.tasks.solution.GetSolutionResponse
-import com.example.trp.data.mappers.tasks.solution.PostSolutionResponse
+import com.example.trp.data.mappers.tasks.solution.SolutionResponse
 import com.example.trp.data.mappers.teacherappointments.TeacherAppointmentsResponse
 import com.example.trp.data.mappers.user.AuthRequest
 import com.example.trp.data.mappers.user.User
@@ -55,14 +54,14 @@ interface UserAPI {
     suspend fun getTaskSolution(
         @Header("Authorization") token: String,
         @Path("id") taskId: Int
-    ): Response<GetSolutionResponse>
+    ): Response<SolutionResponse>
 
     @POST("api/v2/tasks/{id}/solution")
     suspend fun postTaskSolution(
         @Header("Authorization") token: String,
         @Path("id") taskId: Int,
         @Body code: String
-    ): Response<PostSolutionResponse>
+    ): Response<SolutionResponse>
 
     @GET("api/v2/teacher-appointments/all")
     suspend fun teacherAppointments(

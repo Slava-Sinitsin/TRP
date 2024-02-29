@@ -19,8 +19,7 @@ import com.example.trp.data.mappers.tasks.Students
 import com.example.trp.data.mappers.tasks.Task
 import com.example.trp.data.mappers.tasks.TaskResponse
 import com.example.trp.data.mappers.tasks.Tasks
-import com.example.trp.data.mappers.tasks.solution.GetSolutionResponse
-import com.example.trp.data.mappers.tasks.solution.PostSolutionResponse
+import com.example.trp.data.mappers.tasks.solution.SolutionResponse
 import com.example.trp.data.mappers.tasks.solution.Solution
 import com.example.trp.data.mappers.teacherappointments.TeacherAppointmentsData
 import com.example.trp.data.mappers.teacherappointments.TeacherAppointmentsResponse
@@ -85,7 +84,7 @@ class UserAPIRepositoryImpl(
     override suspend fun getTaskSolution(
         token: String,
         taskId: Int
-    ): Response<GetSolutionResponse> {
+    ): Response<SolutionResponse> {
         return ApiService.userAPI.getTaskSolution("Bearer $token", taskId)
     }
 
@@ -93,7 +92,7 @@ class UserAPIRepositoryImpl(
         token: String,
         taskId: Int,
         code: String
-    ): Response<PostSolutionResponse> {
+    ): Response<SolutionResponse> {
         return ApiService.userAPI.postTaskSolution("Bearer $token", taskId, code)
     }
 
