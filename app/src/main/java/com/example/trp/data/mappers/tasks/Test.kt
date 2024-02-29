@@ -7,5 +7,7 @@ data class Test(
     @SerializedName("status") val status: Int? = null,
     @SerializedName("message") val message: String? = null,
     @SerializedName("error") val error: String? = null,
-    @SerializedName("title") val title: String? = null
+    @SerializedName("title") val title: String? = null,
+    @SerializedName("input") val input: String? = null,
+    @SerializedName("output") val output: String? = null
 )

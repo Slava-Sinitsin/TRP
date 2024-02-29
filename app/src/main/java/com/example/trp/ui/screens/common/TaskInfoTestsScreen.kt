@@ -105,8 +105,7 @@ fun TaskInfoTestsScreen(
     }
 
     Scaffold(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         topBar = {
             TaskInfoCenterAlignedTopAppBar(
                 viewModel = viewModel,
@@ -221,11 +220,13 @@ fun TaskInfoCenterAlignedTopAppBar(
                             contentDescription = "DeleteTask"
                         )
                     }
-                    IconButton(onClick = { viewModel.onEditButtonClick() }) {
-                        Icon(
-                            imageVector = Icons.Filled.Edit,
-                            contentDescription = "EditTaskPropertiesButton"
-                        )
+                    if (viewModel.selectedTabIndex == 0) {
+                        IconButton(onClick = { viewModel.onEditButtonClick() }) {
+                            Icon(
+                                imageVector = Icons.Filled.Edit,
+                                contentDescription = "EditTaskPropertiesButton"
+                            )
+                        }
                     }
                 }
             } else {
@@ -576,9 +577,29 @@ fun Test(
             }
             if (expandedState) {
                 Text(
-                    text = viewModel.getTest(index = index).title.toString(),
+                    modifier = Modifier.alpha(0.6f),
+                    text = "Input:",
                     color = TRPTheme.colors.primaryText,
-                    fontSize = 25.sp
+                    fontSize = 15.sp
+                )
+                Text(
+                    modifier = Modifier.alpha(0.6f),
+                    text = viewModel.getTest(index = index).input.toString(),
+                    color = TRPTheme.colors.primaryText,
+                    fontSize = 15.sp
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    modifier = Modifier.alpha(0.6f),
+                    text = "Output:",
+                    color = TRPTheme.colors.primaryText,
+                    fontSize = 15.sp
+                )
+                Text(
+                    modifier = Modifier.alpha(0.6f),
+                    text = viewModel.getTest(index = index).output.toString(),
+                    color = TRPTheme.colors.primaryText,
+                    fontSize = 15.sp
                 )
             }
         }
