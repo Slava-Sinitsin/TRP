@@ -33,7 +33,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Tab
 import androidx.compose.material3.TabPosition
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
@@ -47,17 +49,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.trp.domain.di.ViewModelFactoryProvider
+import com.example.trp.ui.components.tabs.DisabledInteractionSource
 import com.example.trp.ui.screens.admin.MyNewIndicator
 import com.example.trp.ui.screens.admin.myTabIndicatorOffset
 import com.example.trp.ui.theme.TRPTheme
@@ -111,9 +117,9 @@ fun TaskInfoTestsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(TRPTheme.colors.primaryBackground)
-                .padding(top = scaffoldPadding.calculateTopPadding() + 10.dp) // TODO
+                .padding(top = scaffoldPadding.calculateTopPadding())
         ) {
-            /*TabRow(
+            TabRow(
                 modifier = Modifier
                     .background(TRPTheme.colors.primaryBackground)
                     .padding(5.dp)
@@ -143,7 +149,7 @@ fun TaskInfoTestsScreen(
                         }
                     )
                 }
-            }*/
+            }
             HorizontalPager(
                 modifier = Modifier
                     .fillMaxWidth()

@@ -51,7 +51,7 @@ class StudentsScreenViewModel @AssistedInject constructor(
 
     init {
         viewModelScope.launch {
-            students = repository.getStudents(groupId = groupId)
+            students = repository.getStudents(groupId = groupId).sortedBy { it.fullName }
             group =
                 repository.teacherAppointments.find { it.group?.id == groupId }?.group ?: Group()
         }

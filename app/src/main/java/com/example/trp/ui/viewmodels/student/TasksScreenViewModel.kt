@@ -42,7 +42,7 @@ class TasksScreenViewModel @AssistedInject constructor(
 
     init {
         viewModelScope.launch {
-            tasks = repository.getTasks(disciplineId = disciplineId)
+            tasks = repository.getTasks(disciplineId = disciplineId).sortedBy { it.title }
         }
     }
 

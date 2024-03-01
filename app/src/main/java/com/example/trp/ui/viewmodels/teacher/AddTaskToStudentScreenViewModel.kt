@@ -61,6 +61,7 @@ class AddTaskToStudentScreenViewModel @AssistedInject constructor(
     init {
         viewModelScope.launch {
             student = repository.students.find { it.id == studentId } ?: Student()
+            tasks = tasks.sortedBy { it.title }
             studentAppointments = studentAppointments.filter { it.studentId == studentId }
             studentAppointments.forEach { studentAppointments ->
                 tasks.forEachIndexed { index, task ->

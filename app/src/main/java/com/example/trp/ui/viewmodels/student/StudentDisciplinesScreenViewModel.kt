@@ -38,7 +38,7 @@ class StudentDisciplinesScreenViewModel @AssistedInject constructor(
     init {
         viewModelScope.launch {
             repository.disciplinesChanged = false
-            disciplines = repository.getDisciplines()
+            disciplines = repository.getDisciplines().sortedBy { it.name }
         }
     }
 

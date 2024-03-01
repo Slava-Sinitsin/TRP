@@ -20,7 +20,8 @@ class TeacherGroupsTasksScreenViewModel @AssistedInject constructor(
     @Assisted
     val disciplineId: Int
 ) : ViewModel() {
-    var teacherAppointments by mutableStateOf(repository.teacherAppointments)
+    private var teacherAppointments by mutableStateOf(repository.teacherAppointments)
+    var groups by mutableStateOf(emptyList<Group>())
         private set
     var tasks by mutableStateOf(repository.tasks)
         private set
@@ -55,13 +56,13 @@ class TeacherGroupsTasksScreenViewModel @AssistedInject constructor(
         viewModelScope.launch {
             teacherAppointments =
                 repository.getTeacherAppointments().filter { it.discipline?.id == disciplineId }
-            tasks = repository.getTasks(disciplineId = disciplineId)
+            groups = teacherAppointments.map { it.group ?: Group() }.sortedBy { it.name }
+            tasks = repository.getTasks(disciplineId = disciplineId).sortedBy { it.title }
         }
     }
 
     fun getGroup(index: Int): Group {
-        return teacherAppointments[index].group
-            ?: Group()
+        return groups[index]
     }
 
     fun getTask(index: Int): Task {

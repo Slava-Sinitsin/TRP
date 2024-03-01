@@ -52,6 +52,7 @@ class StudentInfoScreenViewModel @AssistedInject constructor(
             studentAppointments =
                 repository.getStudentAppointments().filter { it.studentId == studentId }
             tasks = tasks.filter { task -> studentAppointments.any { it.taskId == task.id } }
+                .sortedBy { it.title }
         }
     }
 

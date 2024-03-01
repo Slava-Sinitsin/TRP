@@ -176,7 +176,7 @@ fun Groups(
     onGroupClick: (groupId: Int) -> Unit
 ) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
-        items(viewModel.teacherAppointments.size) { index ->
+        items(viewModel.groups.size) { index ->
             Group(
                 viewModel = viewModel,
                 index = index,
