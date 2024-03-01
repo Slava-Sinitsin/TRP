@@ -2,9 +2,12 @@ package com.example.trp.ui.screens.teacher
 
 import android.app.Activity
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -116,38 +120,6 @@ fun Tasks(
 }
 
 @Composable
-fun Task(
-    viewModel: StudentInfoScreenViewModel,
-    index: Int
-) {
-    Button(
-        modifier = Modifier
-            .padding(8.dp)
-            .fillMaxSize(),
-        onClick = { },
-        elevation = ButtonDefaults.buttonElevation(
-            defaultElevation = 10.dp
-        ),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = TRPTheme.colors.cardButtonColor
-        ),
-        shape = RoundedCornerShape(30.dp)
-    ) {
-        Text(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 16.dp, bottom = 16.dp)
-                .align(Alignment.CenterVertically),
-            textAlign = TextAlign.Start,
-            text = viewModel.getTask(index).title.toString() + " ("
-                    + viewModel.getStudentAppointment(index).status + ")",
-            color = TRPTheme.colors.primaryText,
-            fontSize = 25.sp
-        )
-    }
-}
-
-@Composable
 fun AddTask(
     viewModel: StudentInfoScreenViewModel,
     onAddTaskToStudentClick: (id: Int) -> Unit
@@ -174,5 +146,46 @@ fun AddTask(
             fontSize = 45.sp,
             textAlign = TextAlign.Center
         )
+    }
+}
+
+@Composable
+fun Task(
+    viewModel: StudentInfoScreenViewModel,
+    index: Int
+) {
+    Button(
+        modifier = Modifier
+            .padding(8.dp)
+            .fillMaxSize(),
+        onClick = { },
+        elevation = ButtonDefaults.buttonElevation(
+            defaultElevation = 10.dp
+        ),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = TRPTheme.colors.cardButtonColor
+        ),
+        shape = RoundedCornerShape(30.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                modifier = Modifier
+                    .padding(top = 16.dp, bottom = 16.dp)
+                    .align(Alignment.CenterVertically),
+                textAlign = TextAlign.Start,
+                text = viewModel.getTask(index).title.toString(),
+                color = TRPTheme.colors.primaryText,
+                fontSize = 25.sp
+            )
+            CircularProgressIndicator(
+                progress = viewModel.getStatus(index).first,
+                color = viewModel.getStatus(index).second
+            )
+        }
     }
 }

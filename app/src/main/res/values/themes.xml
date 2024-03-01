@@ -2,6 +2,6 @@
 <resources>
 
     <style name="Theme.Trp" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:windowBackground">@color/MyYellow</item>
+        <item name="android:windowBackground">@color/myYellow</item>
     </style>
 </resources>
