@@ -29,9 +29,7 @@ class StudentInfoScreenViewModel @AssistedInject constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(
-            studentId: Int
-        ): StudentInfoScreenViewModel
+        fun create(studentId: Int): StudentInfoScreenViewModel
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -50,9 +48,10 @@ class StudentInfoScreenViewModel @AssistedInject constructor(
 
     init {
         viewModelScope.launch {
+            student = repository.students.find { it.id == studentId } ?: Student()
             studentAppointments =
                 repository.getStudentAppointments().filter { it.studentId == studentId }
-            student = repository.students.find { it.id == studentId } ?: Student()
+            tasks = tasks.filter { task -> studentAppointments.any { it.taskId == task.id } }
         }
     }
 
@@ -61,8 +60,9 @@ class StudentInfoScreenViewModel @AssistedInject constructor(
     }
 
     fun getStudentAppointment(index: Int): StudentAppointments {
-        return studentAppointments.find { studentAppointment ->
+        val studentAppointment = studentAppointments.find { studentAppointment ->
             studentAppointment.taskId == tasks.find { task -> task.id == tasks[index].id }?.id
         } ?: StudentAppointments()
+        return studentAppointment
     }
 }
