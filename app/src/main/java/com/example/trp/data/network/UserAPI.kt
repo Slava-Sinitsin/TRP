@@ -13,7 +13,9 @@ import com.example.trp.data.mappers.tasks.Task
 import com.example.trp.data.mappers.tasks.TaskResponse
 import com.example.trp.data.mappers.tasks.Tasks
 import com.example.trp.data.mappers.tasks.solution.SolutionResponse
+import com.example.trp.data.mappers.teacherappointments.GroupsResponse
 import com.example.trp.data.mappers.teacherappointments.TeacherAppointmentsResponse
+import com.example.trp.data.mappers.teacherappointments.TeacherResponse
 import com.example.trp.data.mappers.user.AuthRequest
 import com.example.trp.data.mappers.user.User
 import retrofit2.Response
@@ -115,4 +117,14 @@ interface UserAPI {
         @Header("Authorization") token: String,
         @Body postNewDisciplineBody: PostNewDisciplineBody
     ): Response<PostNewDisciplineResponse>
+
+    @GET("api/v2/teachers")
+    suspend fun getTeachers(
+        @Header("Authorization") token: String
+    ): Response<TeacherResponse>
+
+    @GET("api/v2/groups")
+    suspend fun getGroups(
+        @Header("Authorization") token: String
+    ): Response<GroupsResponse>
 }

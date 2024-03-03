@@ -7,6 +7,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.trp.data.mappers.disciplines.PostNewDisciplineBody
+import com.example.trp.data.mappers.teacherappointments.Group
+import com.example.trp.data.mappers.teacherappointments.Teacher
 import com.example.trp.data.repository.UserAPIRepositoryImpl
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -16,13 +18,33 @@ class AddNewDisciplineScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl
 ) : ViewModel() {
     var disciplineName by mutableStateOf("")
+        private set
     var disciplineYear by mutableStateOf((2000..2030).map { it.toString() })
+        private set
     private var selectedYear by mutableStateOf(disciplineYear[0])
     var disciplineHalfYear by mutableStateOf(listOf("FIRST", "SECOND"))
+        private set
     var selectedHalfYear by mutableStateOf(disciplineHalfYear[0])
+        private set
     var disciplineDeprecated by mutableStateOf(listOf("True", "False"))
+        private set
     var selectedDeprecated by mutableStateOf(disciplineDeprecated[1])
+        private set
     var applyButtonEnabled by mutableStateOf(false)
+        private set
+    private var teachers by mutableStateOf(emptyList<Teacher>())
+    var filteredTeachers by mutableStateOf(teachers)
+    var teacherDropDownMenuState by mutableStateOf(false)
+        private set
+    var selectedTeacher by mutableStateOf(Teacher())
+        private set
+    var groups by mutableStateOf(emptyList<Group>())
+        private set
+    var groupsDropDownMenuState by mutableStateOf(false)
+        private set
+    private var selectedGroup by mutableStateOf(Group())
+    var selectedGroupText by mutableStateOf("")
+        private set
 
     @AssistedFactory
     interface Factory {
@@ -39,6 +61,14 @@ class AddNewDisciplineScreenViewModel @AssistedInject constructor(
                     return factory.create() as T
                 }
             }
+        }
+    }
+
+    init {
+        viewModelScope.launch {
+            groups = repository.getGroups().sortedBy { it.name }
+            teachers = repository.getTeachers().sortedBy { it.fullName }
+            filteredTeachers = teachers
         }
     }
 
@@ -70,5 +100,35 @@ class AddNewDisciplineScreenViewModel @AssistedInject constructor(
                 )
             )
         }
+    }
+
+    fun onTeacherDropDownMenuExpandedChange(newExpandedValue: Boolean) {
+        teacherDropDownMenuState = newExpandedValue
+    }
+
+    fun onTeacherValueChange(newTeacherValue: String) {
+        selectedTeacher = Teacher(fullName = newTeacherValue)
+        teachers.filter { teacher ->
+            selectedTeacher.fullName?.let {
+                teacher.fullName?.contains(it, ignoreCase = true)
+            } ?: false
+        }
+    }
+
+    fun onTeacherClick(newTeacher: Teacher) {
+        selectedTeacher = newTeacher
+        teacherDropDownMenuState = false
+    }
+
+    fun onGroupsDropDownMenuExpandedChange(newExpandedValue: Boolean) {
+        groupsDropDownMenuState = newExpandedValue
+    }
+
+    fun onGroupValueChange(newGroupValue: String) {
+        selectedGroup = selectedGroup.copy(name = newGroupValue)
+    }
+
+    fun onGroupClick(group: Group) {
+        selectedGroupText += ", ${group.name}"
     }
 }

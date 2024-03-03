@@ -19,10 +19,14 @@ import com.example.trp.data.mappers.tasks.Students
 import com.example.trp.data.mappers.tasks.Task
 import com.example.trp.data.mappers.tasks.TaskResponse
 import com.example.trp.data.mappers.tasks.Tasks
-import com.example.trp.data.mappers.tasks.solution.SolutionResponse
 import com.example.trp.data.mappers.tasks.solution.Solution
+import com.example.trp.data.mappers.tasks.solution.SolutionResponse
+import com.example.trp.data.mappers.teacherappointments.Group
+import com.example.trp.data.mappers.teacherappointments.GroupsResponse
+import com.example.trp.data.mappers.teacherappointments.Teacher
 import com.example.trp.data.mappers.teacherappointments.TeacherAppointmentsData
 import com.example.trp.data.mappers.teacherappointments.TeacherAppointmentsResponse
+import com.example.trp.data.mappers.teacherappointments.TeacherResponse
 import com.example.trp.data.mappers.user.AuthRequest
 import com.example.trp.data.mappers.user.JWTDecoder
 import com.example.trp.data.mappers.user.User
@@ -148,6 +152,14 @@ class UserAPIRepositoryImpl(
             "Bearer $token",
             postNewDisciplineBody
         )
+    }
+
+    override suspend fun getTeachers(token: String): Response<TeacherResponse> {
+        return ApiService.userAPI.getTeachers("Bearer $token")
+    }
+
+    override suspend fun getGroups(token: String): Response<GroupsResponse> {
+        return ApiService.userAPI.getGroups("Bearer $token")
     }
 
     suspend fun getActiveUser(): User {
@@ -360,5 +372,17 @@ class UserAPIRepositoryImpl(
         }
         disciplinesChanged = true
         disciplines = getDisciplines()
+    }
+
+    suspend fun getGroups(): List<Group> {
+        return user.token?.let { token ->
+            getGroups(token)
+        }?.body()?.data ?: emptyList()
+    }
+
+    suspend fun getTeachers(): List<Teacher> {
+        return user.token?.let { token ->
+            getTeachers(token)
+        }?.body()?.data ?: emptyList()
     }
 }

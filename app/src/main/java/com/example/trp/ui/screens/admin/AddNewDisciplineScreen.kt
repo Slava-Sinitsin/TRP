@@ -12,12 +12,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -28,13 +31,17 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -46,6 +53,8 @@ import com.example.trp.ui.components.NumberPicker
 import com.example.trp.ui.components.rememberPickerState
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.admin.AddNewDisciplineScreenViewModel
+import com.kosher9.roundcheckbox.RoundCheckBox
+import com.kosher9.roundcheckbox.RoundCheckBoxDefaults
 import dagger.hilt.android.EntryPointAccessors
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -81,6 +90,8 @@ fun AddNewDisciplineScreen(
             YearPicker(viewModel = viewModel)
             HalfYearToggle(viewModel = viewModel)
             DeprecatedToggle(viewModel = viewModel)
+            TeacherDropDownMenu(viewModel = viewModel)
+            GroupsDropDownMenu(viewModel = viewModel)
         }
     }
 }
@@ -324,6 +335,180 @@ fun DeprecatedToggle(viewModel: AddNewDisciplineScreenViewModel) {
                         )
                     ) { Text(text = text, color = TRPTheme.colors.primaryText) }
                 }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TeacherDropDownMenu(
+    viewModel: AddNewDisciplineScreenViewModel
+) {
+    val focusManager = LocalFocusManager.current
+    Text(
+        text = "Teacher",
+        color = TRPTheme.colors.primaryText,
+        fontSize = 15.sp,
+        modifier = Modifier
+            .alpha(0.6f)
+            .padding(top = 10.dp, start = 5.dp)
+    )
+    ExposedDropdownMenuBox(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 10.dp, start = 5.dp, end = 5.dp),
+        expanded = viewModel.teacherDropDownMenuState,
+        onExpandedChange = { viewModel.onTeacherDropDownMenuExpandedChange(!viewModel.teacherDropDownMenuState) }
+    ) {
+        OutlinedTextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(),
+            textStyle = TextStyle.Default.copy(fontSize = 15.sp),
+            value = viewModel.selectedTeacher.fullName ?: "",
+            onValueChange = { viewModel.onTeacherValueChange(it) },
+            placeholder = {
+                Text(
+                    "Select teacher",
+                    color = TRPTheme.colors.primaryText,
+                    modifier = Modifier.alpha(0.6f)
+                )
+            },
+            shape = RoundedCornerShape(8.dp),
+            colors = TextFieldDefaults.textFieldColors(
+                containerColor = TRPTheme.colors.secondaryBackground,
+                textColor = TRPTheme.colors.primaryText,
+                cursorColor = TRPTheme.colors.primaryText,
+                focusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                errorIndicatorColor = TRPTheme.colors.errorColor,
+                errorCursorColor = TRPTheme.colors.primaryText
+            ),
+            singleLine = true,
+            keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
+        )
+        ExposedDropdownMenu(
+            modifier = Modifier.background(TRPTheme.colors.secondaryBackground),
+            expanded = viewModel.teacherDropDownMenuState,
+            onDismissRequest = {
+                viewModel.onTeacherDropDownMenuExpandedChange(!viewModel.teacherDropDownMenuState)
+                focusManager.clearFocus()
+            }
+        ) {
+            viewModel.filteredTeachers.forEach { item ->
+                DropdownMenuItem(
+                    text = {
+                        item.fullName?.let {
+                            Text(
+                                text = it,
+                                color = TRPTheme.colors.primaryText
+                            )
+                        }
+                    },
+                    onClick = {
+                        viewModel.onTeacherClick(item)
+                        focusManager.clearFocus()
+                    }
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun GroupsDropDownMenu( // TODO
+    viewModel: AddNewDisciplineScreenViewModel
+) {
+    val focusManager = LocalFocusManager.current
+    Text(
+        text = "Groups",
+        color = TRPTheme.colors.primaryText,
+        fontSize = 15.sp,
+        modifier = Modifier
+            .alpha(0.6f)
+            .padding(top = 10.dp, start = 5.dp)
+    )
+    ExposedDropdownMenuBox(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 10.dp, start = 5.dp, end = 5.dp),
+        expanded = viewModel.groupsDropDownMenuState,
+        onExpandedChange = {
+            viewModel.onGroupsDropDownMenuExpandedChange(!viewModel.groupsDropDownMenuState)
+        }
+    ) {
+        OutlinedTextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(),
+            textStyle = TextStyle.Default.copy(fontSize = 15.sp),
+            value = viewModel.selectedGroupText,
+            onValueChange = { viewModel.onGroupValueChange(it) },
+            placeholder = {
+                Text(
+                    "Select groups",
+                    color = TRPTheme.colors.primaryText,
+                    modifier = Modifier.alpha(0.6f)
+                )
+            },
+            shape = RoundedCornerShape(8.dp),
+            colors = TextFieldDefaults.textFieldColors(
+                containerColor = TRPTheme.colors.secondaryBackground,
+                textColor = TRPTheme.colors.primaryText,
+                cursorColor = TRPTheme.colors.primaryText,
+                focusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                errorIndicatorColor = TRPTheme.colors.errorColor,
+                errorCursorColor = TRPTheme.colors.primaryText
+            ),
+            singleLine = true,
+            keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
+        )
+        ExposedDropdownMenu(
+            modifier = Modifier.background(TRPTheme.colors.secondaryBackground),
+            expanded = viewModel.groupsDropDownMenuState,
+            onDismissRequest = {
+                viewModel.onGroupsDropDownMenuExpandedChange(!viewModel.groupsDropDownMenuState)
+                focusManager.clearFocus()
+            }
+        ) {
+            viewModel.groups.forEach { item ->
+                var checked by remember { mutableStateOf(false) }
+                DropdownMenuItem(
+                    text = {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = item.name ?: "",
+                                color = TRPTheme.colors.primaryText
+                            )
+                            RoundCheckBox(
+                                isChecked = checked,
+                                onClick = {
+                                    checked = !checked
+                                    viewModel.onGroupClick(item)
+                                },
+                                color = RoundCheckBoxDefaults.colors(
+                                    selectedColor = TRPTheme.colors.myYellow,
+                                    borderColor = TRPTheme.colors.myYellow,
+                                    tickColor = TRPTheme.colors.primaryText,
+                                    disabledSelectedColor = TRPTheme.colors.myYellow
+                                )
+                            )
+                        }
+                    },
+                    onClick = {
+                        checked = !checked
+                        viewModel.onGroupClick(item)
+                    }
+                )
             }
         }
     }
