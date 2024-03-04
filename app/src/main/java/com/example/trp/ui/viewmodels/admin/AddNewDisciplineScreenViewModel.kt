@@ -10,6 +10,7 @@ import com.example.trp.data.mappers.disciplines.PostNewDisciplineBody
 import com.example.trp.data.mappers.teacherappointments.Group
 import com.example.trp.data.mappers.teacherappointments.Teacher
 import com.example.trp.data.repository.UserAPIRepositoryImpl
+import com.example.trp.ui.components.tabs.AddNewDisciplineTabs
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
@@ -32,18 +33,20 @@ class AddNewDisciplineScreenViewModel @AssistedInject constructor(
         private set
     var applyButtonEnabled by mutableStateOf(false)
         private set
-    private var teachers by mutableStateOf(emptyList<Teacher>())
-    var filteredTeachers by mutableStateOf(teachers)
-    var teacherDropDownMenuState by mutableStateOf(false)
+
+    var topAppBarText by mutableStateOf("Add new discipline")
         private set
-    var selectedTeacher by mutableStateOf(Teacher())
+    var selectedTabIndex by mutableStateOf(0)
+        private set
+    val addNewDisciplineScreens = mutableListOf(
+        AddNewDisciplineTabs.MainScreen,
+        AddNewDisciplineTabs.SelectScreen
+    )
+    var teachers by mutableStateOf(emptyList<Teacher>())
         private set
     var groups by mutableStateOf(emptyList<Group>())
         private set
-    var groupsDropDownMenuState by mutableStateOf(false)
-        private set
-    private var selectedGroup by mutableStateOf(Group())
-    var selectedGroupText by mutableStateOf("")
+    var selectedTeacher by mutableStateOf(Teacher())
         private set
 
     @AssistedFactory
@@ -66,9 +69,8 @@ class AddNewDisciplineScreenViewModel @AssistedInject constructor(
 
     init {
         viewModelScope.launch {
-            groups = repository.getGroups().sortedBy { it.name }
             teachers = repository.getTeachers().sortedBy { it.fullName }
-            filteredTeachers = teachers
+            groups = repository.getGroups().sortedBy { it.name }
         }
     }
 
@@ -102,33 +104,33 @@ class AddNewDisciplineScreenViewModel @AssistedInject constructor(
         }
     }
 
-    fun onTeacherDropDownMenuExpandedChange(newExpandedValue: Boolean) {
-        teacherDropDownMenuState = newExpandedValue
-    }
+    fun setPagerState(index: Int) {
+        selectedTabIndex = index
+        when (selectedTabIndex) {
+            0 -> {
+                topAppBarText = "Add new discipline"
+            }
 
-    fun onTeacherValueChange(newTeacherValue: String) {
-        selectedTeacher = Teacher(fullName = newTeacherValue)
-        teachers.filter { teacher ->
-            selectedTeacher.fullName?.let {
-                teacher.fullName?.contains(it, ignoreCase = true)
-            } ?: false
+            1 -> {
+                topAppBarText = "Select teacher"
+            }
+
+            2 -> {
+                topAppBarText = "Select groups"
+            }
         }
     }
 
-    fun onTeacherClick(newTeacher: Teacher) {
-        selectedTeacher = newTeacher
-        teacherDropDownMenuState = false
+    fun getTeacher(index: Int): Teacher {
+        return teachers[index]
     }
 
-    fun onGroupsDropDownMenuExpandedChange(newExpandedValue: Boolean) {
-        groupsDropDownMenuState = newExpandedValue
+    fun getGroup(index: Int): Group {
+        return groups[index]
     }
 
-    fun onGroupValueChange(newGroupValue: String) {
-        selectedGroup = selectedGroup.copy(name = newGroupValue)
-    }
-
-    fun onGroupClick(group: Group) {
-        selectedGroupText += ", ${group.name}"
+    fun onTeacherClick(index: Int) {
+        selectedTeacher = teachers[index]
+        selectedTabIndex = 0
     }
 }

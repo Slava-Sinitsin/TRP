@@ -1,29 +1,40 @@
 package com.example.trp.ui.screens.admin
 
 import android.app.Activity
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
@@ -43,6 +54,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -53,11 +65,9 @@ import com.example.trp.ui.components.NumberPicker
 import com.example.trp.ui.components.rememberPickerState
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.admin.AddNewDisciplineScreenViewModel
-import com.kosher9.roundcheckbox.RoundCheckBox
-import com.kosher9.roundcheckbox.RoundCheckBoxDefaults
 import dagger.hilt.android.EntryPointAccessors
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun AddNewDisciplineScreen(
     navController: NavHostController
@@ -71,6 +81,12 @@ fun AddNewDisciplineScreen(
             factory
         )
     )
+
+    val pagerState = rememberPagerState(0)
+    LaunchedEffect(viewModel.selectedTabIndex) {
+        pagerState.animateScrollToPage(viewModel.selectedTabIndex)
+    }
+
     Scaffold(
         modifier = Modifier
             .fillMaxSize(),
@@ -81,18 +97,49 @@ fun AddNewDisciplineScreen(
             )
         }
     ) { scaffoldPadding ->
-        Column(
+        HorizontalPager(
             modifier = Modifier
                 .fillMaxSize()
-                .background(TRPTheme.colors.primaryBackground)
-        ) {
-            NameField(viewModel = viewModel, paddingValues = scaffoldPadding)
-            YearPicker(viewModel = viewModel)
-            HalfYearToggle(viewModel = viewModel)
-            DeprecatedToggle(viewModel = viewModel)
-            TeacherDropDownMenu(viewModel = viewModel)
-            GroupsDropDownMenu(viewModel = viewModel)
+                .background(TRPTheme.colors.primaryBackground),
+            state = pagerState,
+            pageCount = viewModel.addNewDisciplineScreens.size,
+            userScrollEnabled = false
+        ) { index ->
+            when (index) {
+                0 -> {
+                    MainScreen(
+                        viewModel = viewModel,
+                        paddingValues = scaffoldPadding
+                    )
+                }
+
+                1 -> {
+                    SelectScreen(
+                        viewModel = viewModel,
+                        paddingValues = scaffoldPadding
+                    )
+                }
+            }
         }
+    }
+}
+
+@Composable
+fun MainScreen(
+    viewModel: AddNewDisciplineScreenViewModel,
+    paddingValues: PaddingValues
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(TRPTheme.colors.primaryBackground)
+    ) {
+        NameField(viewModel = viewModel, paddingValues = paddingValues)
+        YearPicker(viewModel = viewModel)
+        HalfYearToggle(viewModel = viewModel)
+        DeprecatedToggle(viewModel = viewModel)
+        TeacherSelectField(viewModel = viewModel)
+        GroupsSelectField(viewModel = viewModel)
     }
 }
 
@@ -109,32 +156,43 @@ fun DisciplineInfoCenterAlignedTopAppBar(
         ),
         title = {
             Text(
-                text = "Add new discipline",
+                text = viewModel.topAppBarText,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 fontSize = 20.sp
             )
         },
         navigationIcon = {
-            IconButton(onClick = { navController.popBackStack() }) {
-                Icon(
-                    imageVector = Icons.Filled.Close,
-                    contentDescription = "CloseButton"
-                )
+            if (viewModel.selectedTabIndex == 0) {
+                IconButton(onClick = { navController.popBackStack() }) {
+                    Icon(
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = "CloseButton"
+                    )
+                }
+            } else {
+                IconButton(onClick = { viewModel.setPagerState(0) }) {
+                    Icon(
+                        imageVector = Icons.Filled.ArrowBack,
+                        contentDescription = "BackToMainAddDisciplineScreen"
+                    )
+                }
             }
         },
         actions = {
-            IconButton(
-                onClick = {
-                    viewModel.beforeSaveButtonClick()
-                    navController.popBackStack()
-                },
-                enabled = viewModel.applyButtonEnabled
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Done,
-                    contentDescription = "ApplyAddDisciplineButton",
-                )
+            if (viewModel.selectedTabIndex == 0) {
+                IconButton(
+                    onClick = {
+                        viewModel.beforeSaveButtonClick()
+                        navController.popBackStack()
+                    },
+                    enabled = viewModel.applyButtonEnabled
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Done,
+                        contentDescription = "ApplyAddDisciplineButton",
+                    )
+                }
             }
         },
     )
@@ -146,6 +204,7 @@ fun NameField(
     viewModel: AddNewDisciplineScreenViewModel,
     paddingValues: PaddingValues
 ) {
+    val focusManager = LocalFocusManager.current
     Text(
         text = "Discipline name",
         color = TRPTheme.colors.primaryText,
@@ -180,7 +239,8 @@ fun NameField(
             errorCursorColor = TRPTheme.colors.primaryText
         ),
         isError = viewModel.disciplineName.isEmpty(),
-        singleLine = true
+        singleLine = true,
+        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
     )
 }
 
@@ -340,176 +400,212 @@ fun DeprecatedToggle(viewModel: AddNewDisciplineScreenViewModel) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TeacherDropDownMenu(
+fun SelectScreen(
+    viewModel: AddNewDisciplineScreenViewModel,
+    paddingValues: PaddingValues
+) {
+    if (viewModel.selectedTabIndex == 1) {
+        TeacherSelectScreen(
+            viewModel = viewModel,
+            paddingValues = paddingValues
+        )
+    } else if (viewModel.selectedTabIndex == 2) {
+        GroupsSelectScreen(
+            viewModel = viewModel,
+            paddingValues = paddingValues
+        )
+    }
+}
+
+@Composable
+fun TeacherSelectField(
     viewModel: AddNewDisciplineScreenViewModel
 ) {
-    val focusManager = LocalFocusManager.current
     Text(
         text = "Teacher",
         color = TRPTheme.colors.primaryText,
         fontSize = 15.sp,
         modifier = Modifier
             .alpha(0.6f)
-            .padding(top = 10.dp, start = 5.dp)
+            .padding(start = 5.dp, top = 10.dp)
     )
-    ExposedDropdownMenuBox(
+    Button(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 10.dp, start = 5.dp, end = 5.dp),
-        expanded = viewModel.teacherDropDownMenuState,
-        onExpandedChange = { viewModel.onTeacherDropDownMenuExpandedChange(!viewModel.teacherDropDownMenuState) }
+            .padding(top = 5.dp, start = 5.dp, end = 5.dp),
+        onClick = { viewModel.setPagerState(1) },
+        colors = ButtonDefaults.buttonColors(
+            containerColor = TRPTheme.colors.cardButtonColor
+        ),
+        shape = RoundedCornerShape(8.dp),
+        contentPadding = PaddingValues()
     ) {
-        OutlinedTextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor(),
-            textStyle = TextStyle.Default.copy(fontSize = 15.sp),
-            value = viewModel.selectedTeacher.fullName ?: "",
-            onValueChange = { viewModel.onTeacherValueChange(it) },
-            placeholder = {
-                Text(
-                    "Select teacher",
-                    color = TRPTheme.colors.primaryText,
-                    modifier = Modifier.alpha(0.6f)
-                )
-            },
-            shape = RoundedCornerShape(8.dp),
-            colors = TextFieldDefaults.textFieldColors(
-                containerColor = TRPTheme.colors.secondaryBackground,
-                textColor = TRPTheme.colors.primaryText,
-                cursorColor = TRPTheme.colors.primaryText,
-                focusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                errorIndicatorColor = TRPTheme.colors.errorColor,
-                errorCursorColor = TRPTheme.colors.primaryText
-            ),
-            singleLine = true,
-            keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
-        )
-        ExposedDropdownMenu(
-            modifier = Modifier.background(TRPTheme.colors.secondaryBackground),
-            expanded = viewModel.teacherDropDownMenuState,
-            onDismissRequest = {
-                viewModel.onTeacherDropDownMenuExpandedChange(!viewModel.teacherDropDownMenuState)
-                focusManager.clearFocus()
-            }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            viewModel.filteredTeachers.forEach { item ->
-                DropdownMenuItem(
-                    text = {
-                        item.fullName?.let {
-                            Text(
-                                text = it,
-                                color = TRPTheme.colors.primaryText
-                            )
-                        }
-                    },
-                    onClick = {
-                        viewModel.onTeacherClick(item)
-                        focusManager.clearFocus()
-                    }
-                )
-            }
+            Text(
+                modifier = Modifier.padding(start = 5.dp),
+                textAlign = TextAlign.Start,
+                text = viewModel.selectedTeacher.fullName ?: "Select teacher",
+                color = TRPTheme.colors.primaryText,
+                fontSize = 15.sp
+            )
+            Icon(
+                imageVector = Icons.Filled.ArrowRight,
+                contentDescription = "ArrowRight"
+            )
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GroupsDropDownMenu( // TODO
+fun GroupsSelectField(
     viewModel: AddNewDisciplineScreenViewModel
 ) {
-    val focusManager = LocalFocusManager.current
     Text(
         text = "Groups",
         color = TRPTheme.colors.primaryText,
         fontSize = 15.sp,
         modifier = Modifier
             .alpha(0.6f)
-            .padding(top = 10.dp, start = 5.dp)
+            .padding(start = 5.dp, top = 10.dp)
     )
-    ExposedDropdownMenuBox(
+    Button(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 10.dp, start = 5.dp, end = 5.dp),
-        expanded = viewModel.groupsDropDownMenuState,
-        onExpandedChange = {
-            viewModel.onGroupsDropDownMenuExpandedChange(!viewModel.groupsDropDownMenuState)
-        }
+            .padding(top = 5.dp, start = 5.dp, end = 5.dp),
+        onClick = { viewModel.setPagerState(2) },
+        colors = ButtonDefaults.buttonColors(
+            containerColor = TRPTheme.colors.cardButtonColor
+        ),
+        shape = RoundedCornerShape(8.dp),
+        contentPadding = PaddingValues()
     ) {
-        OutlinedTextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor(),
-            textStyle = TextStyle.Default.copy(fontSize = 15.sp),
-            value = viewModel.selectedGroupText,
-            onValueChange = { viewModel.onGroupValueChange(it) },
-            placeholder = {
-                Text(
-                    "Select groups",
-                    color = TRPTheme.colors.primaryText,
-                    modifier = Modifier.alpha(0.6f)
-                )
-            },
-            shape = RoundedCornerShape(8.dp),
-            colors = TextFieldDefaults.textFieldColors(
-                containerColor = TRPTheme.colors.secondaryBackground,
-                textColor = TRPTheme.colors.primaryText,
-                cursorColor = TRPTheme.colors.primaryText,
-                focusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                errorIndicatorColor = TRPTheme.colors.errorColor,
-                errorCursorColor = TRPTheme.colors.primaryText
-            ),
-            singleLine = true,
-            keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
-        )
-        ExposedDropdownMenu(
-            modifier = Modifier.background(TRPTheme.colors.secondaryBackground),
-            expanded = viewModel.groupsDropDownMenuState,
-            onDismissRequest = {
-                viewModel.onGroupsDropDownMenuExpandedChange(!viewModel.groupsDropDownMenuState)
-                focusManager.clearFocus()
-            }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            viewModel.groups.forEach { item ->
-                var checked by remember { mutableStateOf(false) }
-                DropdownMenuItem(
-                    text = {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = item.name ?: "",
-                                color = TRPTheme.colors.primaryText
-                            )
-                            RoundCheckBox(
-                                isChecked = checked,
-                                onClick = {
-                                    checked = !checked
-                                    viewModel.onGroupClick(item)
-                                },
-                                color = RoundCheckBoxDefaults.colors(
-                                    selectedColor = TRPTheme.colors.myYellow,
-                                    borderColor = TRPTheme.colors.myYellow,
-                                    tickColor = TRPTheme.colors.primaryText,
-                                    disabledSelectedColor = TRPTheme.colors.myYellow
-                                )
-                            )
-                        }
-                    },
-                    onClick = {
-                        checked = !checked
-                        viewModel.onGroupClick(item)
-                    }
-                )
+            Text(
+                modifier = Modifier.padding(start = 5.dp),
+                textAlign = TextAlign.Start,
+                text = "Select groups",
+                color = TRPTheme.colors.primaryText,
+                fontSize = 15.sp
+            )
+            Icon(
+                imageVector = Icons.Filled.ArrowRight,
+                contentDescription = "ArrowRight"
+            )
+        }
+    }
+}
+
+@Composable
+fun TeacherSelectScreen(
+    viewModel: AddNewDisciplineScreenViewModel,
+    paddingValues: PaddingValues
+) {
+    BackHandler(enabled = true, onBack = { viewModel.setPagerState(0) })
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(TRPTheme.colors.primaryBackground)
+            .padding(top = paddingValues.calculateTopPadding()),
+    ) {
+        items(count = viewModel.teachers.size) { index ->
+            var checked by remember { mutableStateOf(false) }
+            Button(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(8.dp),
+                onClick = {
+                    viewModel.onTeacherClick(index)
+                    checked = !checked
+                },
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 10.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = TRPTheme.colors.cardButtonColor),
+                shape = RoundedCornerShape(8.dp),
+                contentPadding = PaddingValues()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 5.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = viewModel.getTeacher(index = index).fullName ?: "",
+                        color = TRPTheme.colors.primaryText,
+                        fontSize = 15.sp
+                    )
+                    RadioButton(
+                        selected = checked,
+                        onClick = {
+                            viewModel.onTeacherClick(index)
+                            checked = !checked
+                        },
+                        colors = RadioButtonDefaults.colors(
+                            selectedColor = TRPTheme.colors.myYellow
+                        )
+                    )
+                }
             }
         }
+        item { Spacer(modifier = Modifier.size(100.dp)) }
+    }
+}
+
+@Composable
+fun GroupsSelectScreen(
+    viewModel: AddNewDisciplineScreenViewModel,
+    paddingValues: PaddingValues
+) {
+    BackHandler(enabled = true, onBack = { viewModel.setPagerState(0) })
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(TRPTheme.colors.primaryBackground)
+            .padding(top = paddingValues.calculateTopPadding()),
+    ) {
+        items(count = viewModel.groups.size) { index ->
+            var checked by remember { mutableStateOf(false) }
+            Button(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(8.dp),
+                onClick = { checked = !checked },
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 10.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = TRPTheme.colors.cardButtonColor),
+                shape = RoundedCornerShape(8.dp),
+                contentPadding = PaddingValues()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 5.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = viewModel.getGroup(index = index).name ?: "",
+                        color = TRPTheme.colors.primaryText,
+                        fontSize = 15.sp
+                    )
+                    Checkbox(
+                        checked = checked,
+                        onCheckedChange = { checked = !checked },
+                        colors = CheckboxDefaults.colors(
+                            checkedColor = TRPTheme.colors.myYellow
+                        )
+                    )
+                }
+            }
+        }
+        item { Spacer(modifier = Modifier.size(100.dp)) }
     }
 }

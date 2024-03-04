@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.trp.data.mappers.disciplines.DisciplineData
 import com.example.trp.data.repository.UserAPIRepositoryImpl
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -42,7 +43,7 @@ class StudentDisciplinesScreenViewModel @AssistedInject constructor(
         }
     }
 
-    fun getDiscipline(index: Int): com.example.trp.data.mappers.disciplines.DisciplineData {
+    fun getDiscipline(index: Int): DisciplineData {
         return disciplines[index]
     }
 }
