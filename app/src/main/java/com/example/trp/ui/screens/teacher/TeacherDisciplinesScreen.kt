@@ -35,17 +35,17 @@ fun TeacherDisciplinesScreen(onDisciplineClick: (index: Int) -> Unit) {
         )
     )
 
-    Groups(viewModel = viewModel, onDisciplineClick = onDisciplineClick)
+    Disciplines(viewModel = viewModel, onDisciplineClick = onDisciplineClick)
 }
 
 @Composable
-fun Groups(
+fun Disciplines(
     viewModel: TeacherDisciplinesScreenViewModel,
     onDisciplineClick: (id: Int) -> Unit
 ) {
     LazyColumn {
         items(viewModel.disciplines.size) { index ->
-            Group(
+            Discipline(
                 viewModel = viewModel,
                 index = index,
                 onDisciplineClick = onDisciplineClick
@@ -56,7 +56,7 @@ fun Groups(
 }
 
 @Composable
-fun Group(
+fun Discipline(
     viewModel: TeacherDisciplinesScreenViewModel,
     index: Int,
     onDisciplineClick: (id: Int) -> Unit
@@ -67,7 +67,10 @@ fun Group(
             .fillMaxSize(),
         onClick = {
             viewModel.getGroup(index = index).let { group ->
-                group.id?.let { id -> onDisciplineClick(id) }
+                group.id?.let { id ->
+                    viewModel.beforeDisciplineClick(index)
+                    onDisciplineClick(id)
+                }
             }
         },
         elevation = ButtonDefaults.buttonElevation(

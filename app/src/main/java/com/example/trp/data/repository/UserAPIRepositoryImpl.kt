@@ -14,11 +14,14 @@ import com.example.trp.data.mappers.disciplines.Disciplines
 import com.example.trp.data.mappers.disciplines.PostNewDisciplineBody
 import com.example.trp.data.mappers.disciplines.PostNewDisciplineResponse
 import com.example.trp.data.mappers.tasks.Output
+import com.example.trp.data.mappers.tasks.PostTestResponse
 import com.example.trp.data.mappers.tasks.Student
 import com.example.trp.data.mappers.tasks.Students
 import com.example.trp.data.mappers.tasks.Task
 import com.example.trp.data.mappers.tasks.TaskResponse
 import com.example.trp.data.mappers.tasks.Tasks
+import com.example.trp.data.mappers.tasks.Test
+import com.example.trp.data.mappers.tasks.TestsResponse
 import com.example.trp.data.mappers.tasks.solution.Solution
 import com.example.trp.data.mappers.tasks.solution.SolutionResponse
 import com.example.trp.data.mappers.teacherappointments.Group
@@ -160,6 +163,25 @@ class UserAPIRepositoryImpl(
 
     override suspend fun getGroups(token: String): Response<GroupsResponse> {
         return ApiService.userAPI.getGroups("Bearer $token")
+    }
+
+    override suspend fun getTests(token: String, taskId: Int): Response<TestsResponse> {
+        return ApiService.userAPI.getTests("Bearer $token", taskId)
+    }
+
+    override suspend fun postNewTest(
+        token: String,
+        test: Test
+    ): Response<PostTestResponse> {
+        return ApiService.userAPI.postNewTest("Bearer $token", test)
+    }
+
+    override suspend fun getStudentTasks(
+        token: String,
+        studentId: Int,
+        disciplineId: Int
+    ): Response<Tasks> {
+        return ApiService.userAPI.getStudentTasks("Bearer $token", studentId, disciplineId)
     }
 
     suspend fun getActiveUser(): User {
@@ -384,5 +406,27 @@ class UserAPIRepositoryImpl(
         return user.token?.let { token ->
             getTeachers(token)
         }?.body()?.data ?: emptyList()
+    }
+
+    suspend fun getTests(taskId: Int): List<Test> {
+        return user.token?.let { token ->
+            getTests(token, taskId).body()?.data
+        } ?: emptyList()
+    }
+
+    suspend fun postNewTest(test: Test) {
+        user.token?.let { token -> postNewTest(token, test) }
+    }
+
+    suspend fun getStudentTasks(studentId: Int): List<Task> {
+        return user.token?.let { token ->
+            taskDisciplineData.id?.let { disciplineId ->
+                getStudentTasks(
+                    token,
+                    studentId,
+                    disciplineId
+                ).body()?.data
+            }
+        } ?: emptyList()
     }
 }

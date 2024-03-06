@@ -99,8 +99,11 @@ fun AddNewTestTopAppBar(
         },
         actions = {
             IconButton(
-                onClick = { viewModel.onSaveButtonClick() },
-                enabled = viewModel.applyButtonEnabled
+                onClick = {
+                    viewModel.onSaveButtonClick()
+                    navController.popBackStack()
+                },
+                enabled = viewModel.saveButtonEnabled
             ) {
                 Icon(
                     imageVector = Icons.Filled.Done,

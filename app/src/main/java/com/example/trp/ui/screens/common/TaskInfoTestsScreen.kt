@@ -482,7 +482,7 @@ fun TestsScreen(
 ) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         item { AddTestToTask(viewModel = viewModel, onAddTestClick = onAddTestClick) }
-        items(count = 20) { index ->
+        items(count = viewModel.tests.size) { index ->
             Test(viewModel = viewModel, index = index, onTestClick = onTestClick)
         }
         item { Spacer(modifier = Modifier.size(100.dp)) }
@@ -561,7 +561,7 @@ fun Test(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = viewModel.getTest(index = index).title.toString(),
+                    text = "Test ${index + 1}",
                     color = TRPTheme.colors.primaryText,
                     fontSize = 25.sp
                 )

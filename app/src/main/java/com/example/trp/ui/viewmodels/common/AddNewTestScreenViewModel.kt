@@ -5,10 +5,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import com.example.trp.data.mappers.tasks.Test
 import com.example.trp.data.repository.UserAPIRepositoryImpl
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.launch
 
 class AddNewTestScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
@@ -20,7 +23,7 @@ class AddNewTestScreenViewModel @AssistedInject constructor(
     var outputValue by mutableStateOf("")
         private set
 
-    var applyButtonEnabled by mutableStateOf(false)
+    var saveButtonEnabled by mutableStateOf(false)
         private set
 
     @AssistedFactory
@@ -46,15 +49,17 @@ class AddNewTestScreenViewModel @AssistedInject constructor(
 
     fun updateInputValue(newInputValue: String) {
         inputValue = newInputValue
-        applyButtonEnabled = inputValue.isNotEmpty()
+        saveButtonEnabled = inputValue.isNotEmpty()
     }
 
     fun updateOutputValue(newOutputValue: String) {
         outputValue = newOutputValue
-        applyButtonEnabled = outputValue.isNotEmpty()
+        saveButtonEnabled = outputValue.isNotEmpty()
     }
 
     fun onSaveButtonClick() {
-        // TODO
+        viewModelScope.launch {
+            repository.postNewTest(Test(taskId = taskId, input = inputValue, output = outputValue))
+        }
     }
 }

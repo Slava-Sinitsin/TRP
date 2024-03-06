@@ -47,13 +47,7 @@ class TaskInfoTestsScreenViewModel @AssistedInject constructor(
     var selectedTabIndex by mutableStateOf(0)
         private set
 
-    var tests by mutableStateOf(List(20) {
-        Test(
-            title = "Test ${it.inc()}",
-            input = "[1, 2, 3, 4]",
-            output = "4"
-        )
-    })
+    var tests by mutableStateOf(emptyList<Test>())
         private set
 
     @AssistedFactory
@@ -82,6 +76,7 @@ class TaskInfoTestsScreenViewModel @AssistedInject constructor(
             taskDescription = task.description ?: ""
             taskFunctionName = task.functionName ?: ""
             taskLanguage = task.language ?: ""
+            tests = repository.getTests(taskId)
         }
     }
 

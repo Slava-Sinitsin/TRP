@@ -8,10 +8,13 @@ import com.example.trp.data.mappers.disciplines.Disciplines
 import com.example.trp.data.mappers.disciplines.PostNewDisciplineBody
 import com.example.trp.data.mappers.disciplines.PostNewDisciplineResponse
 import com.example.trp.data.mappers.tasks.Output
+import com.example.trp.data.mappers.tasks.PostTestResponse
 import com.example.trp.data.mappers.tasks.Students
 import com.example.trp.data.mappers.tasks.Task
 import com.example.trp.data.mappers.tasks.TaskResponse
 import com.example.trp.data.mappers.tasks.Tasks
+import com.example.trp.data.mappers.tasks.Test
+import com.example.trp.data.mappers.tasks.TestsResponse
 import com.example.trp.data.mappers.tasks.solution.SolutionResponse
 import com.example.trp.data.mappers.teacherappointments.GroupsResponse
 import com.example.trp.data.mappers.teacherappointments.TeacherAppointmentsResponse
@@ -127,4 +130,23 @@ interface UserAPI {
     suspend fun getGroups(
         @Header("Authorization") token: String
     ): Response<GroupsResponse>
+
+    @GET("api/v2/tasks/{taskId}/tests")
+    suspend fun getTests(
+        @Header("Authorization") token: String,
+        @Path("taskId") taskId: Int
+    ): Response<TestsResponse>
+
+    @POST("/api/v2/task-tests")
+    suspend fun postNewTest(
+        @Header("Authorization") token: String,
+        @Body test: Test
+    ): Response<PostTestResponse>
+
+    @GET("api/v2/students/{studentId}/disciplines/{disciplineId}/tasks")
+    suspend fun getStudentTasks(
+        @Header("Authorization") token: String,
+        @Path("studentId") studentId: Int,
+        @Path("disciplineId") disciplineId: Int
+    ): Response<Tasks>
 }

@@ -22,12 +22,11 @@ class StudentInfoScreenViewModel @AssistedInject constructor(
     @Assisted
     val studentId: Int
 ) : ViewModel() {
-    var studentAppointments by mutableStateOf(emptyList<StudentAppointments>())
-        private set
-    var tasks by mutableStateOf(repository.tasks)
-        private set
     var student by mutableStateOf(Student())
         private set
+    var tasks by mutableStateOf(emptyList<Task>())
+        private set
+    private var studentAppointments by mutableStateOf(emptyList<StudentAppointments>())
 
     @AssistedFactory
     interface Factory {
@@ -51,10 +50,12 @@ class StudentInfoScreenViewModel @AssistedInject constructor(
     init {
         viewModelScope.launch {
             student = repository.students.find { it.id == studentId } ?: Student()
-            studentAppointments =
-                repository.getStudentAppointments().filter { it.studentId == studentId }
-            tasks = tasks.filter { task -> studentAppointments.any { it.taskId == task.id } }
-                .sortedBy { it.title }
+            tasks = repository.getStudentTasks(studentId).sortedBy { it.title }
+            studentAppointments = repository.getStudentAppointments().filter { studentAppointment ->
+                tasks.any { task ->
+                    studentAppointment.taskId == task.id && studentAppointment.studentId == studentId
+                }
+            }
         }
     }
 
@@ -63,10 +64,7 @@ class StudentInfoScreenViewModel @AssistedInject constructor(
     }
 
     private fun getStudentAppointment(index: Int): StudentAppointments {
-        val studentAppointment = studentAppointments.find { studentAppointment ->
-            studentAppointment.taskId == tasks.find { task -> task.id == tasks[index].id }?.id
-        } ?: StudentAppointments()
-        return studentAppointment
+        return studentAppointments.find { it.taskId == tasks[index].id } ?: StudentAppointments()
     }
 
     fun getStatus(index: Int): Pair<Float, Color> {

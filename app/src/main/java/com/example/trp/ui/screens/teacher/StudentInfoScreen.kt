@@ -112,7 +112,7 @@ fun Tasks(
             .padding(top = paddingValues.calculateTopPadding())
     ) {
         item { AddTask(viewModel = viewModel, onAddTaskToStudentClick = onAddTaskToStudentClick) }
-        items(count = viewModel.studentAppointments.size) { index ->
+        items(count = viewModel.tasks.size) { index ->
             Task(viewModel = viewModel, index = index)
         }
         item { Spacer(modifier = Modifier.size(100.dp)) }

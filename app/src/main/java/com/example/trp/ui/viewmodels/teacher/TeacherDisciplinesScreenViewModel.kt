@@ -1,5 +1,6 @@
 package com.example.trp.ui.viewmodels.teacher
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -44,5 +45,11 @@ class TeacherDisciplinesScreenViewModel @AssistedInject constructor(
 
     fun getGroup(index: Int): DisciplineData {
         return disciplines[index]
+    }
+
+    fun beforeDisciplineClick(index: Int) {
+        repository.taskDisciplineData =
+            disciplines.find { it == disciplines[index] } ?: DisciplineData()
+        Log.e("taskDisciplineData", repository.taskDisciplineData.toString())
     }
 }

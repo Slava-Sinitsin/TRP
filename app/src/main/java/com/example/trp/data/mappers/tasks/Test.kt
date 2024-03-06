@@ -4,10 +4,7 @@ import com.google.gson.annotations.SerializedName
 
 data class Test(
     @SerializedName("id") val id: Int? = null,
-    @SerializedName("status") val status: Int? = null,
-    @SerializedName("message") val message: String? = null,
-    @SerializedName("error") val error: String? = null,
-    @SerializedName("title") val title: String? = null,
+    @SerializedName("taskId") val taskId: Int? = null,
     @SerializedName("input") val input: String? = null,
     @SerializedName("output") val output: String? = null
 )
