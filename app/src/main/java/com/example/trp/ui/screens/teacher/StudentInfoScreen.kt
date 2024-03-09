@@ -43,7 +43,8 @@ import dagger.hilt.android.EntryPointAccessors
 @Composable
 fun StudentInfoScreen(
     studentId: Int,
-    onAddTaskToStudentClick: (id: Int) -> Unit,
+    onAddTaskToStudentClick: (studentId: Int) -> Unit,
+    onTaskClick: (taskId: Int) -> Unit,
     navController: NavHostController
 ) {
     val factory = EntryPointAccessors.fromActivity(
@@ -69,7 +70,8 @@ fun StudentInfoScreen(
         Tasks(
             viewModel = viewModel,
             paddingValues = scaffoldPadding,
-            onAddTaskToStudentClick = onAddTaskToStudentClick
+            onAddTaskToStudentClick = onAddTaskToStudentClick,
+            onTaskClick = onTaskClick
         )
     }
 
@@ -103,7 +105,8 @@ fun StudentInfoCenterAlignedTopAppBar(
 fun Tasks(
     viewModel: StudentInfoScreenViewModel,
     paddingValues: PaddingValues,
-    onAddTaskToStudentClick: (id: Int) -> Unit
+    onAddTaskToStudentClick: (studentId: Int) -> Unit,
+    onTaskClick: (taskId: Int) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier
@@ -113,7 +116,7 @@ fun Tasks(
     ) {
         item { AddTask(viewModel = viewModel, onAddTaskToStudentClick = onAddTaskToStudentClick) }
         items(count = viewModel.tasks.size) { index ->
-            Task(viewModel = viewModel, index = index)
+            Task(viewModel = viewModel, index = index, onTaskClick = onTaskClick)
         }
         item { Spacer(modifier = Modifier.size(100.dp)) }
     }
@@ -122,7 +125,7 @@ fun Tasks(
 @Composable
 fun AddTask(
     viewModel: StudentInfoScreenViewModel,
-    onAddTaskToStudentClick: (id: Int) -> Unit
+    onAddTaskToStudentClick: (studentId: Int) -> Unit
 ) {
     Button(
         modifier = Modifier
@@ -152,13 +155,14 @@ fun AddTask(
 @Composable
 fun Task(
     viewModel: StudentInfoScreenViewModel,
-    index: Int
+    index: Int,
+    onTaskClick: (taskId: Int) -> Unit
 ) {
     Button(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxSize(),
-        onClick = { },
+        onClick = { viewModel.getTask(index).id?.let { onTaskClick(it) } },
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 10.dp
         ),

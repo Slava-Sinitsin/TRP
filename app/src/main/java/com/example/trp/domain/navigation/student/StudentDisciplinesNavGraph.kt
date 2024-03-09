@@ -36,7 +36,10 @@ fun NavGraphBuilder.tasksNavGraph(navController: NavHostController) {
         ) {
             val taskId = it.arguments?.getInt(TASK_ID)
             taskId?.let { id ->
-                TaskScreen(taskId = id)
+                TaskScreen(
+                    taskId = id,
+                    navController = navController
+                )
             }
         }
     }

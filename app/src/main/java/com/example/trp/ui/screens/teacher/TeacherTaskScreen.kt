@@ -1,4 +1,4 @@
-package com.example.trp.ui.screens.student
+package com.example.trp.ui.screens.teacher
 
 import android.app.Activity
 import androidx.compose.foundation.horizontalScroll
@@ -13,8 +13,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.PlayCircleOutline
-import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,21 +36,21 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.trp.domain.di.ViewModelFactoryProvider
 import com.example.trp.ui.theme.TRPTheme
-import com.example.trp.ui.viewmodels.student.TaskScreenViewModel
+import com.example.trp.ui.viewmodels.teacher.TeacherTaskScreenViewModel
 import dagger.hilt.android.EntryPointAccessors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaskScreen(
+fun TeacherTaskScreen(
     taskId: Int,
     navController: NavHostController
 ) {
     val factory = EntryPointAccessors.fromActivity(
         LocalContext.current as Activity,
         ViewModelFactoryProvider::class.java
-    ).taskScreenViewModelFactory()
-    val viewModel: TaskScreenViewModel = viewModel(
-        factory = TaskScreenViewModel.provideTaskScreenViewModel(
+    ).teacherTaskScreenViewModelFactory()
+    val viewModel: TeacherTaskScreenViewModel = viewModel(
+        factory = TeacherTaskScreenViewModel.provideTeacherTaskScreenViewModel(
             factory,
             taskId
         )
@@ -74,15 +72,6 @@ fun TaskScreen(
                 viewModel = viewModel,
                 paddingValues = scaffoldPadding
             )
-            Text(
-                modifier = Modifier.padding(start = 5.dp, top = 10.dp),
-                text = "Output:",
-                fontSize = 20.sp,
-                color = TRPTheme.colors.primaryText
-            )
-            OutputText(
-                viewModel = viewModel
-            )
         }
     }
 }
@@ -90,7 +79,7 @@ fun TaskScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskCenterAlignedTopAppBar(
-    viewModel: TaskScreenViewModel,
+    viewModel: TeacherTaskScreenViewModel,
     navController: NavHostController
 ) {
     TopAppBar(
@@ -114,27 +103,14 @@ fun TaskCenterAlignedTopAppBar(
                 )
             }
         },
-        actions = {
-            IconButton(onClick = { viewModel.onSaveCodeButtonClick() }) {
-                Icon(
-                    imageVector = Icons.Filled.Save,
-                    contentDescription = "SaveCodeButton"
-                )
-            }
-            IconButton(onClick = { viewModel.onRunCodeButtonClick() }) {
-                Icon(
-                    imageVector = Icons.Filled.PlayCircleOutline,
-                    contentDescription = "RunCodeButton"
-                )
-            }
-        },
+        actions = { },
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskText(
-    viewModel: TaskScreenViewModel,
+    viewModel: TeacherTaskScreenViewModel,
     paddingValues: PaddingValues
 ) {
     Surface(
@@ -157,44 +133,6 @@ fun TaskText(
                 .horizontalScroll(rememberScrollState()),
             value = viewModel.solutionTextFieldValue,
             onValueChange = { viewModel.updateTaskText(it) },
-            shape = RoundedCornerShape(8.dp),
-            colors = TextFieldDefaults.textFieldColors(
-                containerColor = TRPTheme.colors.secondaryBackground,
-                textColor = TRPTheme.colors.primaryText,
-                cursorColor = TRPTheme.colors.primaryText,
-                focusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            )
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun OutputText(
-    viewModel: TaskScreenViewModel
-) {
-    Surface(
-        modifier = Modifier
-            .padding(
-                top = 10.dp,
-                start = 5.dp,
-                end = 5.dp
-            )
-            .fillMaxWidth()
-            .wrapContentSize(),
-        color = Color.Transparent,
-        shadowElevation = 6.dp,
-        shape = RoundedCornerShape(8.dp)
-    ) {
-        TextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(100.dp)
-                .horizontalScroll(rememberScrollState()),
-            value = viewModel.outputText,
-            onValueChange = { },
             shape = RoundedCornerShape(8.dp),
             colors = TextFieldDefaults.textFieldColors(
                 containerColor = TRPTheme.colors.secondaryBackground,

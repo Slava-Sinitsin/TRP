@@ -14,6 +14,7 @@ import com.example.trp.ui.screens.teacher.AddTaskToStudentScreen
 import com.example.trp.ui.screens.teacher.StudentInfoScreen
 import com.example.trp.ui.screens.teacher.StudentsScreen
 import com.example.trp.ui.screens.teacher.TeacherGroupsTasksScreen
+import com.example.trp.ui.screens.teacher.TeacherTaskScreen
 
 private const val TEACHER_DISCIPLINES_ID = "teacher_discipline_id"
 private const val GROUP_ID = "group_id"
@@ -69,6 +70,21 @@ fun NavGraphBuilder.groupsNavGraph(navController: NavHostController) {
                     onAddTaskToStudentClick = { studentId ->
                         navController.navigate("${TeacherGroupsTasksScreen.AddTaskToStudent.route}/$studentId")
                     },
+                    onTaskClick = { taskId ->
+                        navController.navigate("${TeacherGroupsTasksScreen.StudentTaskInfo.route}/$taskId")
+                    },
+                    navController = navController
+                )
+            }
+        }
+        composable(
+            route = "${TeacherGroupsTasksScreen.StudentTaskInfo.route}/{$TEACHER_TASK_ID}",
+            arguments = listOf(navArgument(TEACHER_TASK_ID) { type = NavType.IntType })
+        ) {
+            val taskId = it.arguments?.getInt(TEACHER_TASK_ID)
+            taskId?.let { id ->
+                TeacherTaskScreen(
+                    taskId = id,
                     navController = navController
                 )
             }
@@ -129,6 +145,7 @@ sealed class TeacherGroupsTasksScreen(val route: String) {
     object TaskInfo : TeacherGroupsTasksScreen(route = "checklist_TASK_INFO")
     object AddNewTask : TeacherGroupsTasksScreen(route = "checklist_ADD_NEW_TASK")
     object StudentInfo : TeacherGroupsTasksScreen(route = "checklist_STUDENT_INFO")
+    object StudentTaskInfo : TeacherGroupsTasksScreen(route = "checklist_STUDENT_TASK_INFO")
     object AddTaskToStudent : TeacherGroupsTasksScreen(route = "checklist_ADD_TASK_TO_STUDENT")
     object AddNewTest : TeacherGroupsTasksScreen(route = "checklist_ADD_NEW_TEST")
 }

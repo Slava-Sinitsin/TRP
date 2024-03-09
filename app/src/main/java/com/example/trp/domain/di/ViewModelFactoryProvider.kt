@@ -16,6 +16,7 @@ import com.example.trp.ui.viewmodels.teacher.StudentInfoScreenViewModel
 import com.example.trp.ui.viewmodels.teacher.StudentsScreenViewModel
 import com.example.trp.ui.viewmodels.teacher.TeacherDisciplinesScreenViewModel
 import com.example.trp.ui.viewmodels.teacher.TeacherGroupsTasksScreenViewModel
+import com.example.trp.ui.viewmodels.teacher.TeacherTaskScreenViewModel
 import com.example.trp.ui.viewmodels.teacher.TeacherWelcomeScreenViewModel
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -37,6 +38,7 @@ interface ViewModelFactoryProvider {
     fun addNewTaskScreenViewModelFactory(): AddNewTaskScreenViewModel.Factory
     fun studentInfoScreenViewModelFactory(): StudentInfoScreenViewModel.Factory
     fun addTaskToStudentScreenViewModelFactory(): AddTaskToStudentScreenViewModel.Factory
+    fun teacherTaskScreenViewModelFactory(): TeacherTaskScreenViewModel.Factory
 
     fun adminWelcomeScreenViewModelFactory(): AdminWelcomeScreenViewModel.Factory
     fun adminDisciplinesScreenViewModelFactory(): AdminDisciplinesScreenViewModel.Factory
