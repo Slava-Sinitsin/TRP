@@ -18,10 +18,35 @@ class AddNewTaskScreenViewModel @AssistedInject constructor(
     @Assisted
     val disciplineId: Int
 ) : ViewModel() {
+    val languageList =
+        listOf("c", "c++")
+    private val cTypeList =
+        listOf("int", "int*", "int**", "float", "float*", "float**", "char", "char*", "char**")
+    private val cppTypeList =
+        listOf("int", "int*", "int**", "float", "float*", "float**", "char", "string")
+
     var taskTitle by mutableStateOf("")
+        private set
     var taskDescription by mutableStateOf("")
-    var taskFunctionName by mutableStateOf("")
+        private set
     var taskLanguage by mutableStateOf("")
+        private set
+    var taskFunctionType by mutableStateOf("")
+        private set
+    var taskFunctionName by mutableStateOf("")
+        private set
+
+    var typeButtonsEnabled by mutableStateOf(Pair(false, 0.6f))
+        private set
+    var taskOptionalArgumentList by mutableStateOf(listOf(Triple("", "", false)))
+        private set
+    var deleteButtonEnabled by mutableStateOf(Pair(false, 0.6f))
+        private set
+    var functionTypeListExpanded by mutableStateOf(false)
+        private set
+    var typeList by mutableStateOf(emptyList<String>())
+        private set
+
     var applyButtonEnabled by mutableStateOf(false)
 
     @AssistedFactory
@@ -55,14 +80,89 @@ class AddNewTaskScreenViewModel @AssistedInject constructor(
         applyButtonEnabled = taskDescription.isNotEmpty()
     }
 
+    fun updateLanguageValue(newLanguageValue: String) {
+        if (taskLanguage != newLanguageValue) {
+            typeButtonsEnabled = typeButtonsEnabled.copy(first = true)
+            typeButtonsEnabled = typeButtonsEnabled.copy(second = 1.0f)
+            taskLanguage = newLanguageValue
+            taskFunctionType = ""
+            functionTypeListExpanded = false
+            taskOptionalArgumentList = taskOptionalArgumentList.map { item ->
+                Triple("", item.second, false)
+            }
+            when (taskLanguage) {
+                "c" -> {
+                    typeList = cTypeList
+                }
+
+                "c++" -> {
+                    typeList = cppTypeList
+                }
+            }
+            applyButtonEnabled = taskLanguage.isNotEmpty()
+        }
+    }
+
+    fun updateFunctionTypeExpanded(isExpanded: Boolean) {
+        functionTypeListExpanded = isExpanded
+    }
+
+    fun updateFunctionTypeValue(newFunctionTypeValue: String) {
+        taskFunctionType = newFunctionTypeValue
+        applyButtonEnabled = taskFunctionType.isNotEmpty()
+    }
+
     fun updateFunctionNameValue(newFunctionNameValue: String) {
         taskFunctionName = newFunctionNameValue
         applyButtonEnabled = taskFunctionName.isNotEmpty()
     }
 
-    fun updateLanguageValue(newLanguageValue: String) {
-        taskLanguage = newLanguageValue
-        applyButtonEnabled = taskLanguage.isNotEmpty()
+    fun addOptionalArgument() {
+        deleteButtonEnabled = Pair(true, 1.0f)
+        taskOptionalArgumentList = taskOptionalArgumentList + Triple("", "", false)
+    }
+
+    fun getArgument(index: Int): Triple<String, String, Boolean> {
+        return taskOptionalArgumentList[index]
+    }
+
+    fun updateArgumentTypeExpanded(index: Int, isExpanded: Boolean) {
+        taskOptionalArgumentList = taskOptionalArgumentList.mapIndexed { currentIndex, item ->
+            if (currentIndex == index) {
+                Triple(item.first, item.second, isExpanded)
+            } else {
+                item
+            }
+        }
+    }
+
+    fun updateArgumentTypeValue(index: Int, newArgumentTypeValue: String) {
+        taskOptionalArgumentList = taskOptionalArgumentList.mapIndexed { currentIndex, item ->
+            if (currentIndex == index) {
+                Triple(newArgumentTypeValue, item.second, item.third)
+            } else {
+                item
+            }
+        }
+    }
+
+    fun updateArgumentNameValue(index: Int, newArgumentNameValue: String) {
+        taskOptionalArgumentList = taskOptionalArgumentList.mapIndexed { currentIndex, item ->
+            if (currentIndex == index) {
+                Triple(item.first, newArgumentNameValue, item.third)
+            } else {
+                item
+            }
+        }
+    }
+
+    fun onDeleteArgumentClick(index: Int) {
+        taskOptionalArgumentList = taskOptionalArgumentList.filterIndexed { currentIndex, _ ->
+            currentIndex != index
+        }
+        if (taskOptionalArgumentList.size < 2) {
+            deleteButtonEnabled = Pair(false, 0.6f)
+        }
     }
 
     fun beforeSaveButtonClick() {

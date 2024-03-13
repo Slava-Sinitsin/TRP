@@ -3,10 +3,12 @@ package com.example.trp.ui.viewmodels.student
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.trp.data.mappers.tasks.Task
 import com.example.trp.data.repository.UserAPIRepositoryImpl
 import com.wakaztahir.codeeditor.highlight.model.CodeLang
 import com.wakaztahir.codeeditor.highlight.prettify.PrettifyParser
@@ -22,16 +24,21 @@ class TaskScreenViewModel @AssistedInject constructor(
     @Assisted
     val taskId: Int
 ) : ViewModel() {
-    var task by mutableStateOf(repository.task)
+    var task by mutableStateOf(Task())
+        private set
     var disciplineName by mutableStateOf("")
-    private var solutionText by mutableStateOf("")
+        private set
     var solutionTextFieldValue by mutableStateOf(TextFieldValue())
+        private set
     var outputText by mutableStateOf("")
+        private set
 
     private val language = CodeLang.C
     private val parser by mutableStateOf(PrettifyParser())
     private var themeState by mutableStateOf(CodeThemeType.Monokai)
     private val theme by mutableStateOf(themeState.theme())
+    var linesCount by mutableStateOf(emptyArray<Float>())
+        private set
 
     @AssistedFactory
     interface Factory {
@@ -56,39 +63,41 @@ class TaskScreenViewModel @AssistedInject constructor(
         viewModelScope.launch {
             task = repository.getTask(taskId)
             disciplineName = repository.taskDisciplineData.name ?: ""
-            solutionText = repository.taskSolution.code ?: ""
             solutionTextFieldValue = TextFieldValue(
                 annotatedString = parseCodeAsAnnotatedString(
                     parser = parser,
                     theme = theme,
                     lang = language,
-                    code = solutionText
+                    code = repository.taskSolution.code ?: ""
                 )
             )
         }
     }
 
     fun updateTaskText(newTaskText: TextFieldValue) {
-        solutionText = newTaskText.text
         solutionTextFieldValue = newTaskText.copy(
             annotatedString = parseCodeAsAnnotatedString(
                 parser = parser,
                 theme = theme,
                 lang = language,
-                code = solutionText
+                code = newTaskText.text
             )
         )
     }
 
+    fun updateLinesCount(textLayoutResult: TextLayoutResult) {
+        linesCount = Array(textLayoutResult.lineCount) { textLayoutResult.getLineTop(it) }
+    }
+
     fun onSaveCodeButtonClick() {
         viewModelScope.launch {
-            solutionText.let { repository.postTaskSolution(it) }
+            solutionTextFieldValue.text.let { repository.postTaskSolution(it) }
         }
     }
 
     fun onRunCodeButtonClick() {
         viewModelScope.launch {
-            solutionText.let { repository.postTaskSolution(it) }
+            solutionTextFieldValue.text.let { repository.postTaskSolution(it) }
             val output = repository.runCode()
             outputText = output.data ?: output.error ?: "Error"
         }

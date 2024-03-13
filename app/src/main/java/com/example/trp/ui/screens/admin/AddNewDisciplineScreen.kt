@@ -19,7 +19,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowRight
@@ -52,7 +51,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -62,6 +60,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.trp.domain.di.ViewModelFactoryProvider
 import com.example.trp.ui.components.NumberPicker
+import com.example.trp.ui.components.clearFocusOnTap
 import com.example.trp.ui.components.rememberPickerState
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.admin.AddNewDisciplineScreenViewModel
@@ -89,7 +88,8 @@ fun AddNewDisciplineScreen(
 
     Scaffold(
         modifier = Modifier
-            .fillMaxSize(),
+            .fillMaxSize()
+            .clearFocusOnTap(),
         topBar = {
             DisciplineInfoCenterAlignedTopAppBar(
                 viewModel = viewModel,
@@ -204,7 +204,6 @@ fun NameField(
     viewModel: AddNewDisciplineScreenViewModel,
     paddingValues: PaddingValues
 ) {
-    val focusManager = LocalFocusManager.current
     Text(
         text = "Discipline name",
         color = TRPTheme.colors.primaryText,
@@ -239,8 +238,7 @@ fun NameField(
             errorCursorColor = TRPTheme.colors.primaryText
         ),
         isError = viewModel.disciplineName.isEmpty(),
-        singleLine = true,
-        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
+        singleLine = true
     )
 }
 

@@ -1,16 +1,21 @@
 package com.example.trp.ui.screens.student
 
 import android.app.Activity
+import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.PlayCircleOutline
@@ -28,9 +33,11 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -131,42 +138,53 @@ fun TaskCenterAlignedTopAppBar(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaskText(
+fun TaskText( // TODO
     viewModel: TaskScreenViewModel,
     paddingValues: PaddingValues
 ) {
-    Surface(
+    Box(
         modifier = Modifier
+            .fillMaxWidth()
             .padding(
                 top = paddingValues.calculateTopPadding() + 10.dp,
                 start = 5.dp,
                 end = 5.dp
             )
-            .fillMaxWidth()
-            .wrapContentSize(),
-        color = Color.Transparent,
-        shadowElevation = 6.dp,
-        shape = RoundedCornerShape(8.dp)
     ) {
-        TextField(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(400.dp)
-                .horizontalScroll(rememberScrollState()),
-            value = viewModel.solutionTextFieldValue,
-            onValueChange = { viewModel.updateTaskText(it) },
-            shape = RoundedCornerShape(8.dp),
-            colors = TextFieldDefaults.textFieldColors(
-                containerColor = TRPTheme.colors.secondaryBackground,
-                textColor = TRPTheme.colors.primaryText,
-                cursorColor = TRPTheme.colors.primaryText,
-                focusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
+                .background(TRPTheme.colors.cardButtonColor)
+        ) {
+            if (viewModel.linesCount.isNotEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 4.dp)
+                ) {
+                    viewModel.linesCount.forEachIndexed { index, top ->
+                        Text(
+                            modifier = Modifier.offset(y = with(LocalDensity.current) { top.toDp() }),
+                            text = "${index + 1}\n",
+                            color = TRPTheme.colors.primaryText
+                        )
+                    }
+                }
+            }
+            BasicTextField(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(400.dp)
+                    .background(TRPTheme.colors.secondaryBackground),
+                value = viewModel.solutionTextFieldValue,
+                onValueChange = { viewModel.updateTaskText(it) },
+                onTextLayout = { viewModel.updateLinesCount(it) },
+                cursorBrush = Brush.verticalGradient(
+                    Pair(1.0f, TRPTheme.colors.primaryText),
+                    Pair(1.0f, TRPTheme.colors.primaryText)
+                )
             )
-        )
+        }
     }
 }
 
