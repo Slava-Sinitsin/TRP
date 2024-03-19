@@ -38,7 +38,7 @@ class AddNewTaskScreenViewModel @AssistedInject constructor(
 
     var typeButtonsEnabled by mutableStateOf(Pair(false, 0.6f))
         private set
-    var taskOptionalArgumentList by mutableStateOf(listOf(Triple("", "", false)))
+    var taskArgumentList by mutableStateOf(listOf(Triple("", "", false)))
         private set
     var deleteButtonEnabled by mutableStateOf(Pair(false, 0.6f))
         private set
@@ -71,13 +71,13 @@ class AddNewTaskScreenViewModel @AssistedInject constructor(
     }
 
     fun updateTitleValue(newTitleValue: String) {
-        applyButtonEnabled = newTitleValue.isNotEmpty()
         taskTitle = newTitleValue
+        checkFields()
     }
 
     fun updateDescriptionValue(newDescriptionValue: String) {
         taskDescription = newDescriptionValue
-        applyButtonEnabled = taskDescription.isNotEmpty()
+        checkFields()
     }
 
     fun updateLanguageValue(newLanguageValue: String) {
@@ -87,7 +87,7 @@ class AddNewTaskScreenViewModel @AssistedInject constructor(
             taskLanguage = newLanguageValue
             taskFunctionType = ""
             functionTypeListExpanded = false
-            taskOptionalArgumentList = taskOptionalArgumentList.map { item ->
+            taskArgumentList = taskArgumentList.map { item ->
                 Triple("", item.second, false)
             }
             when (taskLanguage) {
@@ -99,8 +99,8 @@ class AddNewTaskScreenViewModel @AssistedInject constructor(
                     typeList = cppTypeList
                 }
             }
-            applyButtonEnabled = taskLanguage.isNotEmpty()
         }
+        checkFields()
     }
 
     fun updateFunctionTypeExpanded(isExpanded: Boolean) {
@@ -109,25 +109,25 @@ class AddNewTaskScreenViewModel @AssistedInject constructor(
 
     fun updateFunctionTypeValue(newFunctionTypeValue: String) {
         taskFunctionType = newFunctionTypeValue
-        applyButtonEnabled = taskFunctionType.isNotEmpty()
+        checkFields()
     }
 
     fun updateFunctionNameValue(newFunctionNameValue: String) {
         taskFunctionName = newFunctionNameValue
-        applyButtonEnabled = taskFunctionName.isNotEmpty()
+        checkFields()
     }
 
     fun addOptionalArgument() {
         deleteButtonEnabled = Pair(true, 1.0f)
-        taskOptionalArgumentList = taskOptionalArgumentList + Triple("", "", false)
+        taskArgumentList = taskArgumentList + Triple("", "", false)
     }
 
     fun getArgument(index: Int): Triple<String, String, Boolean> {
-        return taskOptionalArgumentList[index]
+        return taskArgumentList[index]
     }
 
     fun updateArgumentTypeExpanded(index: Int, isExpanded: Boolean) {
-        taskOptionalArgumentList = taskOptionalArgumentList.mapIndexed { currentIndex, item ->
+        taskArgumentList = taskArgumentList.mapIndexed { currentIndex, item ->
             if (currentIndex == index) {
                 Triple(item.first, item.second, isExpanded)
             } else {
@@ -137,33 +137,45 @@ class AddNewTaskScreenViewModel @AssistedInject constructor(
     }
 
     fun updateArgumentTypeValue(index: Int, newArgumentTypeValue: String) {
-        taskOptionalArgumentList = taskOptionalArgumentList.mapIndexed { currentIndex, item ->
+        taskArgumentList = taskArgumentList.mapIndexed { currentIndex, item ->
             if (currentIndex == index) {
                 Triple(newArgumentTypeValue, item.second, item.third)
             } else {
                 item
             }
         }
+        checkFields()
     }
 
     fun updateArgumentNameValue(index: Int, newArgumentNameValue: String) {
-        taskOptionalArgumentList = taskOptionalArgumentList.mapIndexed { currentIndex, item ->
+        taskArgumentList = taskArgumentList.mapIndexed { currentIndex, item ->
             if (currentIndex == index) {
                 Triple(item.first, newArgumentNameValue, item.third)
             } else {
                 item
             }
         }
+        checkFields()
     }
 
     fun onDeleteArgumentClick(index: Int) {
-        taskOptionalArgumentList = taskOptionalArgumentList.filterIndexed { currentIndex, _ ->
+        taskArgumentList = taskArgumentList.filterIndexed { currentIndex, _ ->
             currentIndex != index
         }
-        if (taskOptionalArgumentList.size < 2) {
+        if (taskArgumentList.size < 2) {
             deleteButtonEnabled = Pair(false, 0.6f)
         }
+        checkFields()
     }
+
+    private fun checkFields() {
+        applyButtonEnabled =
+            (taskTitle.isNotEmpty() && taskDescription.isNotEmpty() && taskLanguage.isNotEmpty()
+                    && taskFunctionType.isNotEmpty() && taskFunctionName.isNotEmpty()
+                    && taskArgumentList.all { it.first.isNotEmpty() }
+                    && taskArgumentList.all { it.second.isNotEmpty() })
+    }
+
 
     fun beforeSaveButtonClick() {
         viewModelScope.launch {

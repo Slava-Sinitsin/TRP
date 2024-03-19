@@ -6,5 +6,5 @@ data class Output(
     @SerializedName("status") val status: Int? = null,
     @SerializedName("message") val message: String? = null,
     @SerializedName("error") val error: String? = null,
-    @SerializedName("data") val data: String? = null
+    @SerializedName("data") val data: OutputData? = null
 )

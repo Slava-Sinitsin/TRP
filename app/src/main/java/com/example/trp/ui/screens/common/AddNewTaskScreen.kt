@@ -465,7 +465,7 @@ fun FunctionTypeNameField(viewModel: AddNewTaskScreenViewModel) {
 fun Arguments(
     viewModel: AddNewTaskScreenViewModel
 ) {
-    val taskOptionalArgumentList by rememberUpdatedState(newValue = viewModel.taskOptionalArgumentList)
+    val taskOptionalArgumentList by rememberUpdatedState(newValue = viewModel.taskArgumentList)
     Text(
         text = "Arguments",
         color = TRPTheme.colors.primaryText,

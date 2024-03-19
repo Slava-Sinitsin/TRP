@@ -1,9 +1,12 @@
 package com.example.trp.ui.screens.common
 
 import android.app.Activity
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,6 +18,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -41,6 +46,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -63,11 +69,14 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.trp.domain.di.ViewModelFactoryProvider
+import com.example.trp.ui.components.clearFocusOnTap
 import com.example.trp.ui.components.tabs.DisabledInteractionSource
 import com.example.trp.ui.screens.admin.MyNewIndicator
 import com.example.trp.ui.screens.admin.myTabIndicatorOffset
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.common.TaskInfoTestsScreenViewModel
+import com.kosher9.roundcheckbox.RoundCheckBox
+import com.kosher9.roundcheckbox.RoundCheckBoxDefaults
 import dagger.hilt.android.EntryPointAccessors
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -104,8 +113,15 @@ fun TaskInfoTestsScreen(
         )
     }
 
+    BackHandler(
+        enabled = !viewModel.taskReadOnlyMode.first || !viewModel.testReadOnlyMode,
+        onBack = { viewModel.onSystemBackButtonClick() }
+    )
+
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .clearFocusOnTap(),
         topBar = {
             TaskInfoCenterAlignedTopAppBar(
                 viewModel = viewModel,
@@ -121,10 +137,17 @@ fun TaskInfoTestsScreen(
         ) {
             TabRow(
                 modifier = Modifier
-                    .background(TRPTheme.colors.primaryBackground)
-                    .padding(5.dp)
+                    .padding(top = 5.dp, start = 5.dp, end = 5.dp)
                     .clip(
                         shape = RoundedCornerShape(20.dp)
+                    )
+                    .background(Color.Transparent)
+                    .alpha(
+                        if (viewModel.taskReadOnlyMode.first && viewModel.testReadOnlyMode) {
+                            1f
+                        } else {
+                            0.6f
+                        }
                     ),
                 selectedTabIndex = viewModel.selectedTabIndex,
                 containerColor = TRPTheme.colors.secondaryBackground,
@@ -135,7 +158,6 @@ fun TaskInfoTestsScreen(
                     Tab(
                         modifier = Modifier
                             .clip(shape = RoundedCornerShape(20.dp))
-                            .padding(bottom = 3.dp)
                             .zIndex(2f),
                         selected = index == viewModel.selectedTabIndex,
                         interactionSource = DisabledInteractionSource(),
@@ -146,7 +168,8 @@ fun TaskInfoTestsScreen(
                                 color = TRPTheme.colors.secondaryText,
                                 fontWeight = FontWeight.Bold
                             )
-                        }
+                        },
+                        enabled = viewModel.taskReadOnlyMode.first && viewModel.testReadOnlyMode
                     )
                 }
             }
@@ -155,7 +178,8 @@ fun TaskInfoTestsScreen(
                     .fillMaxWidth()
                     .weight(1f),
                 state = pagerState,
-                pageCount = viewModel.taskTestsScreens.size
+                pageCount = viewModel.taskTestsScreens.size,
+                userScrollEnabled = viewModel.taskReadOnlyMode.first && viewModel.testReadOnlyMode
             ) { index ->
                 if (index == 0) {
                     TaskInfoScreen(viewModel = viewModel)
@@ -194,32 +218,51 @@ fun TaskInfoCenterAlignedTopAppBar(
             )
         },
         navigationIcon = {
-            if (viewModel.readOnlyMode) {
-                IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(
-                        imageVector = Icons.Filled.ArrowBack,
-                        contentDescription = "NavigationBackIcon"
-                    )
+            if (viewModel.selectedTabIndex == 0) {
+                if (viewModel.taskReadOnlyMode.first) {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowBack,
+                            contentDescription = "NavigationBackIcon"
+                        )
+                    }
+                } else {
+                    IconButton(onClick = { viewModel.onTaskRollBackIconButtonClick() }) {
+                        Icon(
+                            imageVector = Icons.Filled.Close,
+                            contentDescription = "TaskNavigationIcon"
+                        )
+                    }
                 }
-            } else {
-                IconButton(onClick = { viewModel.onRollBackIconButtonClick() }) {
-                    Icon(
-                        imageVector = Icons.Filled.Close,
-                        contentDescription = "NavigationIcon"
-                    )
+            }
+            if (viewModel.selectedTabIndex == 1) {
+                if (viewModel.testReadOnlyMode) {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowBack,
+                            contentDescription = "NavigationBackIcon"
+                        )
+                    }
+                } else {
+                    IconButton(onClick = { viewModel.onTestRollBackIconButtonClick() }) {
+                        Icon(
+                            imageVector = Icons.Filled.Close,
+                            contentDescription = "TestsNavigationIcon"
+                        )
+                    }
                 }
             }
         },
         actions = {
-            if (viewModel.readOnlyMode) {
-                Row {
-                    IconButton(onClick = { viewModel.onDeleteButtonClick() }) {
-                        Icon(
-                            imageVector = Icons.Filled.Delete,
-                            contentDescription = "DeleteTask"
-                        )
-                    }
-                    if (viewModel.selectedTabIndex == 0) {
+            if (viewModel.selectedTabIndex == 0) {
+                if (viewModel.taskReadOnlyMode.first) {
+                    Row {
+                        IconButton(onClick = { viewModel.onDeleteButtonClick() }) {
+                            Icon(
+                                imageVector = Icons.Filled.Delete,
+                                contentDescription = "DeleteTask"
+                            )
+                        }
                         IconButton(onClick = { viewModel.onEditButtonClick() }) {
                             Icon(
                                 imageVector = Icons.Filled.Edit,
@@ -227,16 +270,29 @@ fun TaskInfoCenterAlignedTopAppBar(
                             )
                         }
                     }
+                } else {
+                    IconButton(
+                        onClick = { viewModel.onSaveButtonClick() },
+                        enabled = viewModel.applyButtonEnabled
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Done,
+                            contentDescription = "ApplyTaskPropertiesButton",
+                        )
+                    }
                 }
-            } else {
-                IconButton(
-                    onClick = { viewModel.onSaveButtonClick() },
-                    enabled = viewModel.applyButtonEnabled
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Done,
-                        contentDescription = "ApplyTaskPropertiesButton",
-                    )
+            }
+            if (viewModel.selectedTabIndex == 1) {
+                if (!viewModel.testReadOnlyMode) {
+                    IconButton(
+                        onClick = { viewModel.onDeleteTestsButtonClick() },
+                        enabled = viewModel.isTestChanged
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Delete,
+                            contentDescription = "DeleteTestIcon",
+                        )
+                    }
                 }
             }
         }
@@ -273,7 +329,7 @@ fun TitleField(
             .fillMaxWidth()
             .height(100.dp)
             .padding(vertical = 5.dp, horizontal = 5.dp)
-            .alpha(viewModel.readOnlyAlpha),
+            .alpha(viewModel.taskReadOnlyMode.second),
         textStyle = TextStyle.Default.copy(fontSize = 15.sp),
         value = viewModel.taskTitle,
         onValueChange = { viewModel.updateTitleValue(it) },
@@ -295,7 +351,7 @@ fun TitleField(
             errorIndicatorColor = TRPTheme.colors.errorColor,
             errorCursorColor = TRPTheme.colors.primaryText
         ),
-        readOnly = viewModel.readOnlyMode,
+        readOnly = viewModel.taskReadOnlyMode.first,
         isError = viewModel.taskTitle.isEmpty()
     )
 }
@@ -316,7 +372,7 @@ fun DescriptionField(viewModel: TaskInfoTestsScreenViewModel) {
             .fillMaxWidth()
             .height(100.dp)
             .padding(vertical = 5.dp, horizontal = 5.dp)
-            .alpha(viewModel.readOnlyAlpha),
+            .alpha(viewModel.taskReadOnlyMode.second),
         textStyle = TextStyle.Default.copy(fontSize = 15.sp),
         value = viewModel.taskDescription,
         onValueChange = { viewModel.updateDescriptionValue(it) },
@@ -338,7 +394,7 @@ fun DescriptionField(viewModel: TaskInfoTestsScreenViewModel) {
             errorIndicatorColor = TRPTheme.colors.errorColor,
             errorCursorColor = TRPTheme.colors.primaryText
         ),
-        readOnly = viewModel.readOnlyMode,
+        readOnly = viewModel.taskReadOnlyMode.first,
         isError = viewModel.taskDescription.isEmpty()
     )
 }
@@ -359,7 +415,7 @@ fun FunctionNameField(viewModel: TaskInfoTestsScreenViewModel) {
             .fillMaxWidth()
             .height(100.dp)
             .padding(vertical = 5.dp, horizontal = 5.dp)
-            .alpha(viewModel.readOnlyAlpha),
+            .alpha(viewModel.taskReadOnlyMode.second),
         textStyle = TextStyle.Default.copy(fontSize = 15.sp),
         value = viewModel.taskFunctionName,
         onValueChange = { viewModel.updateFunctionNameValue(it) },
@@ -381,7 +437,7 @@ fun FunctionNameField(viewModel: TaskInfoTestsScreenViewModel) {
             errorIndicatorColor = TRPTheme.colors.errorColor,
             errorCursorColor = TRPTheme.colors.primaryText
         ),
-        readOnly = viewModel.readOnlyMode,
+        readOnly = viewModel.taskReadOnlyMode.first,
         isError = viewModel.taskFunctionName.isEmpty()
     )
 }
@@ -402,7 +458,7 @@ fun LanguageField(viewModel: TaskInfoTestsScreenViewModel) {
             .fillMaxWidth()
             .height(100.dp)
             .padding(vertical = 5.dp, horizontal = 5.dp)
-            .alpha(viewModel.readOnlyAlpha),
+            .alpha(viewModel.taskReadOnlyMode.second),
         textStyle = TextStyle.Default.copy(fontSize = 15.sp),
         value = viewModel.taskLanguage,
         onValueChange = { viewModel.updateLanguageValue(it) },
@@ -424,7 +480,7 @@ fun LanguageField(viewModel: TaskInfoTestsScreenViewModel) {
             errorIndicatorColor = TRPTheme.colors.errorColor,
             errorCursorColor = TRPTheme.colors.primaryText
         ),
-        readOnly = viewModel.readOnlyMode,
+        readOnly = viewModel.taskReadOnlyMode.first,
         isError = viewModel.taskLanguage.isEmpty()
     )
 }
@@ -480,10 +536,16 @@ fun TestsScreen(
     onTestClick: (testId: Int) -> Unit,
     onAddTestClick: (taskId: Int) -> Unit
 ) {
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
+    val scrollState = rememberLazyListState()
+    LazyColumn(modifier = Modifier.fillMaxSize(), state = scrollState) {
         item { AddTestToTask(viewModel = viewModel, onAddTestClick = onAddTestClick) }
         items(count = viewModel.tests.size) { index ->
-            Test(viewModel = viewModel, index = index, onTestClick = onTestClick)
+            Test(
+                viewModel = viewModel,
+                index = index,
+                onTestClick = onTestClick,
+                scrollState = scrollState
+            )
         }
         item { Spacer(modifier = Modifier.size(100.dp)) }
     }
@@ -525,31 +587,50 @@ fun AddTestToTask(
 fun Test(
     viewModel: TaskInfoTestsScreenViewModel,
     index: Int,
-    onTestClick: (testId: Int) -> Unit
+    onTestClick: (testId: Int) -> Unit,
+    scrollState: LazyListState
 ) {
     var expandedState by remember { mutableStateOf(false) }
     val rotationState by animateFloatAsState(
         targetValue = if (expandedState) 180f else 0f,
         label = "rotationState"
     )
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
     Button(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxWidth(),
         onClick = {
-            viewModel.getTest(index = index).let { task ->
-                task.id?.let { groupId ->
-                    onTestClick(
-                        groupId
-                    )
-                }
+            if (!viewModel.testReadOnlyMode) {
+                viewModel.onCheckBoxClick(index)
+            } else {
+                viewModel
+                    .getTest(index = index)
+                    .let { task ->
+                        task.id?.let { groupId ->
+                            onTestClick(
+                                groupId
+                            )
+                        }
+                    }
             }
         },
         elevation = ButtonDefaults.buttonElevation(defaultElevation = 10.dp),
         colors = ButtonDefaults.buttonColors(containerColor = TRPTheme.colors.cardButtonColor),
         shape = RoundedCornerShape(30.dp),
-        contentPadding = PaddingValues()
+        contentPadding = PaddingValues(),
+        interactionSource = interactionSource
     ) {
+        if (pressed) {
+            DisposableEffect(Unit) {
+                onDispose {
+                    if (!scrollState.isScrollInProgress) {
+                        viewModel.onLongTestClick(index)
+                    }
+                }
+            }
+        }
         Column(
             modifier = Modifier
                 .padding(start = 16.dp, top = 16.dp, bottom = 16.dp)
@@ -560,11 +641,25 @@ fun Test(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = "Test ${index + 1}",
-                    color = TRPTheme.colors.primaryText,
-                    fontSize = 25.sp
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (!viewModel.testReadOnlyMode) {
+                        RoundCheckBox(
+                            isChecked = viewModel.testsCheckBoxStates[index].isSelected,
+                            onClick = { viewModel.onCheckBoxClick(index) },
+                            color = RoundCheckBoxDefaults.colors(
+                                selectedColor = TRPTheme.colors.myYellow,
+                                borderColor = TRPTheme.colors.myYellow,
+                                tickColor = TRPTheme.colors.primaryText,
+                                disabledSelectedColor = TRPTheme.colors.myYellow
+                            )
+                        )
+                    }
+                    Text(
+                        text = "Test ${index + 1}",
+                        color = TRPTheme.colors.primaryText,
+                        fontSize = 25.sp
+                    )
+                }
                 IconButton(
                     modifier = Modifier.rotate(rotationState),
                     onClick = { expandedState = !expandedState }) {

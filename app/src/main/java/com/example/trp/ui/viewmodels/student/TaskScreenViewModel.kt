@@ -1,9 +1,9 @@
 package com.example.trp.ui.viewmodels.student
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -30,6 +30,9 @@ class TaskScreenViewModel @AssistedInject constructor(
         private set
     var solutionTextFieldValue by mutableStateOf(TextFieldValue())
         private set
+    private var linesCount by mutableStateOf(0)
+    var linesText by mutableStateOf("")
+        private set
     var outputText by mutableStateOf("")
         private set
 
@@ -37,8 +40,6 @@ class TaskScreenViewModel @AssistedInject constructor(
     private val parser by mutableStateOf(PrettifyParser())
     private var themeState by mutableStateOf(CodeThemeType.Monokai)
     private val theme by mutableStateOf(themeState.theme())
-    var linesCount by mutableStateOf(emptyArray<Float>())
-        private set
 
     @AssistedFactory
     interface Factory {
@@ -71,6 +72,9 @@ class TaskScreenViewModel @AssistedInject constructor(
                     code = repository.taskSolution.code ?: ""
                 )
             )
+            linesCount = solutionTextFieldValue.text.lineSequence().count()
+            Log.e("linesCount", linesCount.toString())
+            updateLinesCount()
         }
     }
 
@@ -83,10 +87,15 @@ class TaskScreenViewModel @AssistedInject constructor(
                 code = newTaskText.text
             )
         )
+        updateLinesCount()
     }
 
-    fun updateLinesCount(textLayoutResult: TextLayoutResult) {
-        linesCount = Array(textLayoutResult.lineCount) { textLayoutResult.getLineTop(it) }
+    private fun updateLinesCount() {
+        linesText = ""
+        linesCount = solutionTextFieldValue.text.lineSequence().count()
+        for (i in 1..linesCount) {
+            linesText += "${i}\n"
+        }
     }
 
     fun onSaveCodeButtonClick() {
@@ -99,7 +108,8 @@ class TaskScreenViewModel @AssistedInject constructor(
         viewModelScope.launch {
             solutionTextFieldValue.text.let { repository.postTaskSolution(it) }
             val output = repository.runCode()
-            outputText = output.data ?: output.error ?: "Error"
+            outputText =
+                "Test passed: ${output.data?.testPassed.toString()} / ${output.data?.totalTests.toString()}"
         }
     }
 }

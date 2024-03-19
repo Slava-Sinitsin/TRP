@@ -1,11 +1,13 @@
 package com.example.trp.ui.viewmodels.common
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.trp.data.mappers.CheckBoxState
 import com.example.trp.data.mappers.tasks.Task
 import com.example.trp.data.mappers.tasks.Test
 import com.example.trp.data.repository.UserAPIRepositoryImpl
@@ -20,7 +22,7 @@ class TaskInfoTestsScreenViewModel @AssistedInject constructor(
     @Assisted
     val taskId: Int
 ) : ViewModel() {
-    var task by mutableStateOf(repository.task)
+    var task by mutableStateOf(Task())
         private set
     var taskTitle by mutableStateOf("")
         private set
@@ -30,9 +32,9 @@ class TaskInfoTestsScreenViewModel @AssistedInject constructor(
         private set
     var taskLanguage by mutableStateOf("")
         private set
-    var readOnlyMode by mutableStateOf(true)
+    var taskReadOnlyMode by mutableStateOf(Pair(true, 0.6f))
         private set
-    var readOnlyAlpha by mutableStateOf(0.6f)
+    var testReadOnlyMode by mutableStateOf(true)
         private set
     var applyButtonEnabled by mutableStateOf(true)
         private set
@@ -48,6 +50,12 @@ class TaskInfoTestsScreenViewModel @AssistedInject constructor(
         private set
 
     var tests by mutableStateOf(emptyList<Test>())
+        private set
+
+    var testsCheckBoxStates by mutableStateOf(emptyList<CheckBoxState>())
+        private set
+
+    var isTestChanged by mutableStateOf(false)
         private set
 
     @AssistedFactory
@@ -77,6 +85,7 @@ class TaskInfoTestsScreenViewModel @AssistedInject constructor(
             taskFunctionName = task.functionName ?: ""
             taskLanguage = task.language ?: ""
             tests = repository.getTests(taskId)
+            testsCheckBoxStates = List(tests.size) { CheckBoxState() }
         }
     }
 
@@ -101,8 +110,7 @@ class TaskInfoTestsScreenViewModel @AssistedInject constructor(
     }
 
     fun onEditButtonClick() {
-        readOnlyMode = false
-        readOnlyAlpha = 1f
+        taskReadOnlyMode = taskReadOnlyMode.copy(first = false, second = 1f)
     }
 
     fun onSaveButtonClick() {
@@ -118,18 +126,16 @@ class TaskInfoTestsScreenViewModel @AssistedInject constructor(
                 )
             )
             task = repository.getTask(taskId)
-            readOnlyMode = true
-            readOnlyAlpha = 0.6f
+            taskReadOnlyMode = taskReadOnlyMode.copy(first = true, second = 0.6f)
         }
     }
 
-    fun onRollBackIconButtonClick() {
+    fun onTaskRollBackIconButtonClick() {
         taskTitle = task.title ?: ""
         taskDescription = task.description ?: ""
         taskFunctionName = task.functionName ?: ""
         taskLanguage = task.language ?: ""
-        readOnlyMode = true
-        readOnlyAlpha = 0.6f
+        taskReadOnlyMode = taskReadOnlyMode.copy(first = true, second = 0.6f)
     }
 
     fun onDeleteButtonClick() {
@@ -151,5 +157,43 @@ class TaskInfoTestsScreenViewModel @AssistedInject constructor(
 
     fun getTest(index: Int): Test {
         return tests[index]
+    }
+
+    fun onLongTestClick(index: Int) {
+        testReadOnlyMode = false
+        Log.e("onLongTestClick", "onLongTestClick $index")
+    }
+
+    fun onCheckBoxClick(index: Int) {
+        testsCheckBoxStates = testsCheckBoxStates.toMutableList().also {
+            it[index] = CheckBoxState(isSelected = !it[index].isSelected)
+        }
+        isTestChanged = checkAllCheckBoxStates()
+    }
+
+    private fun checkAllCheckBoxStates(): Boolean {
+        testsCheckBoxStates.forEach {
+            if (it.isSelected) {
+                return true
+            }
+        }
+        return false
+    }
+
+    fun onDeleteTestsButtonClick() { // TODO
+
+    }
+
+    fun onTestRollBackIconButtonClick() {
+        testReadOnlyMode = true
+        testsCheckBoxStates = List(tests.size) { CheckBoxState() }
+    }
+
+    fun onSystemBackButtonClick() {
+        if (!taskReadOnlyMode.first) {
+            taskReadOnlyMode = taskReadOnlyMode.copy(first = true, second = 0.6f)
+        } else if (!testReadOnlyMode) {
+            testReadOnlyMode = true
+        }
     }
 }

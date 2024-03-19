@@ -1,8 +1,8 @@
 package com.example.trp.ui.screens.student
 
 import android.app.Activity
-import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -10,12 +10,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.PlayCircleOutline
@@ -32,18 +33,24 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.trp.domain.di.ViewModelFactoryProvider
+import com.example.trp.ui.components.clearFocusOnTap
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.student.TaskScreenViewModel
 import dagger.hilt.android.EntryPointAccessors
@@ -67,7 +74,9 @@ fun TaskScreen(
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = Modifier
+            .nestedScroll(scrollBehavior.nestedScrollConnection)
+            .clearFocusOnTap(),
         containerColor = TRPTheme.colors.primaryBackground,
         topBar = {
             TaskCenterAlignedTopAppBar(
@@ -138,51 +147,101 @@ fun TaskCenterAlignedTopAppBar(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaskText( // TODO
+fun TaskText(
     viewModel: TaskScreenViewModel,
     paddingValues: PaddingValues
 ) {
+    val scrollState = rememberScrollState()
+    val interactionSource = remember { MutableInteractionSource() }
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .height(400.dp)
             .padding(
                 top = paddingValues.calculateTopPadding() + 10.dp,
                 start = 5.dp,
                 end = 5.dp
             )
+            .shadow(
+                elevation = 10.dp,
+                shape = RoundedCornerShape(8.dp)
+            )
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(TRPTheme.colors.cardButtonColor)
-        ) {
-            if (viewModel.linesCount.isNotEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .padding(horizontal = 4.dp)
-                ) {
-                    viewModel.linesCount.forEachIndexed { index, top ->
-                        Text(
-                            modifier = Modifier.offset(y = with(LocalDensity.current) { top.toDp() }),
-                            text = "${index + 1}\n",
-                            color = TRPTheme.colors.primaryText
-                        )
-                    }
+        Row(modifier = Modifier.fillMaxWidth()) {
+            BasicTextField(
+                modifier = Modifier
+                    .width(40.dp)
+                    .height(400.dp)
+                    .clip(RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp))
+                    .verticalScroll(scrollState),
+                value = viewModel.linesText,
+                onValueChange = { },
+                interactionSource = interactionSource,
+                textStyle = TextStyle(
+                    color = TRPTheme.colors.primaryText,
+                    textAlign = TextAlign.End
+                ),
+                readOnly = true,
+                decorationBox = { innerTextField ->
+                    TextFieldDefaults.TextFieldDecorationBox(
+                        value = viewModel.linesText,
+                        innerTextField = innerTextField,
+                        enabled = true,
+                        singleLine = false,
+                        interactionSource = interactionSource,
+                        visualTransformation = VisualTransformation.None,
+                        colors = TextFieldDefaults.textFieldColors(
+                            containerColor = TRPTheme.colors.cardButtonColor,
+                            focusedIndicatorColor = Color.Transparent,
+                            disabledIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
+                        ),
+                        contentPadding = TextFieldDefaults.outlinedTextFieldPadding(
+                            top = 2.dp,
+                            bottom = 2.dp,
+                            start = 2.dp,
+                            end = 5.dp
+                        ),
+                        shape = RoundedCornerShape(0.dp)
+                    )
                 }
-            }
+            )
             BasicTextField(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(400.dp)
-                    .background(TRPTheme.colors.secondaryBackground),
+                    .clip(RoundedCornerShape(topEnd = 8.dp, bottomEnd = 8.dp))
+                    .verticalScroll(scrollState)
+                    .horizontalScroll(rememberScrollState()),
                 value = viewModel.solutionTextFieldValue,
                 onValueChange = { viewModel.updateTaskText(it) },
-                onTextLayout = { viewModel.updateLinesCount(it) },
-                cursorBrush = Brush.verticalGradient(
-                    Pair(1.0f, TRPTheme.colors.primaryText),
-                    Pair(1.0f, TRPTheme.colors.primaryText)
-                )
+                interactionSource = interactionSource,
+                cursorBrush = SolidColor(TRPTheme.colors.primaryText),
+                decorationBox = { innerTextField ->
+                    TextFieldDefaults.TextFieldDecorationBox(
+                        value = viewModel.solutionTextFieldValue.text,
+                        innerTextField = innerTextField,
+                        enabled = true,
+                        singleLine = false,
+                        interactionSource = interactionSource,
+                        visualTransformation = VisualTransformation.None,
+                        colors = TextFieldDefaults.textFieldColors(
+                            containerColor = TRPTheme.colors.secondaryBackground,
+                            focusedIndicatorColor = Color.Transparent,
+                            disabledIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
+                        ),
+                        contentPadding = TextFieldDefaults.outlinedTextFieldPadding(
+                            top = 2.dp,
+                            bottom = 2.dp,
+                            start = 2.dp,
+                            end = 2.dp
+                        ),
+                        shape = RoundedCornerShape(0.dp)
+                    )
+                }
             )
         }
     }
