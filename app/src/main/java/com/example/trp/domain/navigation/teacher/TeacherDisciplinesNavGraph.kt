@@ -11,6 +11,7 @@ import com.example.trp.ui.screens.common.AddNewTaskScreen
 import com.example.trp.ui.screens.common.AddNewTestScreen
 import com.example.trp.ui.screens.common.TaskInfoTestsScreen
 import com.example.trp.ui.screens.teacher.AddTaskToStudentScreen
+import com.example.trp.ui.screens.teacher.CreateTeamScreen
 import com.example.trp.ui.screens.teacher.StudentInfoScreen
 import com.example.trp.ui.screens.teacher.StudentsScreen
 import com.example.trp.ui.screens.teacher.TeacherGroupsTasksScreen
@@ -55,6 +56,9 @@ fun NavGraphBuilder.groupsNavGraph(navController: NavHostController) {
                     onStudentClick = { studentId ->
                         navController.navigate("${TeacherGroupsTasksScreen.StudentInfo.route}/$studentId")
                     },
+                    onCreateTeamClick = { groupId ->
+                        navController.navigate("${TeacherGroupsTasksScreen.CreateTeam.route}/$groupId")
+                    },
                     navController = navController
                 )
             }
@@ -75,6 +79,15 @@ fun NavGraphBuilder.groupsNavGraph(navController: NavHostController) {
                     },
                     navController = navController
                 )
+            }
+        }
+        composable(
+            route = "${TeacherGroupsTasksScreen.CreateTeam.route}/{$GROUP_ID}",
+            arguments = listOf(navArgument(GROUP_ID) { type = NavType.IntType })
+        ) {
+            val groupId = it.arguments?.getInt(GROUP_ID)
+            groupId?.let { id ->
+                CreateTeamScreen(groupId = id)
             }
         }
         composable(
@@ -142,6 +155,7 @@ fun NavGraphBuilder.groupsNavGraph(navController: NavHostController) {
 sealed class TeacherGroupsTasksScreen(val route: String) {
     object GroupsTasks : TeacherGroupsTasksScreen(route = "checklist_GROUPS_TASKS")
     object GroupInfo : TeacherGroupsTasksScreen(route = "checklist_GROUP_INFO")
+    object CreateTeam : TeacherGroupsTasksScreen(route = "checklist_CREATE_TEAM")
     object TaskInfo : TeacherGroupsTasksScreen(route = "checklist_TASK_INFO")
     object AddNewTask : TeacherGroupsTasksScreen(route = "checklist_ADD_NEW_TASK")
     object StudentInfo : TeacherGroupsTasksScreen(route = "checklist_STUDENT_INFO")

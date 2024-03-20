@@ -43,6 +43,7 @@ import dagger.hilt.android.EntryPointAccessors
 fun StudentsScreen(
     groupId: Int,
     onStudentClick: (id: Int) -> Unit,
+    onCreateTeamClick: (groupId: Int) -> Unit,
     navController: NavHostController
 ) {
     val factory = EntryPointAccessors.fromActivity(
@@ -61,6 +62,7 @@ fun StudentsScreen(
         topBar = {
             StudentsCenterAlignedTopAppBar(
                 viewModel = viewModel,
+                onCreateTeamClick = onCreateTeamClick,
                 navController = navController
             )
         }
@@ -77,6 +79,7 @@ fun StudentsScreen(
 @Composable
 fun StudentsCenterAlignedTopAppBar(
     viewModel: StudentsScreenViewModel,
+    onCreateTeamClick: (groupId: Int) -> Unit,
     navController: NavHostController
 ) {
     TopAppBar(
@@ -109,6 +112,15 @@ fun StudentsCenterAlignedTopAppBar(
                 expanded = viewModel.isMenuShow,
                 onDismissRequest = { viewModel.onDismissRequest() }
             ) {
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            "Create team",
+                            color = TRPTheme.colors.primaryText
+                        )
+                    },
+                    onClick = { onCreateTeamClick(viewModel.groupId) }
+                )
                 DropdownMenuItem(
                     text = {
                         Text(
