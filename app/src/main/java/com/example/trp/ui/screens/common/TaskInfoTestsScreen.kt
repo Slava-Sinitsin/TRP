@@ -626,7 +626,7 @@ fun Test(
             DisposableEffect(Unit) {
                 onDispose {
                     if (!scrollState.isScrollInProgress) {
-                        viewModel.onLongTestClick(index)
+                        viewModel.onLongTestClick()
                     }
                 }
             }

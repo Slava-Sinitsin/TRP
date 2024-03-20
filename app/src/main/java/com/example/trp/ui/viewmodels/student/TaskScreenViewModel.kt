@@ -1,6 +1,5 @@
 package com.example.trp.ui.viewmodels.student
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -73,7 +72,6 @@ class TaskScreenViewModel @AssistedInject constructor(
                 )
             )
             linesCount = solutionTextFieldValue.text.lineSequence().count()
-            Log.e("linesCount", linesCount.toString())
             updateLinesCount()
         }
     }
@@ -108,8 +106,11 @@ class TaskScreenViewModel @AssistedInject constructor(
         viewModelScope.launch {
             solutionTextFieldValue.text.let { repository.postTaskSolution(it) }
             val output = repository.runCode()
-            outputText =
-                "Test passed: ${output.data?.testPassed.toString()} / ${output.data?.totalTests.toString()}"
+            outputText = if (output.data?.testPassed != null && output.data.totalTests != null) {
+                "Test passed: ${output.data.testPassed} / ${output.data.totalTests}"
+            } else {
+                "Error"
+            }
         }
     }
 }

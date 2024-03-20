@@ -19,7 +19,7 @@ class StudentsScreenViewModel @AssistedInject constructor(
     @Assisted
     val groupId: Int
 ) : ViewModel() {
-    var students by mutableStateOf(repository.students)
+    var students by mutableStateOf(emptyList<Student>())
         private set
 
     var group by mutableStateOf(Group())

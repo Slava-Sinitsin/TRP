@@ -1,6 +1,5 @@
 package com.example.trp.ui.viewmodels.common
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -159,9 +158,8 @@ class TaskInfoTestsScreenViewModel @AssistedInject constructor(
         return tests[index]
     }
 
-    fun onLongTestClick(index: Int) {
+    fun onLongTestClick() {
         testReadOnlyMode = false
-        Log.e("onLongTestClick", "onLongTestClick $index")
     }
 
     fun onCheckBoxClick(index: Int) {

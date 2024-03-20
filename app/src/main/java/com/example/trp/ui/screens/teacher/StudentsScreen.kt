@@ -115,7 +115,7 @@ fun StudentsCenterAlignedTopAppBar(
                 DropdownMenuItem(
                     text = {
                         Text(
-                            "Create team",
+                            "Create teams",
                             color = TRPTheme.colors.primaryText
                         )
                     },

@@ -87,7 +87,10 @@ fun NavGraphBuilder.groupsNavGraph(navController: NavHostController) {
         ) {
             val groupId = it.arguments?.getInt(GROUP_ID)
             groupId?.let { id ->
-                CreateTeamScreen(groupId = id)
+                CreateTeamScreen(
+                    groupId = id,
+                    navController = navController
+                )
             }
         }
         composable(

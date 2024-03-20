@@ -60,8 +60,7 @@ fun AddTaskToStudentScreen(
         )
     )
     Scaffold(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         topBar = {
             AddTaskToStudentCenterAlignedTopAppBar(
                 viewModel = viewModel,
@@ -71,7 +70,6 @@ fun AddTaskToStudentScreen(
     ) { scaffoldPadding ->
         Tasks(viewModel = viewModel, paddingValues = scaffoldPadding)
     }
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
