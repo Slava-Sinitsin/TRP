@@ -65,6 +65,10 @@ class StudentsScreenViewModel @AssistedInject constructor(
         isMenuShow = !isMenuShow
     }
 
+    fun beforeCreateTeamClick() {
+        isMenuShow = false
+    }
+
     fun onDismissRequest() {
         isMenuShow = false
     }

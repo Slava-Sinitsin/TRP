@@ -119,7 +119,10 @@ fun StudentsCenterAlignedTopAppBar(
                             color = TRPTheme.colors.primaryText
                         )
                     },
-                    onClick = { onCreateTeamClick(viewModel.groupId) }
+                    onClick = {
+                        viewModel.beforeCreateTeamClick()
+                        onCreateTeamClick(viewModel.groupId)
+                    }
                 )
                 DropdownMenuItem(
                     text = {
