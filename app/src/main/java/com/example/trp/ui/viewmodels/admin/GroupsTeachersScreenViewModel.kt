@@ -12,6 +12,7 @@ import com.example.trp.data.repository.UserAPIRepositoryImpl
 import com.example.trp.ui.components.tabs.UsersTabs
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class GroupsTeachersScreenViewModel @AssistedInject constructor(
@@ -27,6 +28,12 @@ class GroupsTeachersScreenViewModel @AssistedInject constructor(
         private set
     var teachers by mutableStateOf(emptyList<Teacher>())
         private set
+
+    var groupsIsRefreshing by mutableStateOf(false)
+        private set
+    var teachersIsRefreshing by mutableStateOf(false)
+        private set
+
 
     @AssistedFactory
     interface Factory {
@@ -63,5 +70,21 @@ class GroupsTeachersScreenViewModel @AssistedInject constructor(
 
     fun getTeacher(index: Int): Teacher {
         return teachers[index]
+    }
+
+    fun onRefreshGroups() { // TODO
+        viewModelScope.launch {
+            groupsIsRefreshing = true
+            delay(1000)
+            groupsIsRefreshing = false
+        }
+    }
+
+    fun onRefreshTeachers() { // TODO
+        viewModelScope.launch {
+            teachersIsRefreshing = true
+            delay(1000)
+            teachersIsRefreshing = false
+        }
     }
 }

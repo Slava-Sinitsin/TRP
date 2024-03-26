@@ -3,6 +3,7 @@ package com.example.trp.ui.screens.admin
 import android.app.Activity
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -14,6 +15,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -43,7 +48,10 @@ import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.admin.GroupsTeachersScreenViewModel
 import dagger.hilt.android.EntryPointAccessors
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(
+    ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class,
+    ExperimentalMaterialApi::class
+)
 @Composable
 fun GroupsTeachersScreen(
     onCreateGroupClick: () -> Unit,
@@ -91,9 +99,7 @@ fun GroupsTeachersScreen(
             TabRow(
                 modifier = Modifier
                     .padding(top = 5.dp, start = 5.dp, end = 5.dp)
-                    .clip(
-                        shape = RoundedCornerShape(20.dp)
-                    )
+                    .clip(shape = RoundedCornerShape(20.dp))
                     .background(Color.Transparent),
                 selectedTabIndex = viewModel.selectedTabIndex,
                 containerColor = TRPTheme.colors.secondaryBackground,
@@ -142,18 +148,38 @@ fun GroupsTeachersScreen(
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun GroupsScreen(
     viewModel: GroupsTeachersScreenViewModel,
     onCreateGroupClick: () -> Unit,
     onGroupClick: (groupId: Int) -> Unit
 ) {
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
-        item { CreateGroup(viewModel = viewModel, onCreateGroupClick = onCreateGroupClick) }
-        items(count = viewModel.groups.size) { index ->
-            Group(viewModel = viewModel, index = index, onGroupClick = onGroupClick)
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = viewModel.groupsIsRefreshing,
+        onRefresh = { viewModel.onRefreshGroups() }
+    )
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pullRefresh(state = pullRefreshState)
+    ) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            item { CreateGroup(viewModel = viewModel, onCreateGroupClick = onCreateGroupClick) }
+            items(count = viewModel.groups.size) { index ->
+                Group(viewModel = viewModel, index = index, onGroupClick = onGroupClick)
+            }
+            item { Spacer(modifier = Modifier.size(100.dp)) }
         }
-        item { Spacer(modifier = Modifier.size(100.dp)) }
+        PullRefreshIndicator(
+            modifier = Modifier.align(Alignment.TopCenter),
+            refreshing = viewModel.groupsIsRefreshing,
+            state = pullRefreshState,
+            backgroundColor = TRPTheme.colors.primaryBackground,
+            contentColor = TRPTheme.colors.myYellow
+        )
     }
 }
 
@@ -221,18 +247,41 @@ fun Group(
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun TeachersScreen(
     viewModel: GroupsTeachersScreenViewModel,
     onCreateTeacherClick: () -> Unit,
     onTeacherClick: (id: Int) -> Unit
 ) {
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
-        item { CreateTeacher(viewModel = viewModel, onCreateTeacherClick = onCreateTeacherClick) }
-        items(count = viewModel.teachers.size) { index ->
-            Teacher(viewModel = viewModel, index = index, onTeacherClick = onTeacherClick)
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = viewModel.teachersIsRefreshing,
+        onRefresh = { viewModel.onRefreshTeachers() }
+    )
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pullRefresh(state = pullRefreshState)
+    ) {
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            item {
+                CreateTeacher(
+                    viewModel = viewModel,
+                    onCreateTeacherClick = onCreateTeacherClick
+                )
+            }
+            items(count = viewModel.teachers.size) { index ->
+                Teacher(viewModel = viewModel, index = index, onTeacherClick = onTeacherClick)
+            }
+            item { Spacer(modifier = Modifier.size(100.dp)) }
         }
-        item { Spacer(modifier = Modifier.size(100.dp)) }
+        PullRefreshIndicator(
+            modifier = Modifier.align(Alignment.TopCenter),
+            refreshing = viewModel.teachersIsRefreshing,
+            state = pullRefreshState,
+            backgroundColor = TRPTheme.colors.primaryBackground,
+            contentColor = TRPTheme.colors.myYellow
+        )
     }
 }
 
