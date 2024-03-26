@@ -43,7 +43,7 @@ class AdminWelcomeScreenViewModel @AssistedInject constructor(
 
     val screens = listOf(
         AdminBottomBarScreen.Curriculum,
-        AdminBottomBarScreen.Home,
+        AdminBottomBarScreen.Users,
         AdminBottomBarScreen.Me
     )
 }

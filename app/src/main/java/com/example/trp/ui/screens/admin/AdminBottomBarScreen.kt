@@ -1,7 +1,7 @@
 package com.example.trp.ui.screens.admin
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.School
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -17,10 +17,10 @@ sealed class AdminBottomBarScreen(
         route = "curriculum",
     )
 
-    object Home : AdminBottomBarScreen(
-        title = "Home",
-        icon = Icons.Filled.Home,
-        route = "home"
+    object Users : AdminBottomBarScreen(
+        title = "Users",
+        icon = Icons.Filled.People,
+        route = "users"
     )
 
     object Me : AdminBottomBarScreen(

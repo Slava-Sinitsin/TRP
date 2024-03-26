@@ -4,6 +4,9 @@ import com.example.trp.ui.viewmodels.admin.AddNewDisciplineScreenViewModel
 import com.example.trp.ui.viewmodels.admin.AdminDisciplinesScreenViewModel
 import com.example.trp.ui.viewmodels.admin.AdminGroupsTasksScreenViewModel
 import com.example.trp.ui.viewmodels.admin.AdminWelcomeScreenViewModel
+import com.example.trp.ui.viewmodels.admin.CreateGroupScreenViewModel
+import com.example.trp.ui.viewmodels.admin.CreateTeacherScreenViewModel
+import com.example.trp.ui.viewmodels.admin.GroupsTeachersScreenViewModel
 import com.example.trp.ui.viewmodels.common.AddNewTaskScreenViewModel
 import com.example.trp.ui.viewmodels.common.AddNewTestScreenViewModel
 import com.example.trp.ui.viewmodels.common.TaskInfoTestsScreenViewModel
@@ -47,4 +50,7 @@ interface ViewModelFactoryProvider {
     fun adminGroupsTasksScreenViewModelFactory(): AdminGroupsTasksScreenViewModel.Factory
     fun adminAddNewDisciplineScreenViewModelFactory(): AddNewDisciplineScreenViewModel.Factory
     fun adminAddNewTestScreenViewModelFactory(): AddNewTestScreenViewModel.Factory
+    fun groupsTeachersScreenViewModelFactory(): GroupsTeachersScreenViewModel.Factory
+    fun createGroupScreenViewModelFactory(): CreateGroupScreenViewModel.Factory
+    fun createTeacherScreenViewModelFactory(): CreateTeacherScreenViewModel.Factory
 }
