@@ -8,11 +8,14 @@ import com.example.trp.data.mappers.disciplines.Disciplines
 import com.example.trp.data.mappers.disciplines.PostNewDisciplineBody
 import com.example.trp.data.mappers.disciplines.PostNewDisciplineResponse
 import com.example.trp.data.mappers.tasks.Output
+import com.example.trp.data.mappers.tasks.PostTeamBody
+import com.example.trp.data.mappers.tasks.PostTeamResponse
 import com.example.trp.data.mappers.tasks.PostTestResponse
 import com.example.trp.data.mappers.tasks.Students
 import com.example.trp.data.mappers.tasks.Task
 import com.example.trp.data.mappers.tasks.TaskResponse
 import com.example.trp.data.mappers.tasks.Tasks
+import com.example.trp.data.mappers.tasks.TeamResponse
 import com.example.trp.data.mappers.tasks.Test
 import com.example.trp.data.mappers.tasks.TestsResponse
 import com.example.trp.data.mappers.tasks.solution.SolutionResponse
@@ -149,4 +152,16 @@ interface UserAPI {
         @Path("studentId") studentId: Int,
         @Path("disciplineId") disciplineId: Int
     ): Response<Tasks>
+
+    @GET("api/v2/disciplines/{id}/teams")
+    suspend fun getTeams(
+        @Header("Authorization") token: String,
+        @Path("id") disciplineId: Int
+    ): Response<TeamResponse>
+
+    @POST("api/v2/teams")
+    suspend fun postNewTeam(
+        @Header("Authorization") token: String,
+        @Body postTeamBody: PostTeamBody
+    ): Response<PostTeamResponse>
 }

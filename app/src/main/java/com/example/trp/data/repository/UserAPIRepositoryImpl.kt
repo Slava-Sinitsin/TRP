@@ -14,12 +14,16 @@ import com.example.trp.data.mappers.disciplines.Disciplines
 import com.example.trp.data.mappers.disciplines.PostNewDisciplineBody
 import com.example.trp.data.mappers.disciplines.PostNewDisciplineResponse
 import com.example.trp.data.mappers.tasks.Output
+import com.example.trp.data.mappers.tasks.PostTeamBody
+import com.example.trp.data.mappers.tasks.PostTeamResponse
 import com.example.trp.data.mappers.tasks.PostTestResponse
 import com.example.trp.data.mappers.tasks.Student
 import com.example.trp.data.mappers.tasks.Students
 import com.example.trp.data.mappers.tasks.Task
 import com.example.trp.data.mappers.tasks.TaskResponse
 import com.example.trp.data.mappers.tasks.Tasks
+import com.example.trp.data.mappers.tasks.Team
+import com.example.trp.data.mappers.tasks.TeamResponse
 import com.example.trp.data.mappers.tasks.Test
 import com.example.trp.data.mappers.tasks.TestsResponse
 import com.example.trp.data.mappers.tasks.solution.Solution
@@ -47,6 +51,7 @@ class UserAPIRepositoryImpl(
     private var userChanged by mutableStateOf(true)
 
     var disciplines by mutableStateOf(emptyList<DisciplineData>())
+    var currentDiscipline by mutableStateOf(0) // TODO
     var disciplinesChanged by mutableStateOf(true)
 
     var tasks by mutableStateOf(emptyList<Task>())
@@ -64,6 +69,8 @@ class UserAPIRepositoryImpl(
     var students by mutableStateOf(emptyList<Student>())
 
     var studentAppointments by mutableStateOf(emptyList<StudentAppointments>())
+
+    var teams by mutableStateOf(emptyList<Team>())
 
     override suspend fun getUserResponse(authRequest: AuthRequest): Response<User> {
         return ApiService.userAPI.getUserResponse(authRequest)
@@ -182,6 +189,17 @@ class UserAPIRepositoryImpl(
         disciplineId: Int
     ): Response<Tasks> {
         return ApiService.userAPI.getStudentTasks("Bearer $token", studentId, disciplineId)
+    }
+
+    override suspend fun getTeams(token: String, disciplineId: Int): Response<TeamResponse> {
+        return ApiService.userAPI.getTeams("Bearer $token", disciplineId)
+    }
+
+    override suspend fun postNewTeam(
+        token: String,
+        postTeamBody: PostTeamBody
+    ): Response<PostTeamResponse> {
+        return ApiService.userAPI.postNewTeam("Bearer $token", postTeamBody)
     }
 
     suspend fun getActiveUser(): User {
@@ -428,5 +446,20 @@ class UserAPIRepositoryImpl(
                 ).body()?.data
             }
         } ?: emptyList()
+    }
+
+    suspend fun getTeams(disciplineId: Int): List<Team> {
+        teams = user.token?.let { token ->
+            getTeams(token, disciplineId).body()?.data
+        } ?: emptyList()
+        return teams
+    }
+
+    suspend fun postNewTeam(team: PostTeamBody) {
+        user.token?.let { token -> postNewTeam(token, team) }
+    }
+
+    fun setCurrentDisciplineId(id: Int) {
+       currentDiscipline = id
     }
 }

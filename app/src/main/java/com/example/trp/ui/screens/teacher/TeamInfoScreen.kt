@@ -36,12 +36,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.trp.domain.di.ViewModelFactoryProvider
 import com.example.trp.ui.theme.TRPTheme
-import com.example.trp.ui.viewmodels.teacher.StudentInfoScreenViewModel
+import com.example.trp.ui.viewmodels.teacher.TeamInfoScreenViewModel
 import dagger.hilt.android.EntryPointAccessors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StudentInfoScreen(
+fun TeamInfoScreen(
     studentId: Int,
     onAddTaskToStudentClick: (studentId: Int) -> Unit,
     onTaskClick: (taskId: Int) -> Unit,
@@ -50,9 +50,9 @@ fun StudentInfoScreen(
     val factory = EntryPointAccessors.fromActivity(
         LocalContext.current as Activity,
         ViewModelFactoryProvider::class.java
-    ).studentInfoScreenViewModelFactory()
-    val viewModel: StudentInfoScreenViewModel = viewModel(
-        factory = StudentInfoScreenViewModel.provideStudentInfoScreenViewModel(
+    ).teamInfoScreenViewModelFactory()
+    val viewModel: TeamInfoScreenViewModel = viewModel(
+        factory = TeamInfoScreenViewModel.provideTeamInfoScreenViewModel(
             factory,
             studentId
         )
@@ -80,7 +80,7 @@ fun StudentInfoScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StudentInfoCenterAlignedTopAppBar(
-    viewModel: StudentInfoScreenViewModel,
+    viewModel: TeamInfoScreenViewModel,
     navController: NavHostController
 ) {
     TopAppBar(
@@ -103,7 +103,7 @@ fun StudentInfoCenterAlignedTopAppBar(
 
 @Composable
 fun Tasks(
-    viewModel: StudentInfoScreenViewModel,
+    viewModel: TeamInfoScreenViewModel,
     paddingValues: PaddingValues,
     onAddTaskToStudentClick: (studentId: Int) -> Unit,
     onTaskClick: (taskId: Int) -> Unit
@@ -124,7 +124,7 @@ fun Tasks(
 
 @Composable
 fun AddTask(
-    viewModel: StudentInfoScreenViewModel,
+    viewModel: TeamInfoScreenViewModel,
     onAddTaskToStudentClick: (studentId: Int) -> Unit
 ) {
     Button(
@@ -154,7 +154,7 @@ fun AddTask(
 
 @Composable
 fun Task(
-    viewModel: StudentInfoScreenViewModel,
+    viewModel: TeamInfoScreenViewModel,
     index: Int,
     onTaskClick: (taskId: Int) -> Unit
 ) {

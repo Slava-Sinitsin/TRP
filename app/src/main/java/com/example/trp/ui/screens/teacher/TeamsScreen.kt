@@ -3,16 +3,22 @@ package com.example.trp.ui.screens.teacher
 import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
@@ -28,21 +34,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.trp.domain.di.ViewModelFactoryProvider
 import com.example.trp.ui.theme.TRPTheme
-import com.example.trp.ui.viewmodels.teacher.StudentsScreenViewModel
+import com.example.trp.ui.viewmodels.teacher.TeamsScreenViewModel
 import dagger.hilt.android.EntryPointAccessors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StudentsScreen(
+fun TeamsScreen(
     groupId: Int,
-    onStudentClick: (id: Int) -> Unit,
+    onTeamClick: (id: Int) -> Unit,
     onCreateTeamClick: (groupId: Int) -> Unit,
     navController: NavHostController
 ) {
@@ -50,8 +55,8 @@ fun StudentsScreen(
         LocalContext.current as Activity,
         ViewModelFactoryProvider::class.java
     ).studentsScreenViewModelFactory()
-    val viewModel: StudentsScreenViewModel = viewModel(
-        factory = StudentsScreenViewModel.provideStudentsScreenViewModel(
+    val viewModel: TeamsScreenViewModel = viewModel(
+        factory = TeamsScreenViewModel.provideTeamsScreenViewModel(
             factory,
             groupId
         )
@@ -60,25 +65,25 @@ fun StudentsScreen(
         modifier = Modifier
             .fillMaxSize(),
         topBar = {
-            StudentsCenterAlignedTopAppBar(
+            TeamsTopBar(
                 viewModel = viewModel,
                 onCreateTeamClick = onCreateTeamClick,
                 navController = navController
             )
         }
     ) { scaffoldPadding ->
-        Students(
+        Teams(
             viewModel = viewModel,
             paddingValues = scaffoldPadding,
-            onStudentClick = onStudentClick
+            onTeamClick = onTeamClick
         )
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StudentsCenterAlignedTopAppBar(
-    viewModel: StudentsScreenViewModel,
+fun TeamsTopBar(
+    viewModel: TeamsScreenViewModel,
     onCreateTeamClick: (groupId: Int) -> Unit,
     navController: NavHostController
 ) {
@@ -138,38 +143,55 @@ fun StudentsCenterAlignedTopAppBar(
     )
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun Students(
-    viewModel: StudentsScreenViewModel,
+fun Teams(
+    viewModel: TeamsScreenViewModel,
     paddingValues: PaddingValues,
-    onStudentClick: (id: Int) -> Unit
+    onTeamClick: (id: Int) -> Unit
 ) {
-    LazyColumn(
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = viewModel.isRefreshing,
+        onRefresh = { viewModel.onRefresh() }
+    )
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(TRPTheme.colors.primaryBackground)
             .padding(top = paddingValues.calculateTopPadding())
+            .pullRefresh(state = pullRefreshState)
     ) {
-        items(count = viewModel.students.size) { index ->
-            Student(viewModel = viewModel, index = index, onStudentClick = onStudentClick)
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(TRPTheme.colors.primaryBackground)
+        ) {
+            items(count = viewModel.showTeams.size) { index ->
+                Team(viewModel = viewModel, index = index, onTeamClick = onTeamClick)
+            }
+            item { Spacer(modifier = Modifier.size(100.dp)) }
         }
-        item { Spacer(modifier = Modifier.size(100.dp)) }
+        PullRefreshIndicator(
+            modifier = Modifier.align(Alignment.TopCenter),
+            refreshing = viewModel.isRefreshing,
+            state = pullRefreshState,
+            backgroundColor = TRPTheme.colors.primaryBackground,
+            contentColor = TRPTheme.colors.myYellow
+        )
     }
 }
 
 @Composable
-fun Student(
-    viewModel: StudentsScreenViewModel,
+fun Team(
+    viewModel: TeamsScreenViewModel,
     index: Int,
-    onStudentClick: (id: Int) -> Unit
+    onTeamClick: (id: Int) -> Unit
 ) {
     Button(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxSize(),
         onClick = {
-            viewModel.getStudent(index = index)
-                .let { student -> student.id?.let { id -> onStudentClick(id) } }
+            viewModel.getTeam(index = index).let { team -> team.id?.let { id -> onTeamClick(id) } }
         },
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 10.dp
@@ -179,15 +201,25 @@ fun Student(
         ),
         shape = RoundedCornerShape(30.dp)
     ) {
-        Text(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 16.dp, bottom = 16.dp)
-                .align(Alignment.CenterVertically),
-            textAlign = TextAlign.Start,
-            text = viewModel.getStudent(index = index).fullName.toString(),
-            color = TRPTheme.colors.primaryText,
-            fontSize = 25.sp
-        )
+        Column(modifier = Modifier.fillMaxWidth()) {
+            val students = viewModel.getTeam(index).students
+            Column(
+                modifier = Modifier
+                    .padding(
+                        vertical = if (students?.size == 1)
+                            19.dp
+                        else
+                            6.dp
+                    )
+            ) {
+                students?.forEach { student ->
+                    Text(
+                        text = viewModel.students.find { it.id == student.id }?.fullName ?: "",
+                        color = TRPTheme.colors.primaryText,
+                        fontSize = 20.sp
+                    )
+                }
+            }
+        }
     }
 }

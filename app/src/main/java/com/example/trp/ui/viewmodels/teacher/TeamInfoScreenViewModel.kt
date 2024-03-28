@@ -17,7 +17,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
 
-class StudentInfoScreenViewModel @AssistedInject constructor(
+class TeamInfoScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
     @Assisted
     val studentId: Int
@@ -30,12 +30,12 @@ class StudentInfoScreenViewModel @AssistedInject constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(studentId: Int): StudentInfoScreenViewModel
+        fun create(studentId: Int): TeamInfoScreenViewModel
     }
 
     @Suppress("UNCHECKED_CAST")
     companion object {
-        fun provideStudentInfoScreenViewModel(
+        fun provideTeamInfoScreenViewModel(
             factory: Factory,
             studentId: Int
         ): ViewModelProvider.Factory {

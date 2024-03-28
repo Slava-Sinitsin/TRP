@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.trp.data.mappers.tasks.Task
+import com.example.trp.data.mappers.tasks.Team
 import com.example.trp.data.mappers.teacherappointments.Group
 import com.example.trp.data.repository.UserAPIRepositoryImpl
 import com.example.trp.ui.components.tabs.GroupsTasksTabs
@@ -23,7 +24,10 @@ class TeacherGroupsTasksScreenViewModel @AssistedInject constructor(
     private var teacherAppointments by mutableStateOf(repository.teacherAppointments)
     var groups by mutableStateOf(emptyList<Group>())
         private set
-    var tasks by mutableStateOf(repository.tasks)
+    var tasks by mutableStateOf(emptyList<Task>())
+        private set
+
+    var teams by mutableStateOf(emptyList<Team>())
         private set
 
     val groupsTasksScreens = listOf(
@@ -58,6 +62,7 @@ class TeacherGroupsTasksScreenViewModel @AssistedInject constructor(
                 repository.getTeacherAppointments().filter { it.discipline?.id == disciplineId }
             groups = teacherAppointments.map { it.group ?: Group() }.sortedBy { it.name }
             tasks = repository.getTasks(disciplineId = disciplineId).sortedBy { it.title }
+            teams = repository.getTeams(disciplineId)
         }
     }
 

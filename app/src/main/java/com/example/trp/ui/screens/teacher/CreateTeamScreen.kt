@@ -94,7 +94,10 @@ fun CreateTeamCenterAlignedTopAppBar(
         },
         actions = {
             IconButton(
-                onClick = { viewModel.onAddButtonClick() },
+                onClick = {
+                    viewModel.onAddButtonClick()
+                    navController.popBackStack()
+                },
                 enabled = viewModel.selectedStudents.isNotEmpty()
             ) {
                 Icon(
