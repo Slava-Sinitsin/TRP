@@ -7,6 +7,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,6 +21,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Surface
@@ -46,23 +51,23 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.trp.domain.di.ViewModelFactoryProvider
 import com.example.trp.ui.components.tabs.DisabledInteractionSource
 import com.example.trp.ui.theme.TRPTheme
-import com.example.trp.ui.viewmodels.teacher.TeacherGroupsTasksScreenViewModel
+import com.example.trp.ui.viewmodels.teacher.TeacherGroupsLabsScreenViewModel
 import dagger.hilt.android.EntryPointAccessors
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun TeacherGroupsTasksScreen(
+fun TeacherGroupsLabsScreen(
     disciplineId: Int,
     onGroupClick: (groupId: Int) -> Unit,
-    onAddTaskClick: (disciplineId: Int) -> Unit,
-    onTaskClick: (taskId: Int) -> Unit
+    onCreateLabClick: (disciplineId: Int) -> Unit,
+    onLabClick: (labId: Int) -> Unit
 ) {
     val factory = EntryPointAccessors.fromActivity(
         LocalContext.current as Activity,
         ViewModelFactoryProvider::class.java
-    ).teacherGroupsTasksScreenViewModelFactory()
-    val viewModel: TeacherGroupsTasksScreenViewModel = viewModel(
-        factory = TeacherGroupsTasksScreenViewModel.provideTeacherGroupsTasksScreenViewModel(
+    ).teacherGroupsLabsScreenViewModelFactory()
+    val viewModel: TeacherGroupsLabsScreenViewModel = viewModel(
+        factory = TeacherGroupsLabsScreenViewModel.provideTeacherGroupsLabsScreenViewModel(
             factory,
             disciplineId
         )
@@ -127,10 +132,10 @@ fun TeacherGroupsTasksScreen(
                 if (index == 0) {
                     Groups(viewModel = viewModel, onGroupClick = onGroupClick)
                 } else if (index == 1) {
-                    Tasks(
+                    Labs(
                         viewModel = viewModel,
-                        onAddTaskClick = onAddTaskClick,
-                        onTaskClick = onTaskClick
+                        onCreateLabClick = onCreateLabClick,
+                        onLabClick = onLabClick
                     )
                 }
             }
@@ -172,7 +177,7 @@ fun MyNewIndicator(modifier: Modifier = Modifier) {
 
 @Composable
 fun Groups(
-    viewModel: TeacherGroupsTasksScreenViewModel,
+    viewModel: TeacherGroupsLabsScreenViewModel,
     onGroupClick: (groupId: Int) -> Unit
 ) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -189,7 +194,7 @@ fun Groups(
 
 @Composable
 fun Group(
-    viewModel: TeacherGroupsTasksScreenViewModel,
+    viewModel: TeacherGroupsLabsScreenViewModel,
     index: Int,
     onGroupClick: (groupId: Int) -> Unit
 ) {
@@ -222,36 +227,54 @@ fun Group(
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun Tasks(
-    viewModel: TeacherGroupsTasksScreenViewModel,
-    onAddTaskClick: (disciplineId: Int) -> Unit,
-    onTaskClick: (taskId: Int) -> Unit
+fun Labs(
+    viewModel: TeacherGroupsLabsScreenViewModel,
+    onCreateLabClick: (disciplineId: Int) -> Unit,
+    onLabClick: (taskId: Int) -> Unit
 ) {
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
-        item {
-            AddTaskToDiscipline(
-                viewModel = viewModel,
-                onAddTaskClick = onAddTaskClick
-            )
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = viewModel.isRefreshing,
+        onRefresh = { viewModel.onRefresh() }
+    )
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pullRefresh(state = pullRefreshState)
+    ) {
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            item {
+                CreateLabToDiscipline(
+                    viewModel = viewModel,
+                    onCreateLabClick = onCreateLabClick
+                )
+            }
+            items(count = viewModel.labs.size) { index ->
+                Lab(viewModel = viewModel, index = index, onLabClick = onLabClick)
+            }
+            item { Spacer(modifier = Modifier.size(100.dp)) }
         }
-        items(count = viewModel.tasks.size) { index ->
-            Task(viewModel = viewModel, index = index, onTaskClick = onTaskClick)
-        }
-        item { Spacer(modifier = Modifier.size(100.dp)) }
+        PullRefreshIndicator(
+            modifier = Modifier.align(Alignment.TopCenter),
+            refreshing = viewModel.isRefreshing,
+            state = pullRefreshState,
+            backgroundColor = TRPTheme.colors.primaryBackground,
+            contentColor = TRPTheme.colors.myYellow
+        )
     }
 }
 
 @Composable
-fun AddTaskToDiscipline(
-    viewModel: TeacherGroupsTasksScreenViewModel,
-    onAddTaskClick: (disciplineId: Int) -> Unit
+fun CreateLabToDiscipline(
+    viewModel: TeacherGroupsLabsScreenViewModel,
+    onCreateLabClick: (disciplineId: Int) -> Unit
 ) {
     Button(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxSize(),
-        onClick = { onAddTaskClick(viewModel.disciplineId) },
+        onClick = { onCreateLabClick(viewModel.disciplineId) },
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 10.dp
         ),
@@ -273,18 +296,18 @@ fun AddTaskToDiscipline(
 }
 
 @Composable
-fun Task(
-    viewModel: TeacherGroupsTasksScreenViewModel,
+fun Lab(
+    viewModel: TeacherGroupsLabsScreenViewModel,
     index: Int,
-    onTaskClick: (taskId: Int) -> Unit
+    onLabClick: (taskId: Int) -> Unit
 ) {
     Button(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxSize(),
         onClick = {
-            viewModel.getTask(index = index)
-                .let { task -> task.id?.let { taskId -> onTaskClick(taskId) } }
+            viewModel.getLab(index = index)
+                .let { task -> task.id?.let { taskId -> onLabClick(taskId) } }
         },
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 10.dp
@@ -300,7 +323,7 @@ fun Task(
                 .padding(top = 16.dp, bottom = 16.dp)
                 .align(Alignment.CenterVertically),
             textAlign = TextAlign.Start,
-            text = viewModel.getTask(index = index).title.toString(),
+            text = viewModel.getLab(index = index).title.toString(),
             color = TRPTheme.colors.primaryText,
             fontSize = 25.sp
         )

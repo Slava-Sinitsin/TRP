@@ -34,21 +34,21 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.trp.domain.di.ViewModelFactoryProvider
 import com.example.trp.ui.theme.TRPTheme
-import com.example.trp.ui.viewmodels.common.AddNewTestScreenViewModel
+import com.example.trp.ui.viewmodels.common.CreateNewTestScreenViewModel
 import dagger.hilt.android.EntryPointAccessors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddNewTestScreen(
+fun CreateNewTestScreen(
     taskId: Int,
     navController: NavHostController
 ) {
     val factory = EntryPointAccessors.fromActivity(
         LocalContext.current as Activity,
         ViewModelFactoryProvider::class.java
-    ).adminAddNewTestScreenViewModelFactory()
-    val viewModel: AddNewTestScreenViewModel = viewModel(
-        factory = AddNewTestScreenViewModel.provideAddNewTestScreenViewModel(
+    ).adminCreateNewTestScreenViewModelFactory()
+    val viewModel: CreateNewTestScreenViewModel = viewModel(
+        factory = CreateNewTestScreenViewModel.provideCreateNewTestScreenViewModel(
             factory,
             taskId
         )
@@ -73,7 +73,7 @@ fun AddNewTestScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddNewTestTopAppBar(
-    viewModel: AddNewTestScreenViewModel,
+    viewModel: CreateNewTestScreenViewModel,
     navController: NavHostController
 ) {
     TopAppBar(
@@ -117,7 +117,7 @@ fun AddNewTestTopAppBar(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InputField(
-    viewModel: AddNewTestScreenViewModel,
+    viewModel: CreateNewTestScreenViewModel,
     paddingValues: PaddingValues
 ) {
     Text(
@@ -161,7 +161,7 @@ fun InputField(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OutputField(
-    viewModel: AddNewTestScreenViewModel
+    viewModel: CreateNewTestScreenViewModel
 ) {
     Text(
         text = "Output",

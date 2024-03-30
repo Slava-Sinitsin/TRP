@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -43,7 +44,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -62,24 +62,24 @@ import androidx.navigation.NavHostController
 import com.example.trp.domain.di.ViewModelFactoryProvider
 import com.example.trp.ui.components.clearFocusOnTap
 import com.example.trp.ui.theme.TRPTheme
-import com.example.trp.ui.viewmodels.common.AddNewTaskScreenViewModel
+import com.example.trp.ui.viewmodels.common.CreateTaskScreenViewModel
 import dagger.hilt.android.EntryPointAccessors
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddNewTaskScreen(
-    disciplineId: Int,
+fun CreateTaskScreen(
+    labId: Int,
     navController: NavHostController
 ) {
     val factory = EntryPointAccessors.fromActivity(
         LocalContext.current as Activity,
         ViewModelFactoryProvider::class.java
-    ).addNewTaskScreenViewModelFactory()
-    val viewModel: AddNewTaskScreenViewModel = viewModel(
-        factory = AddNewTaskScreenViewModel.provideAddNewTaskScreenViewModel(
+    ).createTaskScreenViewModelFactory()
+    val viewModel: CreateTaskScreenViewModel = viewModel(
+        factory = CreateTaskScreenViewModel.provideCreateTaskScreenViewModel(
             factory,
-            disciplineId
+            labId
         )
     )
     Scaffold(
@@ -101,9 +101,12 @@ fun AddNewTaskScreen(
             item { TitleField(viewModel = viewModel, paddingValues = scaffoldPadding) }
             item { DescriptionField(viewModel = viewModel) }
             item { LanguageField(viewModel = viewModel) }
-            item { FunctionTypeNameField(viewModel = viewModel) }
-            item { Arguments(viewModel = viewModel) }
-            item { Spacer(modifier = Modifier.size(100.dp)) }
+            item { TestableToggle(viewModel = viewModel) }
+            if (viewModel.testable == "Yes") {
+                item { FunctionTypeNameField(viewModel = viewModel) }
+                item { Arguments(viewModel = viewModel) }
+                item { Spacer(modifier = Modifier.size(100.dp)) }
+            }
         }
     }
 }
@@ -111,7 +114,7 @@ fun AddNewTaskScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskInfoCenterAlignedTopAppBar(
-    viewModel: AddNewTaskScreenViewModel,
+    viewModel: CreateTaskScreenViewModel,
     navController: NavHostController
 ) {
     TopAppBar(
@@ -155,7 +158,7 @@ fun TaskInfoCenterAlignedTopAppBar(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TitleField(
-    viewModel: AddNewTaskScreenViewModel,
+    viewModel: CreateTaskScreenViewModel,
     paddingValues: PaddingValues
 ) {
     Text(
@@ -169,10 +172,9 @@ fun TitleField(
     OutlinedTextField(
         modifier = Modifier
             .fillMaxWidth()
-            .height(100.dp)
             .padding(vertical = 5.dp, horizontal = 5.dp),
         textStyle = TextStyle.Default.copy(fontSize = 15.sp),
-        value = viewModel.taskTitle,
+        value = viewModel.title,
         onValueChange = { viewModel.updateTitleValue(it) },
         placeholder = {
             Text(
@@ -193,13 +195,14 @@ fun TitleField(
             errorIndicatorColor = TRPTheme.colors.errorColor,
             errorCursorColor = TRPTheme.colors.primaryText
         ),
-        isError = viewModel.taskTitle.isEmpty()
+        isError = viewModel.title.isEmpty(),
+        singleLine = true
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DescriptionField(viewModel: AddNewTaskScreenViewModel) {
+fun DescriptionField(viewModel: CreateTaskScreenViewModel) {
     Text(
         text = "Description",
         color = TRPTheme.colors.primaryText,
@@ -214,7 +217,7 @@ fun DescriptionField(viewModel: AddNewTaskScreenViewModel) {
             .height(100.dp)
             .padding(vertical = 5.dp, horizontal = 5.dp),
         textStyle = TextStyle.Default.copy(fontSize = 15.sp),
-        value = viewModel.taskDescription,
+        value = viewModel.description,
         onValueChange = { viewModel.updateDescriptionValue(it) },
         placeholder = {
             Text(
@@ -235,13 +238,13 @@ fun DescriptionField(viewModel: AddNewTaskScreenViewModel) {
             errorIndicatorColor = TRPTheme.colors.errorColor,
             errorCursorColor = TRPTheme.colors.primaryText
         ),
-        isError = viewModel.taskDescription.isEmpty()
+        isError = viewModel.description.isEmpty()
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LanguageField(viewModel: AddNewTaskScreenViewModel) {
+fun LanguageField(viewModel: CreateTaskScreenViewModel) {
     var expanded by remember { mutableStateOf(false) }
     Box(
         modifier = Modifier
@@ -277,7 +280,7 @@ fun LanguageField(viewModel: AddNewTaskScreenViewModel) {
                         .shadow(elevation = 10.dp),
                     textStyle = TextStyle.Default.copy(fontSize = 15.sp),
                     readOnly = true,
-                    value = viewModel.taskLanguage,
+                    value = viewModel.language,
                     onValueChange = { },
                     placeholder = {
                         Text(
@@ -304,7 +307,7 @@ fun LanguageField(viewModel: AddNewTaskScreenViewModel) {
                             expanded = expanded
                         )
                     },
-                    isError = viewModel.taskLanguage.isEmpty()
+                    isError = viewModel.language.isEmpty()
                 )
                 ExposedDropdownMenu(
                     modifier = Modifier
@@ -336,9 +339,69 @@ fun LanguageField(viewModel: AddNewTaskScreenViewModel) {
     }
 }
 
+@Composable
+fun TestableToggle(viewModel: CreateTaskScreenViewModel) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 10.dp, start = 5.dp, end = 5.dp)
+            .clip(RoundedCornerShape(30.dp))
+            .background(TRPTheme.colors.secondaryBackground),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            modifier = Modifier
+                .padding(start = 5.dp)
+                .alpha(0.6f),
+            text = "Testable",
+            color = TRPTheme.colors.primaryText,
+            fontSize = 15.sp,
+        )
+        Box(
+            modifier = Modifier
+                .wrapContentSize()
+                .clip(RoundedCornerShape(30.dp))
+        ) {
+            Row(
+                modifier = Modifier
+                    .clip(shape = RoundedCornerShape(30.dp))
+                    .background(TRPTheme.colors.cardButtonColor)
+            ) {
+                viewModel.testableList.forEach { text ->
+                    Button(
+                        modifier = Modifier
+                            .clip(shape = RoundedCornerShape(30.dp))
+                            .background(
+                                if (text == viewModel.testable) {
+                                    TRPTheme.colors.myYellow
+                                } else {
+                                    TRPTheme.colors.cardButtonColor
+                                }
+                            ),
+                        onClick = { viewModel.updateTestableValue(text) },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (text == viewModel.testable) {
+                                TRPTheme.colors.myYellow
+                            } else {
+                                TRPTheme.colors.cardButtonColor
+                            }
+                        )
+                    ) {
+                        Text(
+                            text = text,
+                            color = TRPTheme.colors.primaryText
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FunctionTypeNameField(viewModel: AddNewTaskScreenViewModel) {
+fun FunctionTypeNameField(viewModel: CreateTaskScreenViewModel) {
     Text(
         text = "Function type, name",
         color = TRPTheme.colors.primaryText,
@@ -368,7 +431,7 @@ fun FunctionTypeNameField(viewModel: AddNewTaskScreenViewModel) {
                 modifier = Modifier.menuAnchor(),
                 textStyle = TextStyle.Default.copy(fontSize = 15.sp),
                 readOnly = true,
-                value = viewModel.taskFunctionType,
+                value = viewModel.functionType,
                 onValueChange = { },
                 placeholder = {
                     Text(
@@ -395,7 +458,7 @@ fun FunctionTypeNameField(viewModel: AddNewTaskScreenViewModel) {
                         expanded = viewModel.functionTypeListExpanded
                     )
                 },
-                isError = viewModel.taskFunctionType.isEmpty(),
+                isError = viewModel.functionType.isEmpty(),
                 enabled = viewModel.typeButtonsEnabled.first
             )
             if (viewModel.typeList.isNotEmpty()) {
@@ -431,10 +494,10 @@ fun FunctionTypeNameField(viewModel: AddNewTaskScreenViewModel) {
                 .padding(start = 5.dp)
                 .fillMaxHeight()
                 .widthIn(max = 65.dp)
-                .weight(2.6f)
+                .weight(2f)
                 .widthIn(max = 70.dp),
             textStyle = TextStyle.Default.copy(fontSize = 15.sp),
-            value = viewModel.taskFunctionName,
+            value = viewModel.functionName,
             onValueChange = { viewModel.updateFunctionNameValue(it) },
             placeholder = {
                 Text(
@@ -456,16 +519,15 @@ fun FunctionTypeNameField(viewModel: AddNewTaskScreenViewModel) {
                 errorCursorColor = TRPTheme.colors.primaryText
             ),
             singleLine = true,
-            isError = viewModel.taskFunctionName.isEmpty()
+            isError = viewModel.functionName.isEmpty()
         )
     }
 }
 
 @Composable
 fun Arguments(
-    viewModel: AddNewTaskScreenViewModel
+    viewModel: CreateTaskScreenViewModel
 ) {
-    val taskOptionalArgumentList by rememberUpdatedState(newValue = viewModel.taskArgumentList)
     Text(
         text = "Arguments",
         color = TRPTheme.colors.primaryText,
@@ -475,7 +537,7 @@ fun Arguments(
             .padding(start = 5.dp, top = 10.dp)
     )
     Column {
-        taskOptionalArgumentList.forEachIndexed { index, _ ->
+        viewModel.argumentList.forEachIndexed { index, _ ->
             Argument(viewModel = viewModel, index = index)
         }
     }
@@ -506,7 +568,7 @@ fun Arguments(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Argument(
-    viewModel: AddNewTaskScreenViewModel,
+    viewModel: CreateTaskScreenViewModel,
     index: Int
 ) {
     Row(
@@ -521,11 +583,11 @@ fun Argument(
                 .fillMaxHeight()
                 .weight(1f)
                 .alpha(viewModel.typeButtonsEnabled.second),
-            expanded = viewModel.getArgument(index).third,
+            expanded = viewModel.getArgument(index).second,
             onExpandedChange = {
                 viewModel.updateArgumentTypeExpanded(
                     index = index,
-                    isExpanded = !viewModel.getArgument(index).third
+                    isExpanded = !viewModel.getArgument(index).second
                 )
             }
         ) {
@@ -533,7 +595,7 @@ fun Argument(
                 modifier = Modifier.menuAnchor(),
                 textStyle = TextStyle.Default.copy(fontSize = 15.sp),
                 readOnly = true,
-                value = viewModel.getArgument(index).first,
+                value = viewModel.getArgument(index).first.type ?: "",
                 onValueChange = { },
                 placeholder = {
                     Text(
@@ -557,22 +619,23 @@ fun Argument(
                 ),
                 trailingIcon = {
                     ExposedDropdownMenuDefaults.TrailingIcon(
-                        expanded = viewModel.getArgument(index).third
+                        expanded = viewModel.getArgument(index).second
                     )
                 },
-                isError = viewModel.getArgument(index).first.isEmpty(),
-                enabled = viewModel.typeButtonsEnabled.first
+                isError = viewModel.getArgument(index).first.type?.isEmpty() ?: true,
+                enabled = viewModel.typeButtonsEnabled.first,
+                singleLine = true
             )
             if (viewModel.typeList.isNotEmpty()) {
                 ExposedDropdownMenu(
                     modifier = Modifier
                         .background(TRPTheme.colors.secondaryBackground)
                         .exposedDropdownSize(),
-                    expanded = viewModel.getArgument(index).third,
+                    expanded = viewModel.getArgument(index).second,
                     onDismissRequest = {
                         viewModel.updateArgumentTypeExpanded(
                             index = index,
-                            isExpanded = !viewModel.getArgument(index).third
+                            isExpanded = !viewModel.getArgument(index).second
                         )
                     }
                 ) {
@@ -604,9 +667,9 @@ fun Argument(
             modifier = Modifier
                 .padding(start = 5.dp)
                 .fillMaxHeight()
-                .weight(2f),
+                .weight(1.5f),
             textStyle = TextStyle.Default.copy(fontSize = 15.sp),
-            value = viewModel.getArgument(index).second,
+            value = viewModel.getArgument(index).first.name ?: "",
             onValueChange = {
                 viewModel.updateArgumentNameValue(
                     index = index,
@@ -633,7 +696,7 @@ fun Argument(
                 errorCursorColor = TRPTheme.colors.primaryText
             ),
             singleLine = true,
-            isError = viewModel.getArgument(index).second.isEmpty()
+            isError = viewModel.getArgument(index).first.name?.isEmpty() ?: true
         )
         OutlinedButton(
             modifier = Modifier

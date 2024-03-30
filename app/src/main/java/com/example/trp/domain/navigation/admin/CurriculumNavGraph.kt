@@ -8,12 +8,13 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
 import com.example.trp.domain.navigation.common.Graph
 import com.example.trp.ui.screens.admin.AdminGroupsTasksScreen
-import com.example.trp.ui.screens.common.AddNewTaskScreen
-import com.example.trp.ui.screens.common.AddNewTestScreen
+import com.example.trp.ui.screens.common.CreateTaskScreen
+import com.example.trp.ui.screens.common.CreateNewTestScreen
 import com.example.trp.ui.screens.common.TaskInfoTestsScreen
 
 private const val ADMIN_DISCIPLINES_ID = "admin_discipline_id"
 private const val ADMIN_TASK_ID = "admin_task_id"
+private const val ADMIN_LAB_ID = "admin_lab_id"
 
 fun NavGraphBuilder.curriculumNavGraph(navController: NavHostController) {
     navigation(
@@ -29,8 +30,8 @@ fun NavGraphBuilder.curriculumNavGraph(navController: NavHostController) {
                     onGroupClick = { groupId ->
                         // navController.navigate("${AdminGroupsScreen.GroupInfo.route}/$groupId") TODO
                     },
-                    onAddTaskClick = { disciplineId ->
-                        navController.navigate("${AdminGroupsTasksScreen.AddNewTask.route}/$disciplineId")
+                    onAddTaskClick = { labId ->
+                        navController.navigate("${AdminGroupsTasksScreen.CreateTask.route}/$labId")
                     },
                     onTaskClick = { taskId ->
                         navController.navigate("${AdminGroupsTasksScreen.TaskInfo.route}/$taskId")
@@ -39,12 +40,12 @@ fun NavGraphBuilder.curriculumNavGraph(navController: NavHostController) {
             }
         }
         composable(
-            route = "${AdminGroupsTasksScreen.AddNewTask.route}/{$ADMIN_DISCIPLINES_ID}",
-            arguments = listOf(navArgument(ADMIN_DISCIPLINES_ID) { type = NavType.IntType })
+            route = "${AdminGroupsTasksScreen.CreateTask.route}/{$ADMIN_LAB_ID}",
+            arguments = listOf(navArgument(ADMIN_LAB_ID) { type = NavType.IntType })
         ) {
-            val disciplineId = it.arguments?.getInt(ADMIN_DISCIPLINES_ID)
-            disciplineId?.let { id ->
-                AddNewTaskScreen(disciplineId = id, navController = navController)
+            val labId = it.arguments?.getInt(ADMIN_LAB_ID)
+            labId?.let { id ->
+                CreateTaskScreen(labId = id, navController = navController)
             }
         }
         composable(
@@ -68,7 +69,7 @@ fun NavGraphBuilder.curriculumNavGraph(navController: NavHostController) {
         ) {
             val taskId = it.arguments?.getInt(ADMIN_TASK_ID)
             taskId?.let { id ->
-                AddNewTestScreen(
+                CreateNewTestScreen(
                     taskId = id,
                     navController = navController
                 )
@@ -81,6 +82,6 @@ sealed class AdminGroupsTasksScreen(val route: String) {
     object GroupsTasks : AdminGroupsTasksScreen(route = "curriculum_GROUPS_TASKS")
     object GroupInfo : AdminGroupsTasksScreen(route = "curriculum_GROUP_INFO")
     object TaskInfo : AdminGroupsTasksScreen(route = "curriculum_TASK_INFO")
-    object AddNewTask : AdminGroupsTasksScreen(route = "curriculum_ADD_NEW_TASK")
+    object CreateTask : AdminGroupsTasksScreen(route = "curriculum_CREATE_TASK")
     object AddNewTest : AdminGroupsTasksScreen(route = "curriculum_ADD_NEW_TEST")
 }

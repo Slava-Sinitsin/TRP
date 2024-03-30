@@ -7,7 +7,10 @@ import com.example.trp.data.mappers.disciplines.DisciplineResponse
 import com.example.trp.data.mappers.disciplines.Disciplines
 import com.example.trp.data.mappers.disciplines.PostNewDisciplineBody
 import com.example.trp.data.mappers.disciplines.PostNewDisciplineResponse
+import com.example.trp.data.mappers.tasks.Lab
+import com.example.trp.data.mappers.tasks.LabsResponse
 import com.example.trp.data.mappers.tasks.Output
+import com.example.trp.data.mappers.tasks.PostLabResponse
 import com.example.trp.data.mappers.tasks.PostTeamBody
 import com.example.trp.data.mappers.tasks.PostTeamResponse
 import com.example.trp.data.mappers.tasks.PostTestResponse
@@ -40,8 +43,8 @@ interface UserAPI {
     @GET("api/v2/disciplines")
     suspend fun getDisciplinesResponse(@Header("Authorization") token: String): Response<Disciplines>
 
-    @GET("/api/v2/disciplines/{id}/tasks")
-    suspend fun getTasksResponse(
+    @GET("api/v2/lab-works/{id}/lab-work-variants")
+    suspend fun getTasks(
         @Header("Authorization") token: String,
         @Path("id") id: Int
     ): Response<Tasks>
@@ -101,7 +104,7 @@ interface UserAPI {
         @Path("id") taskId: Int,
     ): Response<Task>
 
-    @POST("api/v2/tasks")
+    @POST("api/v2/lab-work-variants")
     suspend fun postTask(
         @Header("Authorization") token: String,
         @Body task: Task
@@ -134,10 +137,10 @@ interface UserAPI {
         @Header("Authorization") token: String
     ): Response<GroupsResponse>
 
-    @GET("api/v2/tasks/{taskId}/tests")
+    @GET("api/v2/lab-work-variants/{id}/tests")
     suspend fun getTests(
         @Header("Authorization") token: String,
-        @Path("taskId") taskId: Int
+        @Path("id") taskId: Int
     ): Response<TestsResponse>
 
     @POST("/api/v2/task-tests")
@@ -164,4 +167,16 @@ interface UserAPI {
         @Header("Authorization") token: String,
         @Body postTeamBody: PostTeamBody
     ): Response<PostTeamResponse>
+
+    @GET("api/v2/disciplines/{id}/lab-works")
+    suspend fun getLabs(
+        @Header("Authorization") token: String,
+        @Path("id") disciplineId: Int
+    ): Response<LabsResponse>
+
+    @POST("api/v2/lab-works")
+    suspend fun postNewLab(
+        @Header("Authorization") token: String,
+        @Body postLabBody: Lab
+    ): Response<PostLabResponse>
 }

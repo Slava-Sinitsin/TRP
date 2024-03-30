@@ -6,17 +6,17 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.trp.data.mappers.tasks.Task
+import com.example.trp.data.mappers.tasks.Lab
 import com.example.trp.data.mappers.tasks.Team
 import com.example.trp.data.mappers.teacherappointments.Group
 import com.example.trp.data.repository.UserAPIRepositoryImpl
-import com.example.trp.ui.components.tabs.GroupsTasksTabs
+import com.example.trp.ui.components.tabs.GroupsLabsTabs
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
 
-class TeacherGroupsTasksScreenViewModel @AssistedInject constructor(
+class TeacherGroupsLabsScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
     @Assisted
     val disciplineId: Int
@@ -24,27 +24,30 @@ class TeacherGroupsTasksScreenViewModel @AssistedInject constructor(
     private var teacherAppointments by mutableStateOf(repository.teacherAppointments)
     var groups by mutableStateOf(emptyList<Group>())
         private set
-    var tasks by mutableStateOf(emptyList<Task>())
+    var labs by mutableStateOf(emptyList<Lab>())
         private set
 
     var teams by mutableStateOf(emptyList<Team>())
         private set
 
+    var isRefreshing by mutableStateOf(false)
+        private set
+
     val groupsTasksScreens = listOf(
-        GroupsTasksTabs.Groups,
-        GroupsTasksTabs.Tasks
+        GroupsLabsTabs.Groups,
+        GroupsLabsTabs.Labs
     )
 
     var selectedTabIndex by mutableStateOf(0)
 
     @AssistedFactory
     interface Factory {
-        fun create(disciplineId: Int): TeacherGroupsTasksScreenViewModel
+        fun create(disciplineId: Int): TeacherGroupsLabsScreenViewModel
     }
 
     @Suppress("UNCHECKED_CAST")
     companion object {
-        fun provideTeacherGroupsTasksScreenViewModel(
+        fun provideTeacherGroupsLabsScreenViewModel(
             factory: Factory,
             disciplineId: Int
         ): ViewModelProvider.Factory {
@@ -61,8 +64,20 @@ class TeacherGroupsTasksScreenViewModel @AssistedInject constructor(
             teacherAppointments =
                 repository.getTeacherAppointments().filter { it.discipline?.id == disciplineId }
             groups = teacherAppointments.map { it.group ?: Group() }.sortedBy { it.name }
-            tasks = repository.getTasks(disciplineId = disciplineId).sortedBy { it.title }
+            labs = repository.getLabs(disciplineId = disciplineId).sortedBy { it.title }
             teams = repository.getTeams(disciplineId)
+        }
+    }
+
+    fun onRefresh() {
+        viewModelScope.launch {
+            isRefreshing = true
+            teacherAppointments =
+                repository.getTeacherAppointments().filter { it.discipline?.id == disciplineId }
+            groups = teacherAppointments.map { it.group ?: Group() }.sortedBy { it.name }
+            labs = repository.getLabs(disciplineId = disciplineId).sortedBy { it.title }
+            teams = repository.getTeams(disciplineId)
+            isRefreshing = false
         }
     }
 
@@ -70,7 +85,7 @@ class TeacherGroupsTasksScreenViewModel @AssistedInject constructor(
         return groups[index]
     }
 
-    fun getTask(index: Int): Task {
-        return tasks[index]
+    fun getLab(index: Int): Lab {
+        return labs[index]
     }
 }

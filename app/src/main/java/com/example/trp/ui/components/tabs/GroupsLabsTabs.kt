@@ -1,16 +1,16 @@
 package com.example.trp.ui.components.tabs
 
-sealed class GroupsTasksTabs(
+sealed class GroupsLabsTabs(
     val title: String,
     val route: String,
 ) {
-    object Groups : GroupsTasksTabs(
+    object Groups : GroupsLabsTabs(
         title = "Groups",
         route = "groups",
     )
 
-    object Tasks : GroupsTasksTabs(
-        title = "Tasks",
-        route = "tasks"
+    object Labs : GroupsLabsTabs(
+        title = "Labs",
+        route = "labs"
     )
 }

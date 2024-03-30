@@ -78,7 +78,7 @@ class TaskInfoTestsScreenViewModel @AssistedInject constructor(
 
     init {
         viewModelScope.launch {
-            task = repository.getTaskProperties(taskId)
+            task = repository.tasks.find { it.id == taskId } ?: Task()
             taskTitle = task.title ?: ""
             taskDescription = task.description ?: ""
             taskFunctionName = task.functionName ?: ""
@@ -117,7 +117,7 @@ class TaskInfoTestsScreenViewModel @AssistedInject constructor(
             repository.putTask(
                 Task(
                     id = task.id,
-                    disciplineId = task.disciplineId,
+                    labWorkId = task.labWorkId,
                     title = taskTitle,
                     description = taskDescription,
                     functionName = taskFunctionName,

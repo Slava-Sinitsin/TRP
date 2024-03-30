@@ -67,7 +67,7 @@ fun NumberPicker(
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = listStartIndex + 1)
     val flingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
     val itemWidthPixels = remember { mutableStateOf(0) }
-    val itemWidthtDp = pixelsToDp(itemWidthPixels.value)
+    val itemWidthDp = pixelsToDp(itemWidthPixels.value)
     val fadingEdgeGradient = remember {
         Brush.horizontalGradient(
             0f to Color.Transparent,
@@ -87,12 +87,12 @@ fun NumberPicker(
             flingBehavior = flingBehavior,
             horizontalArrangement = Arrangement.Center,
             modifier = modifier
-                .width(itemWidthtDp * visibleItemsCount)
+                .width(itemWidthDp * visibleItemsCount)
                 .fadingEdge(fadingEdgeGradient)
         ) {
             item {
                 Spacer(
-                    modifier = Modifier.width(itemWidthtDp)
+                    modifier = Modifier.width(itemWidthDp)
                 )
             }
             items(listScrollCount) { index ->
@@ -109,14 +109,14 @@ fun NumberPicker(
             }
             item {
                 Spacer(
-                    modifier = Modifier.width(itemWidthtDp)
+                    modifier = Modifier.width(itemWidthDp)
                 )
             }
         }
         Divider(
             color = TRPTheme.colors.myYellow,
             modifier = Modifier
-                .offset(x = itemWidthtDp * visibleItemsMiddle)
+                .offset(x = itemWidthDp * visibleItemsMiddle)
                 .height(40.dp)
                 .width(1.dp)
                 .padding(vertical = 5.dp)
@@ -124,7 +124,7 @@ fun NumberPicker(
         Divider(
             color = TRPTheme.colors.myYellow,
             modifier = Modifier
-                .offset(x = itemWidthtDp * (visibleItemsMiddle + 1))
+                .offset(x = itemWidthDp * (visibleItemsMiddle + 1))
                 .height(40.dp)
                 .width(1.dp)
                 .padding(vertical = 5.dp)
@@ -138,3 +138,4 @@ private fun Modifier.fadingEdge(brush: Brush) = this
         drawContent()
         drawRect(brush = brush, blendMode = BlendMode.DstIn)
     }
+

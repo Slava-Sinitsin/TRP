@@ -13,7 +13,10 @@ import com.example.trp.data.mappers.disciplines.DisciplineResponse
 import com.example.trp.data.mappers.disciplines.Disciplines
 import com.example.trp.data.mappers.disciplines.PostNewDisciplineBody
 import com.example.trp.data.mappers.disciplines.PostNewDisciplineResponse
+import com.example.trp.data.mappers.tasks.Lab
+import com.example.trp.data.mappers.tasks.LabsResponse
 import com.example.trp.data.mappers.tasks.Output
+import com.example.trp.data.mappers.tasks.PostLabResponse
 import com.example.trp.data.mappers.tasks.PostTeamBody
 import com.example.trp.data.mappers.tasks.PostTeamResponse
 import com.example.trp.data.mappers.tasks.PostTestResponse
@@ -72,6 +75,8 @@ class UserAPIRepositoryImpl(
 
     var teams by mutableStateOf(emptyList<Team>())
 
+    var labs by mutableStateOf(emptyList<Lab>())
+
     override suspend fun getUserResponse(authRequest: AuthRequest): Response<User> {
         return ApiService.userAPI.getUserResponse(authRequest)
     }
@@ -80,8 +85,8 @@ class UserAPIRepositoryImpl(
         return ApiService.userAPI.getDisciplinesResponse("Bearer $token")
     }
 
-    override suspend fun getTasksResponse(token: String, id: Int): Response<Tasks> {
-        return ApiService.userAPI.getTasksResponse("Bearer $token", id)
+    override suspend fun getTasks(token: String, id: Int): Response<Tasks> {
+        return ApiService.userAPI.getTasks("Bearer $token", id)
     }
 
     override suspend fun getTaskDescriptionResponse(
@@ -202,6 +207,14 @@ class UserAPIRepositoryImpl(
         return ApiService.userAPI.postNewTeam("Bearer $token", postTeamBody)
     }
 
+    override suspend fun getLabs(token: String, disciplineId: Int): Response<LabsResponse> {
+        return ApiService.userAPI.getLabs("Bearer $token", disciplineId)
+    }
+
+    override suspend fun postNewLab(token: String, postLabBody: Lab): Response<PostLabResponse> {
+        return ApiService.userAPI.postNewLab("Bearer $token", postLabBody)
+    }
+
     suspend fun getActiveUser(): User {
         user = mainDB.userDAO.getActiveUser() ?: User()
         return user
@@ -284,7 +297,7 @@ class UserAPIRepositoryImpl(
     suspend fun getTasks(disciplineId: Int): List<Task> {
         if (tasksChanged) {
             val response =
-                user.token?.let { getTasksResponse(it, disciplineId) }
+                user.token?.let { getTasks(it, disciplineId) }
             response?.body()?.let {
                 tasks = it.data ?: emptyList()
             } ?: response?.errorBody()?.let {
@@ -329,7 +342,7 @@ class UserAPIRepositoryImpl(
 
     private suspend fun getTaskDisciplineData(): DisciplineData {
         val disciplineDataResponse = user.token?.let { token ->
-            task.disciplineId?.let { disciplineId -> getDisciplineByID(token, disciplineId) }
+            task.labWorkId?.let { disciplineId -> getDisciplineByID(token, disciplineId) }
         }
         return disciplineDataResponse?.body()?.disciplineData ?: DisciplineData()
     }
@@ -460,6 +473,17 @@ class UserAPIRepositoryImpl(
     }
 
     fun setCurrentDisciplineId(id: Int) {
-       currentDiscipline = id
+        currentDiscipline = id
+    }
+
+    suspend fun getLabs(disciplineId: Int): List<Lab> {
+        labs = user.token?.let { token ->
+            getLabs(token, disciplineId).body()?.data
+        } ?: emptyList()
+        return labs
+    }
+
+    suspend fun postNewLab(lab: Lab) {
+        user.token?.let { token -> postNewLab(token, lab) }
     }
 }
