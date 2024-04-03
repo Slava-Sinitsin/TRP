@@ -20,10 +20,10 @@ fun NavGraphBuilder.tasksNavGraph(navController: NavHostController) {
         startDestination = "${TasksScreen.Tasks.route}/{$STUDENT_DISCIPLINE_ID}"
     ) {
         composable(route = "${TasksScreen.Tasks.route}/{$STUDENT_DISCIPLINE_ID}") {
-            val disciplineId = it.arguments?.getInt(STUDENT_DISCIPLINE_ID)
-            disciplineId?.let { id ->
+            val labId = it.arguments?.getInt(STUDENT_DISCIPLINE_ID)
+            labId?.let { id ->
                 TasksScreen(
-                    disciplineId = id,
+                    labId = id,
                     onTaskClick = { taskId ->
                         navController.navigate("${TasksScreen.TaskInfo.route}/$taskId")
                     }

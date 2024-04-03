@@ -42,6 +42,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -181,7 +182,8 @@ fun TaskText(
                 interactionSource = interactionSource,
                 textStyle = TextStyle(
                     color = TRPTheme.colors.primaryText,
-                    textAlign = TextAlign.End
+                    textAlign = TextAlign.End,
+                    fontFamily = FontFamily.Monospace, fontSize = 15.sp
                 ),
                 readOnly = true,
                 decorationBox = { innerTextField ->
@@ -218,6 +220,7 @@ fun TaskText(
                 value = viewModel.solutionTextFieldValue,
                 onValueChange = { viewModel.updateTaskText(it) },
                 interactionSource = interactionSource,
+                textStyle = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 15.sp),
                 cursorBrush = SolidColor(TRPTheme.colors.primaryText),
                 decorationBox = { innerTextField ->
                     TextFieldDefaults.TextFieldDecorationBox(

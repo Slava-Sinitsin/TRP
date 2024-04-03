@@ -7,32 +7,35 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.trp.data.mappers.CheckBoxState
-import com.example.trp.data.mappers.PostStudentAppointmentsBody
-import com.example.trp.data.mappers.tasks.Student
+import com.example.trp.data.mappers.PostTeamAppointmentsBody
+import com.example.trp.data.mappers.tasks.ShowTeam
 import com.example.trp.data.mappers.tasks.Task
+import com.example.trp.data.mappers.tasks.Team
 import com.example.trp.data.repository.UserAPIRepositoryImpl
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
 
-class AddTaskToStudentScreenViewModel @AssistedInject constructor(
+class AddTaskToTeamScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
     @Assisted
-    val studentId: Int
+    val teamId: Int
 ) : ViewModel() {
-    var tasks by mutableStateOf(repository.tasks)
+    var tasks by mutableStateOf(emptyList<Task>())
         private set
 
-    var tasksCheckBoxStates by mutableStateOf(List(tasks.size) { CheckBoxState() })
+    var tasksCheckBoxStates by mutableStateOf(emptyList<CheckBoxState>())
         private set
 
     private var tasksCheckBoxStatesBck by mutableStateOf(emptyList<CheckBoxState>())
 
-    var student by mutableStateOf(Student())
+    var team by mutableStateOf(Team())
+        private set
+    var showTeam by mutableStateOf(ShowTeam())
         private set
 
-    private var studentAppointments by mutableStateOf(repository.studentAppointments)
+    private var teamAppointments by mutableStateOf(emptyList<Task>())
 
     var isTaskChanged by mutableStateOf(false)
         private set
@@ -41,12 +44,12 @@ class AddTaskToStudentScreenViewModel @AssistedInject constructor(
     interface Factory {
         fun create(
             studentId: Int
-        ): AddTaskToStudentScreenViewModel
+        ): AddTaskToTeamScreenViewModel
     }
 
     @Suppress("UNCHECKED_CAST")
     companion object {
-        fun provideAddTaskToStudentScreenViewModel(
+        fun provideAddTaskToTeamScreenViewModel(
             factory: Factory,
             studentId: Int
         ): ViewModelProvider.Factory {
@@ -59,13 +62,17 @@ class AddTaskToStudentScreenViewModel @AssistedInject constructor(
     }
 
     init {
-        viewModelScope.launch {
-            student = repository.students.find { it.id == studentId } ?: Student()
-            tasks = tasks.sortedBy { it.title }
-            studentAppointments = studentAppointments.filter { it.studentId == studentId }
-            studentAppointments.forEach { studentAppointments ->
+        viewModelScope.launch { // TODO
+            team = repository.teams.find { it.id == teamId } ?: Team()
+            showTeam = ShowTeam(team.id, team.studentIds?.mapNotNull {
+                repository.students.find { student -> student.id == it }
+            })
+            tasks = repository.getTasks(repository.currentDiscipline).sortedBy { it.title }
+            tasksCheckBoxStates = List(tasks.size) { CheckBoxState() }
+            teamAppointments = repository.getTeamTasks(teamId)
+            teamAppointments.forEach { teamAppointments ->
                 tasks.forEachIndexed { index, task ->
-                    if (studentAppointments.taskId == task.id) {
+                    if (teamAppointments.id == task.id) {
                         tasksCheckBoxStates = tasksCheckBoxStates.toMutableList().also {
                             it[index] = CheckBoxState(isSelected = true, isEnable = false)
                         }
@@ -105,9 +112,9 @@ class AddTaskToStudentScreenViewModel @AssistedInject constructor(
         viewModelScope.launch {
             tasksCheckBoxStates.forEachIndexed { index, it ->
                 if (it.isSelected && it.isEnable) {
-                    repository.postStudentAppointments(
-                        PostStudentAppointmentsBody(
-                            studentId = studentId,
+                    repository.postTeamAppointments(
+                        PostTeamAppointmentsBody(
+                            teamId = teamId,
                             taskId = tasks[index].id
                         )
                     )

@@ -42,7 +42,7 @@ import dagger.hilt.android.EntryPointAccessors
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TeamInfoScreen(
-    studentId: Int,
+    teamId: Int,
     onAddTaskToStudentClick: (studentId: Int) -> Unit,
     onTaskClick: (taskId: Int) -> Unit,
     navController: NavHostController
@@ -54,7 +54,7 @@ fun TeamInfoScreen(
     val viewModel: TeamInfoScreenViewModel = viewModel(
         factory = TeamInfoScreenViewModel.provideTeamInfoScreenViewModel(
             factory,
-            studentId
+            teamId
         )
     )
     Scaffold(
@@ -88,7 +88,10 @@ fun StudentInfoCenterAlignedTopAppBar(
             containerColor = TRPTheme.colors.myYellow,
             titleContentColor = TRPTheme.colors.secondaryText,
         ),
-        title = { Text(text = viewModel.student.fullName ?: "") },
+        title = {
+            viewModel.showTeam.students?.map { it.fullName?.split(" ")?.firstOrNull() }
+                ?.let { Text(text = it.joinToString()) }
+        },
         navigationIcon = {
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
@@ -131,7 +134,7 @@ fun AddTask(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxSize(),
-        onClick = { onAddTaskToStudentClick(viewModel.studentId) },
+        onClick = { onAddTaskToStudentClick(viewModel.teamId) },
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 10.dp
         ),

@@ -35,8 +35,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -238,10 +236,9 @@ fun NameField(
 fun Students(
     viewModel: CreateGroupScreenViewModel
 ) {
-    val students by rememberUpdatedState(newValue = viewModel.students)
     AddStudentButton(viewModel = viewModel)
     Column {
-        students.forEachIndexed { index, _ ->
+        viewModel.students.forEachIndexed { index, _ ->
             Student(viewModel = viewModel, index = index)
         }
     }

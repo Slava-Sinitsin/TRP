@@ -65,7 +65,8 @@ class TeacherGroupsLabsScreenViewModel @AssistedInject constructor(
                 repository.getTeacherAppointments().filter { it.discipline?.id == disciplineId }
             groups = teacherAppointments.map { it.group ?: Group() }.sortedBy { it.name }
             labs = repository.getLabs(disciplineId = disciplineId).sortedBy { it.title }
-            teams = repository.getTeams(disciplineId)
+            repository.setCurrentDisciplineId(disciplineId)
+            repository.getAllTeamAppointments(disciplineId)
         }
     }
 

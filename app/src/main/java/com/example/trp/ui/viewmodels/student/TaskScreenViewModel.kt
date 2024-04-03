@@ -104,6 +104,7 @@ class TaskScreenViewModel @AssistedInject constructor(
 
     fun onRunCodeButtonClick() {
         viewModelScope.launch {
+            onSaveCodeButtonClick()
             solutionTextFieldValue.text.let { repository.postTaskSolution(it) }
             val output = repository.runCode()
             outputText = if (output.data?.testPassed != null && output.data.totalTests != null) {

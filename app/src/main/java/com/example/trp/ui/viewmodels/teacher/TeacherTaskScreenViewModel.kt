@@ -3,11 +3,13 @@ package com.example.trp.ui.viewmodels.teacher
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.trp.data.mappers.tasks.Task
+import com.example.trp.data.mappers.tasks.solution.Solution
 import com.example.trp.data.repository.UserAPIRepositoryImpl
 import com.wakaztahir.codeeditor.highlight.model.CodeLang
 import com.wakaztahir.codeeditor.highlight.prettify.PrettifyParser
@@ -24,9 +26,12 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
     val taskId: Int
 ) : ViewModel() {
     var task by mutableStateOf(Task())
+        private set
+    var taskCode by mutableStateOf("int add (int a, int b) {\n  printf(\"\\n\");\r\n\treturn a + b\r\n}")
     var disciplineName by mutableStateOf("")
-    private var solutionText by mutableStateOf("")
+    private var solution by mutableStateOf(Solution())
     var solutionTextFieldValue by mutableStateOf(TextFieldValue())
+    var codeList by mutableStateOf(emptyList<AnnotatedString>())
 
     private val language = CodeLang.C
     private val parser by mutableStateOf(PrettifyParser())
@@ -56,27 +61,20 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
         viewModelScope.launch {
             task = repository.getTask(taskId)
             disciplineName = repository.taskDisciplineData.name ?: ""
-            solutionText = repository.taskSolution.code ?: ""
-            solutionTextFieldValue = TextFieldValue(
-                annotatedString = parseCodeAsAnnotatedString(
-                    parser = parser,
-                    theme = theme,
-                    lang = language,
-                    code = solutionText
-                )
-            )
+            solution = repository.taskSolution.copy(code = taskCode)
+            codeList = splitCode(solution.code ?: "")
         }
     }
 
-    fun updateTaskText(newTaskText: TextFieldValue) {
-        solutionText = newTaskText.text
-        solutionTextFieldValue = newTaskText.copy(
-            annotatedString = parseCodeAsAnnotatedString(
+    private fun splitCode(input: String): List<AnnotatedString> {
+        val regex = Regex("(?<!['\"])\\n(?!['\"])")
+        return regex.split(input).map {
+            parseCodeAsAnnotatedString(
                 parser = parser,
                 theme = theme,
                 lang = language,
-                code = solutionText
+                code = it
             )
-        )
+        }
     }
 }

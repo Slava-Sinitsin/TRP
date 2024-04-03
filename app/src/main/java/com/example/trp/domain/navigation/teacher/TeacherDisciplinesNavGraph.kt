@@ -74,7 +74,7 @@ fun NavGraphBuilder.groupsNavGraph(navController: NavHostController) {
             val teamId = it.arguments?.getInt(TEAM_ID)
             teamId?.let { id ->
                 TeamInfoScreen(
-                    studentId = id,
+                    teamId = id,
                     onAddTaskToStudentClick = { studentId ->
                         navController.navigate("${TeacherGroupsTasksScreen.AddTaskToStudent.route}/$studentId")
                     },
@@ -116,7 +116,7 @@ fun NavGraphBuilder.groupsNavGraph(navController: NavHostController) {
             val studentId = it.arguments?.getInt(STUDENT_ID)
             studentId?.let { id ->
                 AddTaskToStudentScreen(
-                    studentId = id,
+                    teamId = id,
                     navController = navController
                 )
             }

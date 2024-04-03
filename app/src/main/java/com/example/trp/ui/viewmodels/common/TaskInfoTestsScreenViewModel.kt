@@ -57,6 +57,9 @@ class TaskInfoTestsScreenViewModel @AssistedInject constructor(
     var isTestChanged by mutableStateOf(false)
         private set
 
+    var isRefreshing by mutableStateOf(false)
+        private set
+
     @AssistedFactory
     interface Factory {
         fun create(studentId: Int): TaskInfoTestsScreenViewModel
@@ -85,6 +88,20 @@ class TaskInfoTestsScreenViewModel @AssistedInject constructor(
             taskLanguage = task.language ?: ""
             tests = repository.getTests(taskId)
             testsCheckBoxStates = List(tests.size) { CheckBoxState() }
+        }
+    }
+
+    fun onRefresh() {
+        viewModelScope.launch {
+            isRefreshing = true
+            task = repository.tasks.find { it.id == taskId } ?: Task()
+            taskTitle = task.title ?: ""
+            taskDescription = task.description ?: ""
+            taskFunctionName = task.functionName ?: ""
+            taskLanguage = task.language ?: ""
+            tests = repository.getTests(taskId)
+            testsCheckBoxStates = List(tests.size) { CheckBoxState() }
+            isRefreshing = false
         }
     }
 

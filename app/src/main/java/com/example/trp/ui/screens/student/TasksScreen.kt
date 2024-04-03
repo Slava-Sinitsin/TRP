@@ -25,7 +25,7 @@ import dagger.hilt.android.EntryPointAccessors
 
 @Composable
 fun TasksScreen(
-    disciplineId: Int,
+    labId: Int,
     onTaskClick: (id: Int) -> Unit,
 ) {
     val factory = EntryPointAccessors.fromActivity(
@@ -35,7 +35,7 @@ fun TasksScreen(
     val viewModel: TasksScreenViewModel = viewModel(
         factory = TasksScreenViewModel.provideTasksScreenViewModel(
             factory,
-            disciplineId
+            labId
         )
     )
 

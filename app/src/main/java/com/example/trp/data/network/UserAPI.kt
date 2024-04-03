@@ -1,8 +1,8 @@
 package com.example.trp.data.network
 
-import com.example.trp.data.mappers.PostStudentAppointmentsBody
 import com.example.trp.data.mappers.PostStudentAppointmentsResponse
-import com.example.trp.data.mappers.StudentAppointmentsResponse
+import com.example.trp.data.mappers.PostTeamAppointmentsBody
+import com.example.trp.data.mappers.TeamAppointmentsResponse
 import com.example.trp.data.mappers.disciplines.DisciplineResponse
 import com.example.trp.data.mappers.disciplines.Disciplines
 import com.example.trp.data.mappers.disciplines.PostNewDisciplineBody
@@ -46,10 +46,10 @@ interface UserAPI {
     @GET("api/v2/lab-works/{id}/lab-work-variants")
     suspend fun getTasks(
         @Header("Authorization") token: String,
-        @Path("id") id: Int
+        @Path("id") labId: Int
     ): Response<Tasks>
 
-    @GET("api/v2/tasks/{id}")
+    @GET("api/v2/lab-work-variants/{id}")
     suspend fun getTaskDescriptionResponse(
         @Header("Authorization") token: String,
         @Path("id") id: Int
@@ -61,13 +61,13 @@ interface UserAPI {
         @Path("id") id: Int
     ): Response<DisciplineResponse>
 
-    @GET("api/v2/tasks/{id}/solution")
+    @GET("api/v2/lab-work-variants/{id}/solution")
     suspend fun getTaskSolution(
         @Header("Authorization") token: String,
         @Path("id") taskId: Int
     ): Response<SolutionResponse>
 
-    @POST("api/v2/tasks/{id}/solution")
+    @POST("api/v2/lab-work-variants/{id}/solution")
     suspend fun postTaskSolution(
         @Header("Authorization") token: String,
         @Path("id") taskId: Int,
@@ -85,10 +85,10 @@ interface UserAPI {
         @Path("id") id: Int
     ): Response<Students>
 
-    @POST("api/v2/tasks/{taskId}/solution/execute/student")
+    @POST("api/v2/lab-work-variants/{id}/solution/execute")
     suspend fun runCode(
         @Header("Authorization") token: String,
-        @Path("taskId") taskId: Int
+        @Path("id") taskId: Int
     ): Response<Output>
 
     @PUT("api/v2/tasks/{id}")
@@ -110,15 +110,16 @@ interface UserAPI {
         @Body task: Task
     ): Response<Task>
 
-    @GET("api/v2/student-appointments")
-    suspend fun getStudentAppointments(
-        @Header("Authorization") token: String
-    ): Response<StudentAppointmentsResponse>
-
-    @POST("api/v2/student-appointments")
-    suspend fun postStudentAppointments(
+    @GET("api/v2/disciplines/{id}/team-appointments")
+    suspend fun getAllTeamAppointments(
         @Header("Authorization") token: String,
-        @Body postStudentAppointmentsBody: PostStudentAppointmentsBody
+        @Path("id") disciplineId: Int
+    ): Response<TeamAppointmentsResponse>
+
+    @POST("api/v2/team-appointments")
+    suspend fun postTeamAppointments(
+        @Header("Authorization") token: String,
+        @Body postTeamAppointmentsBody: PostTeamAppointmentsBody
     ): Response<PostStudentAppointmentsResponse>
 
     @POST("/api/v2/disciplines")
@@ -143,18 +144,17 @@ interface UserAPI {
         @Path("id") taskId: Int
     ): Response<TestsResponse>
 
-    @POST("/api/v2/task-tests")
+    @POST("api/v2/lab-work-variant-tests")
     suspend fun postNewTest(
         @Header("Authorization") token: String,
         @Body test: Test
     ): Response<PostTestResponse>
 
-    @GET("api/v2/students/{studentId}/disciplines/{disciplineId}/tasks")
-    suspend fun getStudentTasks(
+    @GET("api/v2/teams/{id}/team-appointments")
+    suspend fun getTeamAppointments(
         @Header("Authorization") token: String,
-        @Path("studentId") studentId: Int,
-        @Path("disciplineId") disciplineId: Int
-    ): Response<Tasks>
+        @Path("id") teamId: Int
+    ): Response<TeamAppointmentsResponse>
 
     @GET("api/v2/disciplines/{id}/teams")
     suspend fun getTeams(
@@ -179,4 +179,10 @@ interface UserAPI {
         @Header("Authorization") token: String,
         @Body postLabBody: Lab
     ): Response<PostLabResponse>
+
+    @GET("api/v2/teams/{id}/lab-work-variants")
+    suspend fun getTeamTasks(
+        @Header("Authorization") token: String,
+        @Path("id") teamId: Int
+    ): Response<Tasks>
 }

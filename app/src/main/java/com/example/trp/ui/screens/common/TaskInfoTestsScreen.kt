@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -23,6 +24,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -30,6 +32,9 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -530,25 +535,44 @@ fun DeleteDialog(viewModel: TaskInfoTestsScreenViewModel, navController: NavHost
     )
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun TestsScreen(
     viewModel: TaskInfoTestsScreenViewModel,
     onTestClick: (testId: Int) -> Unit,
     onAddTestClick: (taskId: Int) -> Unit
 ) {
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = viewModel.isRefreshing,
+        onRefresh = { viewModel.onRefresh() }
+    )
     val scrollState = rememberLazyListState()
-    LazyColumn(modifier = Modifier.fillMaxSize(), state = scrollState) {
-        item { AddTestToTask(viewModel = viewModel, onAddTestClick = onAddTestClick) }
-        items(count = viewModel.tests.size) { index ->
-            Test(
-                viewModel = viewModel,
-                index = index,
-                onTestClick = onTestClick,
-                scrollState = scrollState
-            )
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pullRefresh(state = pullRefreshState)
+    ) {
+        LazyColumn(modifier = Modifier.fillMaxSize(), state = scrollState) {
+            item { AddTestToTask(viewModel = viewModel, onAddTestClick = onAddTestClick) }
+            items(count = viewModel.tests.size) { index ->
+                Test(
+                    viewModel = viewModel,
+                    index = index,
+                    onTestClick = onTestClick,
+                    scrollState = scrollState
+                )
+            }
+            item { Spacer(modifier = Modifier.size(100.dp)) }
         }
-        item { Spacer(modifier = Modifier.size(100.dp)) }
+        PullRefreshIndicator(
+            modifier = Modifier.align(Alignment.TopCenter),
+            refreshing = viewModel.isRefreshing,
+            state = pullRefreshState,
+            backgroundColor = TRPTheme.colors.primaryBackground,
+            contentColor = TRPTheme.colors.myYellow
+        )
     }
+
 }
 
 @Composable

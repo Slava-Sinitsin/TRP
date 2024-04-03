@@ -120,42 +120,47 @@ fun InputField(
     viewModel: CreateNewTestScreenViewModel,
     paddingValues: PaddingValues
 ) {
-    Text(
-        text = "Input",
-        color = TRPTheme.colors.primaryText,
-        fontSize = 15.sp,
-        modifier = Modifier
-            .alpha(0.6f)
-            .padding(start = 5.dp, top = paddingValues.calculateTopPadding() + 10.dp)
-    )
-    OutlinedTextField(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(100.dp)
-            .padding(vertical = 5.dp, horizontal = 5.dp),
-        textStyle = TextStyle.Default.copy(fontSize = 15.sp),
-        value = viewModel.inputValue,
-        onValueChange = { viewModel.updateInputValue(it) },
-        placeholder = {
+    Column(modifier = Modifier.padding(top = paddingValues.calculateTopPadding())) {
+        viewModel.argumentsWithRegex.forEachIndexed { index, _ ->
             Text(
-                "Input",
+                text = "Argument ${index + 1}: ${viewModel.getArgument(index).name}",
                 color = TRPTheme.colors.primaryText,
-                modifier = Modifier.alpha(0.6f)
+                fontSize = 15.sp,
+                modifier = Modifier
+                    .alpha(0.6f)
+                    .padding(start = 5.dp, top = 10.dp)
             )
-        },
-        shape = RoundedCornerShape(8.dp),
-        colors = TextFieldDefaults.textFieldColors(
-            containerColor = TRPTheme.colors.secondaryBackground,
-            textColor = TRPTheme.colors.primaryText,
-            cursorColor = TRPTheme.colors.primaryText,
-            focusedIndicatorColor = Color.Transparent,
-            disabledIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-            errorIndicatorColor = TRPTheme.colors.errorColor,
-            errorCursorColor = TRPTheme.colors.primaryText
-        ),
-        isError = viewModel.inputValue.isEmpty()
-    )
+            OutlinedTextField(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp)
+                    .padding(vertical = 5.dp, horizontal = 5.dp),
+                textStyle = TextStyle.Default.copy(fontSize = 15.sp),
+                value = viewModel.getArgument(index).value ?: "",
+                onValueChange = { viewModel.updateInputValue(index = index, newInputValue = it) },
+                placeholder = {
+                    Text(
+                        "Input",
+                        color = TRPTheme.colors.primaryText,
+                        modifier = Modifier.alpha(0.6f)
+                    )
+                },
+                shape = RoundedCornerShape(8.dp),
+                colors = TextFieldDefaults.textFieldColors(
+                    containerColor = TRPTheme.colors.secondaryBackground,
+                    textColor = TRPTheme.colors.primaryText,
+                    cursorColor = TRPTheme.colors.primaryText,
+                    focusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    errorIndicatorColor = TRPTheme.colors.errorColor,
+                    errorCursorColor = TRPTheme.colors.primaryText
+                ),
+                isError = viewModel.getArgument(index).isMatch == false
+                        || viewModel.getArgument(index).value?.isEmpty() ?: true
+            )
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -197,6 +202,6 @@ fun OutputField(
             errorIndicatorColor = TRPTheme.colors.errorColor,
             errorCursorColor = TRPTheme.colors.primaryText
         ),
-        isError = viewModel.outputValue.isEmpty()
+        isError = !viewModel.outputMatchRegex || viewModel.outputValue.isEmpty()
     )
 }

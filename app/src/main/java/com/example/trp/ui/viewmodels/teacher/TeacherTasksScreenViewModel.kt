@@ -45,14 +45,14 @@ class TeacherTasksScreenViewModel @AssistedInject constructor(
 
     init {
         viewModelScope.launch {
-            tasks = repository.getTasks(disciplineId = labId)
+            tasks = repository.getTasks(labId = labId)
         }
     }
 
     fun onRefresh() {
         viewModelScope.launch {
             isRefreshing = true
-            tasks = repository.getTasks(disciplineId = labId)
+            tasks = repository.getTasks(labId = labId)
             isRefreshing = false
         }
     }

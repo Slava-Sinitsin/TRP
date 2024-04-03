@@ -38,7 +38,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.trp.domain.di.ViewModelFactoryProvider
 import com.example.trp.ui.theme.TRPTheme
-import com.example.trp.ui.viewmodels.teacher.AddTaskToStudentScreenViewModel
+import com.example.trp.ui.viewmodels.teacher.AddTaskToTeamScreenViewModel
 import com.kosher9.roundcheckbox.RoundCheckBox
 import com.kosher9.roundcheckbox.RoundCheckBoxDefaults
 import dagger.hilt.android.EntryPointAccessors
@@ -46,17 +46,17 @@ import dagger.hilt.android.EntryPointAccessors
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddTaskToStudentScreen(
-    studentId: Int,
+    teamId: Int,
     navController: NavHostController
 ) {
     val factory = EntryPointAccessors.fromActivity(
         LocalContext.current as Activity,
         ViewModelFactoryProvider::class.java
-    ).addTaskToStudentScreenViewModelFactory()
-    val viewModel: AddTaskToStudentScreenViewModel = viewModel(
-        factory = AddTaskToStudentScreenViewModel.provideAddTaskToStudentScreenViewModel(
+    ).addTaskToTeamScreenViewModelFactory()
+    val viewModel: AddTaskToTeamScreenViewModel = viewModel(
+        factory = AddTaskToTeamScreenViewModel.provideAddTaskToTeamScreenViewModel(
             factory,
-            studentId
+            teamId
         )
     )
     Scaffold(
@@ -75,7 +75,7 @@ fun AddTaskToStudentScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddTaskToStudentCenterAlignedTopAppBar(
-    viewModel: AddTaskToStudentScreenViewModel,
+    viewModel: AddTaskToTeamScreenViewModel,
     navController: NavHostController
 ) {
     TopAppBar(
@@ -83,7 +83,7 @@ fun AddTaskToStudentCenterAlignedTopAppBar(
             containerColor = TRPTheme.colors.myYellow,
             titleContentColor = TRPTheme.colors.secondaryText,
         ),
-        title = { Text(text = viewModel.student.fullName ?: "") },
+        title = { Text(text = viewModel.team.id.toString()) },
         navigationIcon = {
             if (!viewModel.isTaskChanged) {
                 IconButton(onClick = { navController.popBackStack() }) {
@@ -121,7 +121,7 @@ fun AddTaskToStudentCenterAlignedTopAppBar(
 
 @Composable
 fun Tasks(
-    viewModel: AddTaskToStudentScreenViewModel,
+    viewModel: AddTaskToTeamScreenViewModel,
     paddingValues: PaddingValues
 ) {
     LazyColumn(
@@ -139,14 +139,14 @@ fun Tasks(
 
 @Composable
 fun Task(
-    viewModel: AddTaskToStudentScreenViewModel,
+    viewModel: AddTaskToTeamScreenViewModel,
     index: Int
 ) {
     Button(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxSize(),
-        onClick = { },
+        onClick = { }, // TODO
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 10.dp
         ),
@@ -166,7 +166,7 @@ fun Task(
                 textAlign = TextAlign.Start,
                 text = viewModel.getTask(index = index).title.toString(),
                 color = TRPTheme.colors.primaryText,
-                fontSize = 25.sp
+                fontSize = 20.sp
             )
             Box(
                 modifier = Modifier.alpha(viewModel.tasksCheckBoxStates[index].enableAlpha)

@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 class TasksScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
     @Assisted
-    val disciplineId: Int
+    val labId: Int
 ) : ViewModel() {
     var tasks by mutableStateOf(repository.tasks)
         private set
@@ -42,7 +42,7 @@ class TasksScreenViewModel @AssistedInject constructor(
 
     init {
         viewModelScope.launch {
-            tasks = repository.getTasks(disciplineId = disciplineId).sortedBy { it.title }
+            tasks = repository.getTasks(labId = labId).sortedBy { it.title }
         }
     }
 

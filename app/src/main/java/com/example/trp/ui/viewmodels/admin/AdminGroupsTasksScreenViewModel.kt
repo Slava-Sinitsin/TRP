@@ -58,7 +58,7 @@ class AdminGroupsTasksScreenViewModel @AssistedInject constructor(
             teacherAppointments =
                 repository.getTeacherAppointments().filter { it.discipline?.id == disciplineId }
             groups = teacherAppointments.map { it.group ?: Group() }.sortedBy { it.name }
-            tasks = repository.getTasks(disciplineId = disciplineId).sortedBy { it.title }
+            tasks = repository.getTasks(labId = disciplineId).sortedBy { it.title }
         }
     }
 

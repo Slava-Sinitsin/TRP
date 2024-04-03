@@ -22,9 +22,9 @@ class CreateTaskScreenViewModel @AssistedInject constructor(
     val languageList =
         listOf("c", "c++")
     private val cTypeList =
-        listOf("int", "int*", "int**", "double", "double*", "double**", "char", "char*", "char**")
+        listOf("int", "int*", "int**", "double", "double*", "double**", "char", "char*", "char**", "bool")
     private val cppTypeList =
-        listOf("int", "int*", "int**", "double", "double*", "double**", "char", "string")
+        listOf("int", "int*", "int**", "double", "double*", "double**", "char", "string", "bool")
 
     var title by mutableStateOf("")
         private set
