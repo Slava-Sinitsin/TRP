@@ -123,7 +123,11 @@ fun InputField(
     Column(modifier = Modifier.padding(top = paddingValues.calculateTopPadding())) {
         viewModel.argumentsWithRegex.forEachIndexed { index, _ ->
             Text(
-                text = "Argument ${index + 1}: ${viewModel.getArgument(index).name}",
+                text = "Argument ${index + 1}: ${viewModel.getArgument(index).type} ${
+                    viewModel.getArgument(
+                        index
+                    ).name
+                }",
                 color = TRPTheme.colors.primaryText,
                 fontSize = 15.sp,
                 modifier = Modifier
@@ -169,7 +173,7 @@ fun OutputField(
     viewModel: CreateNewTestScreenViewModel
 ) {
     Text(
-        text = "Output",
+        text = "Output: ${viewModel.task.returnType}",
         color = TRPTheme.colors.primaryText,
         fontSize = 15.sp,
         modifier = Modifier

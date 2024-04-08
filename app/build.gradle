@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.trp"
-        minSdk 24
+        minSdk 26
         targetSdk 33
         versionCode 1
         versionName "1.0"
@@ -75,6 +75,8 @@ dependencies {
     kapt 'androidx.room:room-compiler:2.5.2'
 
     implementation 'com.github.kosher9:Compose-Round-CheckBox:1.0.0'
+
+    implementation 'com.github.chihsuanwu:compose-free-scroll:0.2.1'
 
     implementation 'androidx.core:core-ktx:1.8.0'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.3.1'
