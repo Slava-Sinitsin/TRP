@@ -217,9 +217,8 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
                 }
             }
             commentList.forEach { comment ->
-                if (comment.isMatch == false) {
-                    val commentLines = comment.lines?.let { parseLineIndexes(it) }
-                    commentLines?.forEach { commentLine ->
+                if (comment.isMatch == false && comment.lines?.let { isValidLines(it) } == true) {
+                    parseLineIndexes(comment.lines).forEach { commentLine ->
                         codeList = codeList.mapIndexed { currentIndex, item ->
                             if (currentIndex == commentLine) {
                                 item.copy(second = false)
