@@ -40,11 +40,6 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -153,25 +148,9 @@ fun ReviewField(
     paddingValues: PaddingValues
 ) {
     val freeScrollState = rememberFreeScrollState()
+    val primaryBackground = TRPTheme.colors.primaryBackground
+    val secondaryBackground = TRPTheme.colors.secondaryBackground
     val selectedColor = TRPTheme.colors.okColor.copy(alpha = 0.3f)
-    var codeLinesBackgroundColorList by remember { mutableStateOf(emptyList<Color>()) }
-    codeLinesBackgroundColorList = List(viewModel.codeList.size) { index ->
-        if (index % 2 == 0) {
-            TRPTheme.colors.secondaryBackground
-        } else {
-            TRPTheme.colors.primaryBackground
-        }
-    }
-
-    LaunchedEffect(viewModel.codeList) {
-        codeLinesBackgroundColorList = viewModel.codeList.mapIndexed { index, (_, isSelected) ->
-            if (isSelected) {
-                selectedColor
-            } else {
-                codeLinesBackgroundColorList[index]
-            }
-        }
-    }
 
     Surface(
         modifier = Modifier
@@ -216,7 +195,15 @@ fun ReviewField(
                 viewModel.codeList.forEachIndexed { index, item ->
                     Box(
                         modifier = Modifier
-                            .background(codeLinesBackgroundColorList[index])
+                            .background(
+                                if (viewModel.codeList[index].second) {
+                                    selectedColor
+                                } else if (index % 2 == 0) {
+                                    primaryBackground
+                                } else {
+                                    secondaryBackground
+                                }
+                            )
                             .clickableWithoutRipple(
                                 onClick = {
                                     viewModel.onCodeLineClick(index + 1)

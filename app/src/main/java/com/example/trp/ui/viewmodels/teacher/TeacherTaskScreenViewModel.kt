@@ -292,16 +292,10 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
     }
 
     fun onDeleteCommentLineClick(index: Int) {
-        if (commentList[index].lines?.isEmpty() == true) {
-            commentList = commentList.filterIndexed { currentIndex, _ ->
-                currentIndex != index
-            }
-        } else {
-            commentList = commentList.filterIndexed { currentIndex, _ ->
-                currentIndex != index
-            }
-            updateCodeListSelectedLines()
+        commentList = commentList.filterIndexed { currentIndex, _ ->
+            currentIndex != index
         }
+        updateCodeListSelectedLines()
     }
 
     fun onRejectButtonClick() {
