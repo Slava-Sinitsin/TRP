@@ -19,7 +19,10 @@ fun NavGraphBuilder.groupsNavGraph(navController: NavHostController) {
     ) {
         composable(route = "${AdminGroupsTeachersScreen.GroupInfo.route}/{$ADMIN_GROUP_ID}") {
             val groupId = it.arguments?.getInt(ADMIN_GROUP_ID)
-            groupId?.let { id -> GroupInfoScreen(groupId = id) }
+            groupId?.let { id ->
+                GroupInfoScreen(groupId = id,
+                    onCreateStudentClick = { id -> })
+            }
         }
     }
 }

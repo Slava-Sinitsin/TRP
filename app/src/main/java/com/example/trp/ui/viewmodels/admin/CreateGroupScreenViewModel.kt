@@ -6,12 +6,14 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.trp.data.mappers.tasks.StudentRegistration
+import com.example.trp.data.mappers.tasks.PostNewStudentBody
+import com.example.trp.data.mappers.teacherappointments.PostNewGroupBody
 import com.example.trp.data.repository.UserAPIRepositoryImpl
 import com.example.trp.ui.components.tabs.CreateGroupTabs
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 class CreateGroupScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl
@@ -31,13 +33,15 @@ class CreateGroupScreenViewModel @AssistedInject constructor(
         private set
     var studentUsername by mutableStateOf("")
         private set
+    var usernameCorrect by mutableStateOf(false)
+        private set
     var studentPassword by mutableStateOf("")
         private set
     var groupApplyButtonEnabled by mutableStateOf(false)
         private set
     var studentApplyButtonEnabled by mutableStateOf(false)
         private set
-    var students by mutableStateOf(emptyList<StudentRegistration>())
+    var students by mutableStateOf(emptyList<PostNewStudentBody>())
         private set
     var studentEditMode by mutableStateOf(false)
         private set
@@ -75,7 +79,7 @@ class CreateGroupScreenViewModel @AssistedInject constructor(
     fun createNewStudent() {
         studentFullName = ""
         studentUsername = ""
-        studentPassword = ""
+        studentPassword = generatePassword()
         checkStudentFields()
         setPagerState(1)
     }
@@ -99,17 +103,59 @@ class CreateGroupScreenViewModel @AssistedInject constructor(
 
     fun updateStudentFullNameValue(newStudentFullName: String) {
         studentFullName = newStudentFullName
+        val newStudentUsername = transliterate(newStudentFullName)
+        usernameCorrect = isValidUsername(newStudentUsername)
+        studentUsername = newStudentUsername
+        checkDuplicatesUsername()
         checkStudentFields()
     }
 
+    private fun transliterate(input: String): String {
+        val cyrillic = arrayOf(
+            "а", "б", "в", "г", "д", "е", "ё", "ж", "з", "и", "й", "к", "л", "м", "н",
+            "о", "п", "р", "с", "т", "у", "ф", "х", "ц", "ч", "ш", "щ", "ъ", "ы", "ь",
+            "э", "ю", "я", "А", "Б", "В", "Г", "Д", "Е", "Ё", "Ж", "З", "И", "Й", "К",
+            "Л", "М", "Н", "О", "П", "Р", "С", "Т", "У", "Ф", "Х", "Ц", "Ч", "Ш", "Щ",
+            "Ъ", "Ы", "Ь", "Э", "Ю", "Я", " ", "-"
+        )
+        val latin = arrayOf(
+            "a", "b", "v", "g", "d", "e", "e", "zh", "z", "i", "y", "k", "l", "m", "n",
+            "o", "p", "r", "s", "t", "u", "f", "kh", "ts", "ch", "sh", "sch", "'", "y",
+            "'", "e", "yu", "ya", "a", "b", "v", "g", "d", "e", "e", "zh", "z", "i", "y",
+            "k", "l", "m", "n", "o", "p", "r", "s", "t", "u", "f", "kh", "ts", "ch", "sh",
+            "sch", "'", "y", "'", "e", "yu", "ya", "_", "_"
+        )
+        val result = StringBuilder()
+        input.lowercase(Locale.getDefault()).forEach { char ->
+            val index = cyrillic.indexOf(char.toString())
+            result.append(if (index != -1) latin[index] else char)
+        }
+        return result.toString()
+    }
+
     fun updateStudentUsernameValue(newStudentUsername: String) {
+        usernameCorrect = isValidUsername(newStudentUsername)
         studentUsername = newStudentUsername
+        checkDuplicatesUsername()
         checkStudentFields()
+    }
+
+    private fun isValidUsername(input: String): Boolean {
+        val regex = Regex("[a-zA-Z0-9_]+")
+        return !input.contains(" ") && regex.matches(input)
     }
 
     fun updateStudentPasswordValue(newStudentPassword: String) {
         studentPassword = newStudentPassword
         checkStudentFields()
+    }
+
+    private fun generatePassword(): String { // TODO
+        // val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+        return "rebustubus"
+        /*(1..10)
+        .map { chars.random() }
+        .joinToString("")*/
     }
 
     private fun checkGroupFields() {
@@ -118,11 +164,21 @@ class CreateGroupScreenViewModel @AssistedInject constructor(
 
     private fun checkStudentFields() {
         studentApplyButtonEnabled =
-            (studentFullName.isNotEmpty() && studentUsername.isNotEmpty() && studentPassword.isNotEmpty())
+            (studentFullName.isNotEmpty()
+                    && studentUsername.isNotEmpty()
+                    && studentPassword.isNotEmpty()
+                    && usernameCorrect)
     }
 
-    fun onApplyCreateStudentClick() { // TODO
-        students += StudentRegistration(
+    private fun checkDuplicatesUsername() {
+        val usernames = students.map { it.username }
+        if (usernames.count { it == studentUsername } > 0) {
+            usernameCorrect = false
+        }
+    }
+
+    fun onApplyCreateStudentClick() {
+        students += PostNewStudentBody(
             fullName = studentFullName,
             username = studentUsername,
             password = studentPassword
@@ -146,9 +202,9 @@ class CreateGroupScreenViewModel @AssistedInject constructor(
         setPagerState(1)
     }
 
-    fun onApplyEditStudentClick() { // TODO
+    fun onApplyEditStudentClick() {
         students = students.toMutableList().also {
-            it[studentEditIndex] = StudentRegistration(
+            it[studentEditIndex] = PostNewStudentBody(
                 fullName = studentFullName,
                 username = studentUsername,
                 password = studentPassword
@@ -164,6 +220,13 @@ class CreateGroupScreenViewModel @AssistedInject constructor(
     }
 
     fun onApplyCreateGroupClick() { // TODO
-
+        viewModelScope.launch {
+            repository.postNewGroup(
+                PostNewGroupBody(
+                    name = groupName,
+                    students = students
+                )
+            )
+        }
     }
 }

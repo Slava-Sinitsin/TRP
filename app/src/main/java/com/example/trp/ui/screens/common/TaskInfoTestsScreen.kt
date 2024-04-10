@@ -32,6 +32,8 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -679,10 +681,28 @@ fun Test(
                         )
                     }
                     Text(
-                        text = "Test ${index + 1}",
+                        text = "Test ${viewModel.tests.size - index}",
                         color = TRPTheme.colors.primaryText,
                         fontSize = 25.sp
                     )
+                    if (viewModel.getTest(index).isOpen == true) {
+                        Icon(
+                            modifier = Modifier
+                                .padding(start = 5.dp)
+                                .alpha(0.6f),
+                            imageVector = Icons.Filled.LockOpen,
+                            contentDescription = "This test is lock"
+                        )
+                    } else {
+                        Icon(
+                            modifier = Modifier
+                                .padding(start = 5.dp)
+                                .alpha(0.6f),
+                            imageVector = Icons.Filled.Lock,
+                            contentDescription = "This test is unlock"
+                        )
+                    }
+
                 }
                 IconButton(
                     modifier = Modifier.rotate(rotationState),

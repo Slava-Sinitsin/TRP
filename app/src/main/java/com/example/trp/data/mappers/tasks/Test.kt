@@ -6,5 +6,6 @@ data class Test(
     @SerializedName("id") val id: Int? = null,
     @SerializedName("labWorkVariantId") val taskId: Int? = null,
     @SerializedName("input") val input: String? = null,
-    @SerializedName("output") val output: String? = null
+    @SerializedName("output") val output: String? = null,
+    @SerializedName("open") val isOpen: Boolean? = null,
 )

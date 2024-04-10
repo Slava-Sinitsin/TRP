@@ -65,7 +65,7 @@ fun TeamsScreen(
         modifier = Modifier
             .fillMaxSize(),
         topBar = {
-            TeamsTopBar(
+            TeamsTopAppBar(
                 viewModel = viewModel,
                 onCreateTeamClick = onCreateTeamClick,
                 navController = navController
@@ -82,7 +82,7 @@ fun TeamsScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TeamsTopBar(
+fun TeamsTopAppBar(
     viewModel: TeamsScreenViewModel,
     onCreateTeamClick: (groupId: Int) -> Unit,
     navController: NavHostController

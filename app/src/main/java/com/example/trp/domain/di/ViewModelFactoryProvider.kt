@@ -6,9 +6,10 @@ import com.example.trp.ui.viewmodels.admin.AdminGroupsTasksScreenViewModel
 import com.example.trp.ui.viewmodels.admin.AdminWelcomeScreenViewModel
 import com.example.trp.ui.viewmodels.admin.CreateGroupScreenViewModel
 import com.example.trp.ui.viewmodels.admin.CreateTeacherScreenViewModel
+import com.example.trp.ui.viewmodels.admin.GroupInfoScreenViewModel
 import com.example.trp.ui.viewmodels.admin.GroupsTeachersScreenViewModel
-import com.example.trp.ui.viewmodels.common.CreateTaskScreenViewModel
 import com.example.trp.ui.viewmodels.common.CreateNewTestScreenViewModel
+import com.example.trp.ui.viewmodels.common.CreateTaskScreenViewModel
 import com.example.trp.ui.viewmodels.common.TaskInfoTestsScreenViewModel
 import com.example.trp.ui.viewmodels.student.StudentDisciplinesScreenViewModel
 import com.example.trp.ui.viewmodels.student.StudentWelcomeScreenViewModel
@@ -19,6 +20,7 @@ import com.example.trp.ui.viewmodels.teacher.CreateLabViewModel
 import com.example.trp.ui.viewmodels.teacher.CreateTeamScreenViewModel
 import com.example.trp.ui.viewmodels.teacher.TeacherDisciplinesScreenViewModel
 import com.example.trp.ui.viewmodels.teacher.TeacherGroupsLabsScreenViewModel
+import com.example.trp.ui.viewmodels.teacher.TeacherHomeScreenViewModel
 import com.example.trp.ui.viewmodels.teacher.TeacherTaskScreenViewModel
 import com.example.trp.ui.viewmodels.teacher.TeacherTasksScreenViewModel
 import com.example.trp.ui.viewmodels.teacher.TeacherWelcomeScreenViewModel
@@ -48,6 +50,7 @@ interface ViewModelFactoryProvider {
     fun createTeamScreenViewModelFactory(): CreateTeamScreenViewModel.Factory
     fun createLabViewModelFactory(): CreateLabViewModel.Factory
     fun teacherTasksScreenViewModelFactory(): TeacherTasksScreenViewModel.Factory
+    fun teacherHomeScreenViewModelFactory(): TeacherHomeScreenViewModel.Factory
 
     fun adminWelcomeScreenViewModelFactory(): AdminWelcomeScreenViewModel.Factory
     fun adminDisciplinesScreenViewModelFactory(): AdminDisciplinesScreenViewModel.Factory
@@ -57,4 +60,5 @@ interface ViewModelFactoryProvider {
     fun groupsTeachersScreenViewModelFactory(): GroupsTeachersScreenViewModel.Factory
     fun createGroupScreenViewModelFactory(): CreateGroupScreenViewModel.Factory
     fun createTeacherScreenViewModelFactory(): CreateTeacherScreenViewModel.Factory
+    fun groupInfoScreenViewModelFactory(): GroupInfoScreenViewModel.Factory
 }

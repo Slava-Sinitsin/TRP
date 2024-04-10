@@ -76,7 +76,7 @@ fun CreateGroupScreen(navController: NavHostController) {
             .fillMaxSize()
             .clearFocusOnTap(),
         topBar = {
-            CreateGroupScreenTopBar(
+            CreateGroupScreenTopAppBar(
                 viewModel = viewModel,
                 navController = navController
             )
@@ -106,7 +106,7 @@ fun CreateGroupScreen(navController: NavHostController) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateGroupScreenTopBar(
+fun CreateGroupScreenTopAppBar(
     viewModel: CreateGroupScreenViewModel,
     navController: NavHostController
 ) {
@@ -418,7 +418,7 @@ fun CreateStudentScreen(
                 errorIndicatorColor = TRPTheme.colors.errorColor,
                 errorCursorColor = TRPTheme.colors.primaryText
             ),
-            isError = viewModel.studentUsername.isEmpty(),
+            isError = viewModel.studentUsername.isEmpty() || !viewModel.usernameCorrect,
             singleLine = true
         )
         Text(

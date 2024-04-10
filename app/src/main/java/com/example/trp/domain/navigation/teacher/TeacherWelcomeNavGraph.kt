@@ -23,11 +23,12 @@ fun TeacherWelcomeNavGraph(navController: NavHostController) {
             })
         }
         composable(route = TeacherBottomBarScreen.Home.route) {
-            TeacherHomeScreen()
+            TeacherHomeScreen(onEventClick = { taskId -> })
         }
         composable(route = TeacherBottomBarScreen.Me.route) {
             MeScreen()
         }
         groupsNavGraph(navController = navController)
+        eventNavGraph(navController = navController)
     }
 }

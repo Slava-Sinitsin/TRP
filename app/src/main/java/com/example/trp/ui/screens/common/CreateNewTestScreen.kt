@@ -2,16 +2,22 @@ package com.example.trp.ui.screens.common
 
 import android.app.Activity
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -22,8 +28,10 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
@@ -59,13 +67,15 @@ fun CreateNewTestScreen(
             .fillMaxSize(),
         topBar = { AddNewTestTopAppBar(viewModel = viewModel, navController = navController) }
     ) { scaffoldPadding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
+                .padding(top = scaffoldPadding.calculateTopPadding())
                 .fillMaxSize()
                 .background(TRPTheme.colors.primaryBackground)
         ) {
-            InputField(viewModel = viewModel, paddingValues = scaffoldPadding)
-            OutputField(viewModel = viewModel)
+            item { IsOpenToggle(viewModel = viewModel) }
+            item { InputField(viewModel = viewModel) }
+            item { OutputField(viewModel = viewModel) }
         }
     }
 }
@@ -114,31 +124,88 @@ fun AddNewTestTopAppBar(
     )
 }
 
+@Composable
+fun IsOpenToggle(viewModel: CreateNewTestScreenViewModel) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 10.dp, start = 5.dp, end = 5.dp)
+            .clip(RoundedCornerShape(30.dp))
+            .background(TRPTheme.colors.secondaryBackground),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            modifier = Modifier
+                .padding(start = 5.dp)
+                .alpha(0.6f),
+            text = "Open",
+            color = TRPTheme.colors.primaryText,
+            fontSize = 15.sp,
+        )
+        Box(
+            modifier = Modifier
+                .wrapContentSize()
+                .clip(RoundedCornerShape(30.dp))
+        ) {
+            Row(
+                modifier = Modifier
+                    .clip(shape = RoundedCornerShape(30.dp))
+                    .background(TRPTheme.colors.cardButtonColor)
+            ) {
+                viewModel.isOpenList.forEach { text ->
+                    Button(
+                        modifier = Modifier
+                            .clip(shape = RoundedCornerShape(30.dp))
+                            .background(
+                                if (text == viewModel.isOpen) {
+                                    TRPTheme.colors.myYellow
+                                } else {
+                                    TRPTheme.colors.cardButtonColor
+                                }
+                            ),
+                        onClick = { viewModel.updateIsOpenValue(text) },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (text == viewModel.isOpen) {
+                                TRPTheme.colors.myYellow
+                            } else {
+                                TRPTheme.colors.cardButtonColor
+                            }
+                        )
+                    ) {
+                        Text(
+                            text = text,
+                            color = TRPTheme.colors.primaryText
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InputField(
-    viewModel: CreateNewTestScreenViewModel,
-    paddingValues: PaddingValues
-) {
-    Column(modifier = Modifier.padding(top = paddingValues.calculateTopPadding())) {
+fun InputField(viewModel: CreateNewTestScreenViewModel) {
+    Column(modifier = Modifier.padding(horizontal = 5.dp)) {
         viewModel.argumentsWithRegex.forEachIndexed { index, _ ->
             Text(
+                modifier = Modifier
+                    .alpha(0.6f)
+                    .padding(top = 10.dp),
                 text = "Argument ${index + 1}: ${viewModel.getArgument(index).type} ${
                     viewModel.getArgument(
                         index
                     ).name
                 }",
                 color = TRPTheme.colors.primaryText,
-                fontSize = 15.sp,
-                modifier = Modifier
-                    .alpha(0.6f)
-                    .padding(start = 5.dp, top = 10.dp)
+                fontSize = 15.sp
             )
             OutlinedTextField(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(100.dp)
-                    .padding(vertical = 5.dp, horizontal = 5.dp),
+                    .padding(vertical = 5.dp),
                 textStyle = TextStyle.Default.copy(fontSize = 15.sp),
                 value = viewModel.getArgument(index).value ?: "",
                 onValueChange = { viewModel.updateInputValue(index = index, newInputValue = it) },
@@ -172,40 +239,42 @@ fun InputField(
 fun OutputField(
     viewModel: CreateNewTestScreenViewModel
 ) {
-    Text(
-        text = "Output: ${viewModel.task.returnType}",
-        color = TRPTheme.colors.primaryText,
-        fontSize = 15.sp,
-        modifier = Modifier
-            .alpha(0.6f)
-            .padding(start = 5.dp, top = 10.dp)
-    )
-    OutlinedTextField(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(100.dp)
-            .padding(vertical = 5.dp, horizontal = 5.dp),
-        textStyle = TextStyle.Default.copy(fontSize = 15.sp),
-        value = viewModel.outputValue,
-        onValueChange = { viewModel.updateOutputValue(it) },
-        placeholder = {
-            Text(
-                "Output",
-                color = TRPTheme.colors.primaryText,
-                modifier = Modifier.alpha(0.6f)
-            )
-        },
-        shape = RoundedCornerShape(8.dp),
-        colors = TextFieldDefaults.textFieldColors(
-            containerColor = TRPTheme.colors.secondaryBackground,
-            textColor = TRPTheme.colors.primaryText,
-            cursorColor = TRPTheme.colors.primaryText,
-            focusedIndicatorColor = Color.Transparent,
-            disabledIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-            errorIndicatorColor = TRPTheme.colors.errorColor,
-            errorCursorColor = TRPTheme.colors.primaryText
-        ),
-        isError = !viewModel.outputMatchRegex || viewModel.outputValue.isEmpty()
-    )
+    Column(modifier = Modifier.padding(horizontal = 5.dp)) {
+        Text(
+            modifier = Modifier
+                .alpha(0.6f)
+                .padding(top = 10.dp),
+            text = "Output: ${viewModel.task.returnType}",
+            color = TRPTheme.colors.primaryText,
+            fontSize = 15.sp
+        )
+        OutlinedTextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(100.dp)
+                .padding(vertical = 5.dp),
+            textStyle = TextStyle.Default.copy(fontSize = 15.sp),
+            value = viewModel.outputValue,
+            onValueChange = { viewModel.updateOutputValue(it) },
+            placeholder = {
+                Text(
+                    "Output",
+                    color = TRPTheme.colors.primaryText,
+                    modifier = Modifier.alpha(0.6f)
+                )
+            },
+            shape = RoundedCornerShape(8.dp),
+            colors = TextFieldDefaults.textFieldColors(
+                containerColor = TRPTheme.colors.secondaryBackground,
+                textColor = TRPTheme.colors.primaryText,
+                cursorColor = TRPTheme.colors.primaryText,
+                focusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                errorIndicatorColor = TRPTheme.colors.errorColor,
+                errorCursorColor = TRPTheme.colors.primaryText
+            ),
+            isError = !viewModel.outputMatchRegex || viewModel.outputValue.isEmpty()
+        )
+    }
 }

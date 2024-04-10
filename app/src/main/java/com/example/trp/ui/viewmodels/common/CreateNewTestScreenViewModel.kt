@@ -24,6 +24,10 @@ class CreateNewTestScreenViewModel @AssistedInject constructor(
     var task by mutableStateOf(Task())
         private set
 
+    var isOpenList by mutableStateOf(listOf("Yes", "No"))
+        private set
+    var isOpen by mutableStateOf(isOpenList[1])
+        private set
     private var arguments by mutableStateOf(emptyList<Argument>())
     private var argumentsRegexes by mutableStateOf(emptyList<String>())
     var argumentsWithRegex by mutableStateOf(emptyList<ArgumentWithRegex>())
@@ -79,6 +83,10 @@ class CreateNewTestScreenViewModel @AssistedInject constructor(
         }
     }
 
+    fun updateIsOpenValue(newIsOpenValue: String) {
+        isOpen = newIsOpenValue
+    }
+
     fun updateInputValue(index: Int, newInputValue: String) {
         argumentsWithRegex = argumentsWithRegex.mapIndexed { currentIndex, item ->
             if (currentIndex == index) {
@@ -128,7 +136,8 @@ class CreateNewTestScreenViewModel @AssistedInject constructor(
                 Test(
                     taskId = taskId,
                     input = argumentsWithRegex.joinToString(", ") { it.value.toString() },
-                    output = outputValue
+                    output = outputValue,
+                    isOpen = isOpen == "Yes"
                 )
             )
         }

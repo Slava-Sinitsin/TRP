@@ -17,10 +17,12 @@ import com.example.trp.data.mappers.tasks.Lab
 import com.example.trp.data.mappers.tasks.LabsResponse
 import com.example.trp.data.mappers.tasks.Output
 import com.example.trp.data.mappers.tasks.PostLabResponse
+import com.example.trp.data.mappers.tasks.PostNewStudentBody
 import com.example.trp.data.mappers.tasks.PostTeamBody
 import com.example.trp.data.mappers.tasks.PostTeamResponse
 import com.example.trp.data.mappers.tasks.PostTestResponse
 import com.example.trp.data.mappers.tasks.Student
+import com.example.trp.data.mappers.tasks.StudentResponse
 import com.example.trp.data.mappers.tasks.Students
 import com.example.trp.data.mappers.tasks.Task
 import com.example.trp.data.mappers.tasks.TaskResponse
@@ -31,8 +33,11 @@ import com.example.trp.data.mappers.tasks.Test
 import com.example.trp.data.mappers.tasks.TestsResponse
 import com.example.trp.data.mappers.tasks.solution.Solution
 import com.example.trp.data.mappers.tasks.solution.SolutionResponse
+import com.example.trp.data.mappers.teacherappointments.DeleteGroupResponse
 import com.example.trp.data.mappers.teacherappointments.Group
 import com.example.trp.data.mappers.teacherappointments.GroupsResponse
+import com.example.trp.data.mappers.teacherappointments.PostGroupResponse
+import com.example.trp.data.mappers.teacherappointments.PostNewGroupBody
 import com.example.trp.data.mappers.teacherappointments.Teacher
 import com.example.trp.data.mappers.teacherappointments.TeacherAppointmentsData
 import com.example.trp.data.mappers.teacherappointments.TeacherAppointmentsResponse
@@ -220,6 +225,24 @@ class UserAPIRepositoryImpl(
 
     override suspend fun getTeamTasks(token: String, teamId: Int): Response<Tasks> {
         return ApiService.userAPI.getTeamTasks("Bearer $token", teamId)
+    }
+
+    override suspend fun postNewGroup(
+        token: String,
+        group: PostNewGroupBody
+    ): Response<PostGroupResponse> {
+        return ApiService.userAPI.postNewGroup("Bearer $token", group)
+    }
+
+    override suspend fun postNewStudent(
+        token: String,
+        student: PostNewStudentBody
+    ): Response<StudentResponse> {
+        return ApiService.userAPI.postNewStudent("Bearer $token", student)
+    }
+
+    override suspend fun deleteGroup(token: String, id: Int): Response<DeleteGroupResponse> {
+        return ApiService.userAPI.deleteGroup("Bearer $token", id)
     }
 
     suspend fun getActiveUser(): User {
@@ -482,5 +505,17 @@ class UserAPIRepositoryImpl(
             }
         }
         return tasks
+    }
+
+    suspend fun postNewGroup(group: PostNewGroupBody): Response<PostGroupResponse>? {
+        return user.token?.let { token -> postNewGroup(token, group) }
+    }
+
+    suspend fun postNewStudent(student: PostNewStudentBody): Response<StudentResponse>? {
+        return user.token?.let { token -> postNewStudent(token, student) }
+    }
+
+    suspend fun deleteGroup(id: Int): DeleteGroupResponse {
+        return user.token?.let { token -> deleteGroup(token, id).body() } ?: DeleteGroupResponse()
     }
 }

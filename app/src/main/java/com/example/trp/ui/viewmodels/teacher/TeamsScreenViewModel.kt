@@ -73,6 +73,21 @@ class TeamsScreenViewModel @AssistedInject constructor(
         }
     }
 
+    fun onRefresh() {
+        viewModelScope.launch {
+            isRefreshing = true
+            students = repository.getStudents(groupId = groupId).sortedBy { it.fullName }
+            group =
+                repository.teacherAppointments.find { it.group?.id == groupId }?.group ?: Group()
+            teams = repository.getTeams(disciplineId)
+            showTeams = teams.mapNotNull { team ->
+                val teamStudents = students.filter { it.id in team.studentIds.orEmpty() }
+                ShowTeam(id = team.id, students = teamStudents).takeIf { teamStudents.isNotEmpty() }
+            }
+            isRefreshing = false
+        }
+    }
+
     fun getTeam(index: Int): ShowTeam {
         return showTeams[index]
     }
@@ -87,21 +102,6 @@ class TeamsScreenViewModel @AssistedInject constructor(
 
     fun onDismissRequest() {
         isMenuShow = false
-    }
-
-    fun onRefresh() {
-        viewModelScope.launch {
-            isRefreshing = true
-            students = repository.getStudents(groupId = groupId).sortedBy { it.fullName }
-            group =
-                repository.teacherAppointments.find { it.group?.id == groupId }?.group ?: Group()
-            teams = repository.getTeams(disciplineId)
-            showTeams = teams.mapNotNull { team ->
-                val teamStudents = students.filter { it.id in team.studentIds.orEmpty() }
-                ShowTeam(id = team.id, students = teamStudents).takeIf { teamStudents.isNotEmpty() }
-            }
-            isRefreshing = false
-        }
     }
 
     fun onEveryoneAppointButtonClick() {

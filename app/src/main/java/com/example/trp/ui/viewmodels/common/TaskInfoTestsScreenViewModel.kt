@@ -86,7 +86,7 @@ class TaskInfoTestsScreenViewModel @AssistedInject constructor(
             taskDescription = task.description ?: ""
             taskFunctionName = task.functionName ?: ""
             taskLanguage = task.language ?: ""
-            tests = repository.getTests(taskId)
+            tests = repository.getTests(taskId).sortedByDescending { it.id }
             testsCheckBoxStates = List(tests.size) { CheckBoxState() }
         }
     }

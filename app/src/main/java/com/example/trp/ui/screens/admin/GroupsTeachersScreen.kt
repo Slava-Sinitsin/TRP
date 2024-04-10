@@ -48,10 +48,7 @@ import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.admin.GroupsTeachersScreenViewModel
 import dagger.hilt.android.EntryPointAccessors
 
-@OptIn(
-    ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class,
-    ExperimentalMaterialApi::class
-)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun GroupsTeachersScreen(
     onCreateGroupClick: () -> Unit,
@@ -156,8 +153,8 @@ fun GroupsScreen(
     onGroupClick: (groupId: Int) -> Unit
 ) {
     val pullRefreshState = rememberPullRefreshState(
-        refreshing = viewModel.groupsIsRefreshing,
-        onRefresh = { viewModel.onRefreshGroups() }
+        refreshing = viewModel.isRefreshing,
+        onRefresh = { viewModel.onRefresh() }
     )
     Box(
         modifier = Modifier
@@ -167,7 +164,7 @@ fun GroupsScreen(
         LazyColumn(
             modifier = Modifier.fillMaxSize()
         ) {
-            item { CreateGroup(viewModel = viewModel, onCreateGroupClick = onCreateGroupClick) }
+            item { CreateGroup(onCreateGroupClick = onCreateGroupClick) }
             items(count = viewModel.groups.size) { index ->
                 Group(viewModel = viewModel, index = index, onGroupClick = onGroupClick)
             }
@@ -175,7 +172,7 @@ fun GroupsScreen(
         }
         PullRefreshIndicator(
             modifier = Modifier.align(Alignment.TopCenter),
-            refreshing = viewModel.groupsIsRefreshing,
+            refreshing = viewModel.isRefreshing,
             state = pullRefreshState,
             backgroundColor = TRPTheme.colors.primaryBackground,
             contentColor = TRPTheme.colors.myYellow
@@ -184,10 +181,7 @@ fun GroupsScreen(
 }
 
 @Composable
-fun CreateGroup(
-    viewModel: GroupsTeachersScreenViewModel,
-    onCreateGroupClick: () -> Unit
-) {
+fun CreateGroup(onCreateGroupClick: () -> Unit) {
     Button(
         modifier = Modifier
             .padding(8.dp)
@@ -255,8 +249,8 @@ fun TeachersScreen(
     onTeacherClick: (id: Int) -> Unit
 ) {
     val pullRefreshState = rememberPullRefreshState(
-        refreshing = viewModel.teachersIsRefreshing,
-        onRefresh = { viewModel.onRefreshTeachers() }
+        refreshing = viewModel.isRefreshing,
+        onRefresh = { viewModel.onRefresh() }
     )
     Box(
         modifier = Modifier
@@ -265,10 +259,7 @@ fun TeachersScreen(
     ) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             item {
-                CreateTeacher(
-                    viewModel = viewModel,
-                    onCreateTeacherClick = onCreateTeacherClick
-                )
+                CreateTeacher(onCreateTeacherClick = onCreateTeacherClick)
             }
             items(count = viewModel.teachers.size) { index ->
                 Teacher(viewModel = viewModel, index = index, onTeacherClick = onTeacherClick)
@@ -277,7 +268,7 @@ fun TeachersScreen(
         }
         PullRefreshIndicator(
             modifier = Modifier.align(Alignment.TopCenter),
-            refreshing = viewModel.teachersIsRefreshing,
+            refreshing = viewModel.isRefreshing,
             state = pullRefreshState,
             backgroundColor = TRPTheme.colors.primaryBackground,
             contentColor = TRPTheme.colors.myYellow
@@ -286,10 +277,7 @@ fun TeachersScreen(
 }
 
 @Composable
-fun CreateTeacher(
-    viewModel: GroupsTeachersScreenViewModel,
-    onCreateTeacherClick: () -> Unit
-) {
+fun CreateTeacher(onCreateTeacherClick: () -> Unit) {
     Button(
         modifier = Modifier
             .padding(8.dp)

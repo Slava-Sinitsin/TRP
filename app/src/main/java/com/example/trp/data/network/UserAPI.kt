@@ -11,9 +11,11 @@ import com.example.trp.data.mappers.tasks.Lab
 import com.example.trp.data.mappers.tasks.LabsResponse
 import com.example.trp.data.mappers.tasks.Output
 import com.example.trp.data.mappers.tasks.PostLabResponse
+import com.example.trp.data.mappers.tasks.PostNewStudentBody
 import com.example.trp.data.mappers.tasks.PostTeamBody
 import com.example.trp.data.mappers.tasks.PostTeamResponse
 import com.example.trp.data.mappers.tasks.PostTestResponse
+import com.example.trp.data.mappers.tasks.StudentResponse
 import com.example.trp.data.mappers.tasks.Students
 import com.example.trp.data.mappers.tasks.Task
 import com.example.trp.data.mappers.tasks.TaskResponse
@@ -22,7 +24,10 @@ import com.example.trp.data.mappers.tasks.TeamResponse
 import com.example.trp.data.mappers.tasks.Test
 import com.example.trp.data.mappers.tasks.TestsResponse
 import com.example.trp.data.mappers.tasks.solution.SolutionResponse
+import com.example.trp.data.mappers.teacherappointments.DeleteGroupResponse
 import com.example.trp.data.mappers.teacherappointments.GroupsResponse
+import com.example.trp.data.mappers.teacherappointments.PostGroupResponse
+import com.example.trp.data.mappers.teacherappointments.PostNewGroupBody
 import com.example.trp.data.mappers.teacherappointments.TeacherAppointmentsResponse
 import com.example.trp.data.mappers.teacherappointments.TeacherResponse
 import com.example.trp.data.mappers.user.AuthRequest
@@ -185,4 +190,22 @@ interface UserAPI {
         @Header("Authorization") token: String,
         @Path("id") teamId: Int
     ): Response<Tasks>
+
+    @POST("api/v2/groups/create-with-students")
+    suspend fun postNewGroup(
+        @Header("Authorization") token: String,
+        @Body group: PostNewGroupBody
+    ): Response<PostGroupResponse>
+
+    @POST("admin/registration/student")
+    suspend fun postNewStudent(
+        @Header("Authorization") token: String,
+        @Body student: PostNewStudentBody
+    ): Response<StudentResponse>
+
+    @DELETE("api/v2/groups/{id}")
+    suspend fun deleteGroup(
+        @Header("Authorization") token: String,
+        @Body id: Int
+    ): Response<DeleteGroupResponse>
 }
