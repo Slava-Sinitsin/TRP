@@ -154,7 +154,17 @@ class CreateGroupScreenViewModel @AssistedInject constructor(
 
     private fun isValidUsername(input: String): Boolean {
         val regex = Regex("[a-zA-Z0-9_]+")
-        return !input.contains(" ") && regex.matches(input) && input !in conflictUsernameList
+        return !input.contains(" ")
+                && regex.matches(input)
+                && input !in conflictUsernameList
+                && input !in students.map { it.username }
+    }
+
+    private fun checkDuplicatesUsername(newStudentUsername: String) {
+        val usernames = students.map { it.username }
+        if (usernames.count { it == newStudentUsername } > 0 && newStudentUsername != studentUsername) {
+            usernameCorrect = false
+        }
     }
 
     fun updateStudentPasswordValue(newStudentPassword: String) {
@@ -182,13 +192,6 @@ class CreateGroupScreenViewModel @AssistedInject constructor(
                     && studentUsername.isNotEmpty()
                     && studentPassword.isNotEmpty()
                     && usernameCorrect)
-    }
-
-    private fun checkDuplicatesUsername(newStudentUsername: String) {
-        val usernames = students.map { it.username }
-        if (usernames.count { it == newStudentUsername } > 0 && newStudentUsername != studentUsername) {
-            usernameCorrect = false
-        }
     }
 
     fun onApplyCreateStudentClick() {

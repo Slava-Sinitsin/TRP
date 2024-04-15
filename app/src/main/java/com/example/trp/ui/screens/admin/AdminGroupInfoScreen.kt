@@ -22,7 +22,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -30,33 +29,30 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.trp.domain.di.ViewModelFactoryProvider
 import com.example.trp.ui.theme.TRPTheme
-import com.example.trp.ui.viewmodels.admin.GroupInfoScreenViewModel
+import com.example.trp.ui.viewmodels.admin.AdminGroupInfoScreenViewModel
 import dagger.hilt.android.EntryPointAccessors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GroupInfoScreen(
-    groupId: Int,
-    onCreateStudentClick: (groupId: Int) -> Unit // TODO
+fun AdminGroupInfoScreen(
+    groupId: Int
 ) {
     val factory = EntryPointAccessors.fromActivity(
         LocalContext.current as Activity,
         ViewModelFactoryProvider::class.java
-    ).groupInfoScreenViewModelFactory()
-    val viewModel: GroupInfoScreenViewModel = viewModel(
-        factory = GroupInfoScreenViewModel.provideGroupInfoScreenViewModel(
+    ).adminGroupInfoScreenViewModelFactory()
+    val viewModel: AdminGroupInfoScreenViewModel = viewModel(
+        factory = AdminGroupInfoScreenViewModel.provideAdminGroupInfoScreenViewModel(
             factory,
             groupId
         )
     )
-
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize()
     ) { scaffoldPadding ->
         Students(
             viewModel = viewModel,
-            paddingValues = scaffoldPadding,
-            onCreateStudentClick = onCreateStudentClick
+            paddingValues = scaffoldPadding
         )
     }
 }
@@ -64,9 +60,8 @@ fun GroupInfoScreen(
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun Students(
-    viewModel: GroupInfoScreenViewModel,
-    paddingValues: PaddingValues,
-    onCreateStudentClick: (groupId: Int) -> Unit
+    viewModel: AdminGroupInfoScreenViewModel,
+    paddingValues: PaddingValues
 ) {
     val pullRefreshState = rememberPullRefreshState(
         refreshing = viewModel.isRefreshing,
@@ -83,12 +78,6 @@ fun Students(
                 .fillMaxSize()
                 .background(TRPTheme.colors.primaryBackground)
         ) {
-            item {
-                AddStudent(
-                    viewModel = viewModel,
-                    onCreateStudentClick = onCreateStudentClick
-                )
-            }
             items(count = viewModel.students.size) { index ->
                 Student(viewModel = viewModel, index = index)
             }
@@ -105,39 +94,9 @@ fun Students(
 }
 
 @Composable
-fun AddStudent(
-    viewModel: GroupInfoScreenViewModel,
-    onCreateStudentClick: (groupId: Int) -> Unit
-) {
-    Button(
-        modifier = Modifier
-            .padding(8.dp)
-            .fillMaxSize(),
-        onClick = { onCreateStudentClick(viewModel.groupId) },
-        elevation = ButtonDefaults.buttonElevation(
-            defaultElevation = 10.dp
-        ),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = TRPTheme.colors.cardButtonColor
-        ),
-        shape = RoundedCornerShape(30.dp)
-    ) {
-        Text(
-            modifier = Modifier
-                .fillMaxSize()
-                .alpha(0.6f),
-            text = "+",
-            color = TRPTheme.colors.primaryText,
-            fontSize = 45.sp,
-            textAlign = TextAlign.Center
-        )
-    }
-}
-
-@Composable
 fun Student(
-    viewModel: GroupInfoScreenViewModel,
-    index: Int,
+    viewModel: AdminGroupInfoScreenViewModel,
+    index: Int
 ) {
     Button(
         modifier = Modifier
@@ -158,7 +117,7 @@ fun Student(
                 .padding(top = 16.dp, bottom = 16.dp)
                 .align(Alignment.CenterVertically),
             textAlign = TextAlign.Start,
-            text = viewModel.getStudents(index = index).fullName ?: "",
+            text = viewModel.getStudent(index = index).fullName ?: "",
             color = TRPTheme.colors.primaryText,
             fontSize = 25.sp
         )

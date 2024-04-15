@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 class AdminDisciplinesScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl
 ) : ViewModel() {
-    var disciplines by mutableStateOf(repository.disciplines)
+    var disciplines by mutableStateOf(emptyList<DisciplineData>())
         private set
 
     @AssistedFactory

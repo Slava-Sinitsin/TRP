@@ -36,16 +36,16 @@ fun AdminWelcomeNavGraph(navController: NavHostController) {
         }
         composable(route = AdminBottomBarScreen.Users.route) {
             GroupsTeachersScreen(
-                onCreateGroupClick = { navController.navigate("users_${Graph.ADMIN_GROUPS}/${ADMIN_CREATE_GROUP}") },
+                onCreateGroupClick = { navController.navigate("users_${Graph.ADMIN_GROUPS}") },
                 onGroupClick = { groupId -> navController.navigate("${Graph.ADMIN_GROUPS}/${groupId}") },
-                onCreateTeacherClick = { navController.navigate("users_${Graph.ADMIN_TEACHERS}/${ADMIN_CREATE_TEACHER}") },
+                onCreateTeacherClick = { navController.navigate("users_${Graph.ADMIN_TEACHERS}") },
                 onTeacherClick = { teacherId -> navController.navigate("${Graph.ADMIN_TEACHERS}/${teacherId}") }
             )
         }
         composable(route = "users_${Graph.ADMIN_GROUPS}/${ADMIN_CREATE_GROUP}") {
             CreateGroupScreen(navController = navController)
         }
-        composable(route = "users_${Graph.ADMIN_TEACHERS}/${ADMIN_CREATE_TEACHER}") {
+        composable(route = "users_${Graph.ADMIN_GROUPS}/${ADMIN_CREATE_TEACHER}") {
             CreateTeacherScreen(navController = navController)
         }
         composable(route = AdminBottomBarScreen.Me.route) {
@@ -55,7 +55,7 @@ fun AdminWelcomeNavGraph(navController: NavHostController) {
             AddNewDisciplineScreen(navController = navController)
         }
         curriculumNavGraph(navController = navController)
-        groupsNavGraph(navController = navController)
-        teacherNavGraph(navController = navController)
+        adminGroupsNavGraph(navController = navController)
+        teachersNavGraph(navController= navController)
     }
 }

@@ -2,11 +2,13 @@ package com.example.trp.domain.di
 
 import com.example.trp.ui.viewmodels.admin.AddNewDisciplineScreenViewModel
 import com.example.trp.ui.viewmodels.admin.AdminDisciplinesScreenViewModel
+import com.example.trp.ui.viewmodels.admin.AdminGroupInfoScreenViewModel
 import com.example.trp.ui.viewmodels.admin.AdminGroupsTasksScreenViewModel
+import com.example.trp.ui.viewmodels.admin.AdminUsersGroupInfoScreenViewModel
 import com.example.trp.ui.viewmodels.admin.AdminWelcomeScreenViewModel
 import com.example.trp.ui.viewmodels.admin.CreateGroupScreenViewModel
+import com.example.trp.ui.viewmodels.admin.CreateStudentScreenViewModel
 import com.example.trp.ui.viewmodels.admin.CreateTeacherScreenViewModel
-import com.example.trp.ui.viewmodels.admin.GroupInfoScreenViewModel
 import com.example.trp.ui.viewmodels.admin.GroupsTeachersScreenViewModel
 import com.example.trp.ui.viewmodels.common.CreateNewTestScreenViewModel
 import com.example.trp.ui.viewmodels.common.CreateTaskScreenViewModel
@@ -60,5 +62,7 @@ interface ViewModelFactoryProvider {
     fun groupsTeachersScreenViewModelFactory(): GroupsTeachersScreenViewModel.Factory
     fun createGroupScreenViewModelFactory(): CreateGroupScreenViewModel.Factory
     fun createTeacherScreenViewModelFactory(): CreateTeacherScreenViewModel.Factory
-    fun groupInfoScreenViewModelFactory(): GroupInfoScreenViewModel.Factory
+    fun adminUsersGroupInfoScreenFactory(): AdminUsersGroupInfoScreenViewModel.Factory
+    fun adminGroupInfoScreenViewModelFactory(): AdminGroupInfoScreenViewModel.Factory
+    fun createStudentScreenViewModel(): CreateStudentScreenViewModel.Factory
 }

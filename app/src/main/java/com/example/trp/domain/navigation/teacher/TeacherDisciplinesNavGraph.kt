@@ -26,7 +26,7 @@ private const val TEAM_ID = "team_id"
 private const val LAB_ID = "lab_id"
 private const val TEACHER_TASK_ID = "teacher_task_id"
 
-fun NavGraphBuilder.groupsNavGraph(navController: NavHostController) {
+fun NavGraphBuilder.teacherGroupsNavGraph(navController: NavHostController) {
     navigation(
         route = "${Graph.TEACHER_DISCIPLINES}/{$TEACHER_DISCIPLINES_ID}",
         arguments = listOf(navArgument(TEACHER_DISCIPLINES_ID) { type = NavType.IntType }),

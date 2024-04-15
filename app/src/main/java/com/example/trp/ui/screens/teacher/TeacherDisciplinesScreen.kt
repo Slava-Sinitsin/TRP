@@ -88,7 +88,7 @@ fun Discipline(
                 .padding(top = 16.dp, bottom = 16.dp)
                 .align(Alignment.CenterVertically),
             textAlign = TextAlign.Start,
-            text = viewModel.getGroup(index = index).name.toString(),
+            text = viewModel.getGroup(index = index).name ?: "",
             color = TRPTheme.colors.primaryText,
             fontSize = 25.sp
         )

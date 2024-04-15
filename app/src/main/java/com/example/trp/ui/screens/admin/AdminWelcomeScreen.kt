@@ -46,7 +46,6 @@ fun AdminWelcomeScreen(navController: NavHostController = rememberNavController(
 
     navController.currentBackStackEntryAsState().value?.destination
     Scaffold(
-        Modifier.padding(),
         bottomBar = {
             AdminNavigationBar(
                 viewModel = viewModel,

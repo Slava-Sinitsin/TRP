@@ -9,9 +9,9 @@ import androidx.navigation.navArgument
 import com.example.trp.domain.navigation.common.Graph
 import com.example.trp.ui.screens.admin.TeacherInfoScreen
 
-private const val ADMIN_TEACHER_ID = "admin_group_id"
+private const val ADMIN_TEACHER_ID = "admin_teacher_id"
 
-fun NavGraphBuilder.teacherNavGraph(navController: NavHostController) {
+fun NavGraphBuilder.teachersNavGraph(navController: NavHostController) {
     navigation(
         route = "${Graph.ADMIN_TEACHERS}/{$ADMIN_TEACHER_ID}",
         arguments = listOf(navArgument(ADMIN_TEACHER_ID) { type = NavType.IntType }),

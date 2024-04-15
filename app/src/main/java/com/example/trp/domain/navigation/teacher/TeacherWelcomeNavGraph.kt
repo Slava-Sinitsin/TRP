@@ -28,7 +28,7 @@ fun TeacherWelcomeNavGraph(navController: NavHostController) {
         composable(route = TeacherBottomBarScreen.Me.route) {
             MeScreen()
         }
-        groupsNavGraph(navController = navController)
+        teacherGroupsNavGraph(navController = navController)
         eventNavGraph(navController = navController)
     }
 }
