@@ -9,7 +9,6 @@ import com.example.trp.ui.screens.admin.AddNewDisciplineScreen
 import com.example.trp.ui.screens.admin.AdminBottomBarScreen
 import com.example.trp.ui.screens.admin.AdminDisciplinesScreen
 import com.example.trp.ui.screens.admin.CreateGroupScreen
-import com.example.trp.ui.screens.admin.CreateTeacherScreen
 import com.example.trp.ui.screens.admin.GroupsTeachersScreen
 import com.example.trp.ui.screens.common.MeScreen
 
@@ -36,18 +35,16 @@ fun AdminWelcomeNavGraph(navController: NavHostController) {
         }
         composable(route = AdminBottomBarScreen.Users.route) {
             GroupsTeachersScreen(
-                onCreateGroupClick = { navController.navigate("users_${Graph.ADMIN_GROUPS}") },
+                onCreateGroupClick = { navController.navigate("users_${Graph.ADMIN_GROUPS}/${ADMIN_CREATE_GROUP}") },
                 onGroupClick = { groupId -> navController.navigate("${Graph.ADMIN_GROUPS}/${groupId}") },
-                onCreateTeacherClick = { navController.navigate("users_${Graph.ADMIN_TEACHERS}") },
+                onCreateTeacherClick = { navController.navigate("users_${Graph.ADMIN_TEACHERS}/${ADMIN_CREATE_TEACHER}") },
                 onTeacherClick = { teacherId -> navController.navigate("${Graph.ADMIN_TEACHERS}/${teacherId}") }
             )
         }
         composable(route = "users_${Graph.ADMIN_GROUPS}/${ADMIN_CREATE_GROUP}") {
             CreateGroupScreen(navController = navController)
         }
-        composable(route = "users_${Graph.ADMIN_GROUPS}/${ADMIN_CREATE_TEACHER}") {
-            CreateTeacherScreen(navController = navController)
-        }
+
         composable(route = AdminBottomBarScreen.Me.route) {
             MeScreen()
         }
@@ -56,6 +53,6 @@ fun AdminWelcomeNavGraph(navController: NavHostController) {
         }
         curriculumNavGraph(navController = navController)
         adminGroupsNavGraph(navController = navController)
-        teachersNavGraph(navController= navController)
+        teachersNavGraph(navController = navController)
     }
 }

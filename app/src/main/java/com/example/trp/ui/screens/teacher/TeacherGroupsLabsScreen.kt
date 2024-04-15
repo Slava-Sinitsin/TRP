@@ -1,9 +1,6 @@
 package com.example.trp.ui.screens.teacher
 
 import android.app.Activity
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -12,11 +9,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -34,11 +28,8 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion.CenterStart
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
@@ -49,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.trp.domain.di.ViewModelFactoryProvider
+import com.example.trp.ui.components.myTabIndicatorOffset
 import com.example.trp.ui.components.tabs.DisabledInteractionSource
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.teacher.TeacherGroupsLabsScreenViewModel
@@ -141,22 +133,6 @@ fun TeacherGroupsLabsScreen(
             }
         }
     }
-}
-
-fun Modifier.myTabIndicatorOffset(
-    currentTabPosition: TabPosition
-): Modifier = composed {
-    val currentTabWidth by animateDpAsState(
-        targetValue = currentTabPosition.width,
-        animationSpec = tween(durationMillis = 100, easing = FastOutSlowInEasing), label = ""
-    )
-    val indicatorOffset by animateDpAsState(
-        targetValue = currentTabPosition.left,
-        animationSpec = tween(durationMillis = 100, easing = FastOutSlowInEasing), label = ""
-    )
-    wrapContentSize(CenterStart)
-        .width(currentTabWidth)
-        .offset(x = indicatorOffset)
 }
 
 @Composable

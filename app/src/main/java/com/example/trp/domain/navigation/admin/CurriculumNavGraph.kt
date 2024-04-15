@@ -8,7 +8,7 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
 import com.example.trp.domain.navigation.common.Graph
 import com.example.trp.ui.screens.admin.AdminGroupInfoScreen
-import com.example.trp.ui.screens.admin.AdminGroupsTasksScreen
+import com.example.trp.ui.screens.admin.AdminGroupsScreen
 import com.example.trp.ui.screens.common.CreateNewTestScreen
 import com.example.trp.ui.screens.common.CreateTaskScreen
 import com.example.trp.ui.screens.common.TaskInfoTestsScreen
@@ -27,16 +27,10 @@ fun NavGraphBuilder.curriculumNavGraph(navController: NavHostController) {
         composable(route = "${AdminGroupsLabsScreen.GroupsLabs.route}/{$ADMIN_DISCIPLINES_ID}") {
             val disciplineId = it.arguments?.getInt(ADMIN_DISCIPLINES_ID)
             disciplineId?.let { id ->
-                AdminGroupsTasksScreen(
+                AdminGroupsScreen(
                     disciplineId = id,
                     onGroupClick = { groupId ->
                          navController.navigate("${AdminGroupsLabsScreen.GroupInfo.route}/$groupId")
-                    },
-                    onAddTaskClick = { labId ->
-                        navController.navigate("${AdminGroupsLabsScreen.CreateTask.route}/$labId")
-                    },
-                    onTaskClick = { taskId ->
-                        navController.navigate("${AdminGroupsLabsScreen.TaskInfo.route}/$taskId")
                     }
                 )
             }

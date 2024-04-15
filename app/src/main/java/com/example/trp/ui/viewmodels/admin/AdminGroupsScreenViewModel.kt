@@ -6,16 +6,14 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.trp.data.mappers.tasks.Task
 import com.example.trp.data.mappers.teacherappointments.Group
 import com.example.trp.data.repository.UserAPIRepositoryImpl
-import com.example.trp.ui.components.tabs.GroupsLabsTabs
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
 
-class AdminGroupsTasksScreenViewModel @AssistedInject constructor(
+class AdminGroupsScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
     @Assisted
     val disciplineId: Int
@@ -23,25 +21,15 @@ class AdminGroupsTasksScreenViewModel @AssistedInject constructor(
     private var teacherAppointments by mutableStateOf(repository.teacherAppointments)
     var groups by mutableStateOf(emptyList<Group>())
         private set
-    var tasks by mutableStateOf(repository.tasks)
-        private set
-
-    val groupsTasksScreens = listOf(
-        GroupsLabsTabs.Groups,
-        GroupsLabsTabs.Labs
-    )
-
-    var selectedTabIndex by mutableStateOf(0)
-        private set
 
     @AssistedFactory
     interface Factory {
-        fun create(disciplineId: Int): AdminGroupsTasksScreenViewModel
+        fun create(disciplineId: Int): AdminGroupsScreenViewModel
     }
 
     @Suppress("UNCHECKED_CAST")
     companion object {
-        fun provideAdminGroupsTasksScreenViewModel(
+        fun provideAdminGroupsScreenViewModel(
             factory: Factory,
             disciplineId: Int
         ): ViewModelProvider.Factory {
@@ -58,19 +46,8 @@ class AdminGroupsTasksScreenViewModel @AssistedInject constructor(
             teacherAppointments =
                 repository.getTeacherAppointments().filter { it.discipline?.id == disciplineId }
             groups = teacherAppointments.map { it.group ?: Group() }.sortedBy { it.name }
-            tasks = repository.getTasks(labId = disciplineId).sortedBy { it.title }
         }
     }
 
-    fun getGroup(index: Int): Group {
-        return groups[index]
-    }
-
-    fun getTask(index: Int): Task {
-        return tasks[index]
-    }
-
-    fun setPagerState(index: Int) {
-        selectedTabIndex = index
-    }
+    fun getGroup(index: Int): Group = groups[index]
 }
