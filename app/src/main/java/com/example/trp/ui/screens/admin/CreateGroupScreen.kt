@@ -110,6 +110,11 @@ fun CreateGroupScreenTopAppBar(
     viewModel: CreateGroupScreenViewModel,
     navController: NavHostController
 ) {
+    LaunchedEffect(viewModel.createError) {
+        if (!viewModel.createError) {
+            navController.popBackStack()
+        }
+    }
     TopAppBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
             containerColor = TRPTheme.colors.myYellow,
@@ -143,10 +148,7 @@ fun CreateGroupScreenTopAppBar(
         actions = {
             if (viewModel.selectedTabIndex == 0) {
                 IconButton(
-                    onClick = {
-                        viewModel.onApplyCreateGroupClick()
-                        navController.popBackStack()
-                    },
+                    onClick = { viewModel.onApplyCreateGroupClick() },
                     enabled = viewModel.groupApplyButtonEnabled
                 ) {
                     Icon(
@@ -227,7 +229,7 @@ fun NameField(
             errorIndicatorColor = TRPTheme.colors.errorColor,
             errorCursorColor = TRPTheme.colors.primaryText
         ),
-        isError = viewModel.groupName.isEmpty(),
+        isError = !viewModel.groupNameCorrect,
         singleLine = true
     )
 }
@@ -307,7 +309,14 @@ fun Student(
                 containerColor = TRPTheme.colors.cardButtonColor
             ),
             shape = RoundedCornerShape(8.dp),
-            contentPadding = PaddingValues()
+            contentPadding = PaddingValues(),
+            border = BorderStroke(
+                width = 1.dp,
+                color = if (viewModel.students[index].username in viewModel.conflictUsernameList)
+                    TRPTheme.colors.errorColor
+                else
+                    Color.Transparent
+            )
         ) {
             Text(
                 modifier = Modifier

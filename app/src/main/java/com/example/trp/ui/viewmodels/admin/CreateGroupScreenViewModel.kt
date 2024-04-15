@@ -7,18 +7,23 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.trp.data.mappers.tasks.PostNewStudentBody
+import com.example.trp.data.mappers.teacherappointments.PostGroupResponse
 import com.example.trp.data.mappers.teacherappointments.PostNewGroupBody
 import com.example.trp.data.repository.UserAPIRepositoryImpl
 import com.example.trp.ui.components.tabs.CreateGroupTabs
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import java.util.Locale
 
 class CreateGroupScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl
 ) : ViewModel() {
     var groupName by mutableStateOf("")
+        private set
+    private var bckGroupName by mutableStateOf("")
+    var groupNameCorrect by mutableStateOf(false)
         private set
     var selectedTabIndex by mutableStateOf(0)
         private set
@@ -46,6 +51,10 @@ class CreateGroupScreenViewModel @AssistedInject constructor(
     var studentEditMode by mutableStateOf(false)
         private set
     private var studentEditIndex by mutableStateOf(0)
+    var createError by mutableStateOf(true)
+        private set
+    var conflictUsernameList by mutableStateOf(emptyList<String>())
+        private set
 
     @AssistedFactory
     interface Factory {
@@ -73,6 +82,9 @@ class CreateGroupScreenViewModel @AssistedInject constructor(
 
     fun updateGroupNameValue(newGroupName: String) {
         groupName = newGroupName
+        if (groupName != bckGroupName) {
+            groupNameCorrect = true
+        }
         checkGroupFields()
     }
 
@@ -106,7 +118,7 @@ class CreateGroupScreenViewModel @AssistedInject constructor(
         val newStudentUsername = transliterate(newStudentFullName)
         usernameCorrect = isValidUsername(newStudentUsername)
         studentUsername = newStudentUsername
-        checkDuplicatesUsername()
+        checkDuplicatesUsername(studentUsername)
         checkStudentFields()
     }
 
@@ -136,13 +148,13 @@ class CreateGroupScreenViewModel @AssistedInject constructor(
     fun updateStudentUsernameValue(newStudentUsername: String) {
         usernameCorrect = isValidUsername(newStudentUsername)
         studentUsername = newStudentUsername
-        checkDuplicatesUsername()
+        checkDuplicatesUsername(newStudentUsername)
         checkStudentFields()
     }
 
     private fun isValidUsername(input: String): Boolean {
         val regex = Regex("[a-zA-Z0-9_]+")
-        return !input.contains(" ") && regex.matches(input)
+        return !input.contains(" ") && regex.matches(input) && input !in conflictUsernameList
     }
 
     fun updateStudentPasswordValue(newStudentPassword: String) {
@@ -159,7 +171,9 @@ class CreateGroupScreenViewModel @AssistedInject constructor(
     }
 
     private fun checkGroupFields() {
-        groupApplyButtonEnabled = (groupName.isNotEmpty())
+        groupApplyButtonEnabled = groupName.isNotEmpty()
+                && students.all { it.username !in conflictUsernameList }
+                && students.isNotEmpty()
     }
 
     private fun checkStudentFields() {
@@ -170,9 +184,9 @@ class CreateGroupScreenViewModel @AssistedInject constructor(
                     && usernameCorrect)
     }
 
-    private fun checkDuplicatesUsername() {
+    private fun checkDuplicatesUsername(newStudentUsername: String) {
         val usernames = students.map { it.username }
-        if (usernames.count { it == studentUsername } > 0) {
+        if (usernames.count { it == newStudentUsername } > 0 && newStudentUsername != studentUsername) {
             usernameCorrect = false
         }
     }
@@ -183,6 +197,7 @@ class CreateGroupScreenViewModel @AssistedInject constructor(
             username = studentUsername,
             password = studentPassword
         )
+        checkGroupFields()
         setPagerState(0)
     }
 
@@ -190,6 +205,7 @@ class CreateGroupScreenViewModel @AssistedInject constructor(
         students = students.filterIndexed { currentIndex, _ ->
             currentIndex != index
         }
+        checkGroupFields()
     }
 
     fun onEditStudentButtonClick(index: Int) {
@@ -198,6 +214,7 @@ class CreateGroupScreenViewModel @AssistedInject constructor(
         studentFullName = students[studentEditIndex].fullName ?: ""
         studentUsername = students[studentEditIndex].username ?: ""
         studentPassword = students[studentEditIndex].password ?: ""
+        usernameCorrect = students[studentEditIndex].username !in conflictUsernameList
         checkStudentFields()
         setPagerState(1)
     }
@@ -211,6 +228,7 @@ class CreateGroupScreenViewModel @AssistedInject constructor(
             )
         }
         studentEditMode = false
+        checkGroupFields()
         setPagerState(0)
     }
 
@@ -219,14 +237,37 @@ class CreateGroupScreenViewModel @AssistedInject constructor(
         setPagerState(0)
     }
 
-    fun onApplyCreateGroupClick() { // TODO
+    private fun extractUsernames(input: String): List<String> {
+        val regex = Regex("\\[(.*?)]")
+        val matchResult = regex.find(input)
+        return matchResult?.groupValues?.getOrNull(1)?.split(", ") ?: emptyList()
+    }
+
+    fun onApplyCreateGroupClick() {
         viewModelScope.launch {
-            repository.postNewGroup(
+            val response = repository.postNewGroup(
                 PostNewGroupBody(
                     name = groupName,
                     students = students
                 )
             )
+            response?.errorBody()?.let {
+                val errorBody = it.string()
+                val postGroupResponse = PostGroupResponse(
+                    status = JSONObject(errorBody).getInt("status"),
+                    message = JSONObject(errorBody).getString("message"),
+                    error = JSONObject(errorBody).getString("error")
+                )
+                createError = true
+                groupApplyButtonEnabled = false
+                if (postGroupResponse.error == "This group already exists.") {
+                    bckGroupName = groupName
+                    groupNameCorrect = false
+                }
+                if (postGroupResponse.error?.startsWith("Usernames already exist in the database:") == true) {
+                    conflictUsernameList += extractUsernames(postGroupResponse.error)
+                }
+            } ?: run { createError = false }
         }
     }
 }
