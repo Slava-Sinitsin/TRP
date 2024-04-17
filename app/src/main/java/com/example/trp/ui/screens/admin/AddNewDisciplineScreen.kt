@@ -59,9 +59,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.trp.domain.di.ViewModelFactoryProvider
-import com.example.trp.ui.components.NumberPicker
+import com.example.trp.ui.components.HorizontalNumberPicker
 import com.example.trp.ui.components.clearFocusOnTap
-import com.example.trp.ui.components.rememberPickerState
+import com.example.trp.ui.components.rememberHorizontalPickerState
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.admin.AddNewDisciplineScreenViewModel
 import dagger.hilt.android.EntryPointAccessors
@@ -262,7 +262,7 @@ fun YearPicker(viewModel: AddNewDisciplineScreenViewModel) {
             fontSize = 15.sp,
         )
         val values = remember { viewModel.disciplineYear }
-        val state = rememberPickerState()
+        val state = rememberHorizontalPickerState()
         LaunchedEffect(state.selectedItem) {
             viewModel.updateYearValue(state.selectedItem)
         }
@@ -272,11 +272,11 @@ fun YearPicker(viewModel: AddNewDisciplineScreenViewModel) {
                 .clip(RoundedCornerShape(8.dp))
                 .background(TRPTheme.colors.cardButtonColor)
         ) {
-            NumberPicker(
+            HorizontalNumberPicker(
                 state = state,
                 values = values,
                 visibleItemsCount = 3,
-                textStyle = TextStyle(fontSize = 15.sp),
+                textStyle = TextStyle(fontSize = 15.sp, textAlign = TextAlign.Center),
                 startIndex = viewModel.disciplineYear.indexOf("2024")
             )
         }

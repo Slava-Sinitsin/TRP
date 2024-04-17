@@ -32,13 +32,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.trp.domain.di.ViewModelFactoryProvider
-import com.example.trp.ui.components.NumberPicker
-import com.example.trp.ui.components.rememberPickerState
+import com.example.trp.ui.components.VerticalNumberPicker
+import com.example.trp.ui.components.rememberVerticalPickerState
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.teacher.CreateLabViewModel
 import dagger.hilt.android.EntryPointAccessors
@@ -185,21 +186,21 @@ fun RatingPicker(viewModel: CreateLabViewModel) {
             fontSize = 15.sp,
         )
         val values = remember { viewModel.ratingList }
-        val state = rememberPickerState()
+        val state = rememberVerticalPickerState()
         LaunchedEffect(state.selectedItem) {
             viewModel.updateRatingValue(state.selectedItem)
         }
         Box(
             modifier = Modifier
-                .padding(top = 5.dp, bottom = 5.dp, end = 5.dp)
+                .padding(start = 200.dp, top = 5.dp, bottom = 5.dp, end = 5.dp)
                 .clip(RoundedCornerShape(8.dp))
                 .background(TRPTheme.colors.cardButtonColor)
         ) {
-            NumberPicker( // TODO
+            VerticalNumberPicker(
                 state = state,
                 values = values,
                 visibleItemsCount = 3,
-                textStyle = TextStyle(fontSize = 15.sp),
+                textStyle = TextStyle(fontSize = 15.sp, textAlign = TextAlign.Center),
                 startIndex = viewModel.ratingList.indexOf(viewModel.maxRating)
             )
         }

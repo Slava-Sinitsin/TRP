@@ -5,11 +5,11 @@ import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Divider
 import androidx.compose.material3.LocalTextStyle
@@ -37,22 +37,22 @@ import com.example.trp.ui.theme.TRPTheme
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
-class PickerState {
+class VerticalPickerState {
     var selectedItem by mutableStateOf("")
 }
 
 @Composable
-fun rememberPickerState() = remember { PickerState() }
+fun rememberVerticalPickerState() = remember { VerticalPickerState() }
 
 @Composable
 private fun pixelsToDp(pixels: Int) = with(LocalDensity.current) { pixels.toDp() }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun NumberPicker(
+fun VerticalNumberPicker(
     modifier: Modifier = Modifier,
     values: List<String>,
-    state: PickerState = rememberPickerState(),
+    state: VerticalPickerState = rememberVerticalPickerState(),
     startIndex: Int = 0,
     visibleItemsCount: Int = 3,
     textStyle: TextStyle = LocalTextStyle.current
@@ -69,7 +69,7 @@ fun NumberPicker(
     val itemWidthPixels = remember { mutableStateOf(0) }
     val itemWidthDp = pixelsToDp(itemWidthPixels.value)
     val fadingEdgeGradient = remember {
-        Brush.horizontalGradient(
+        Brush.verticalGradient(
             0f to Color.Transparent,
             0.5f to Color.Black,
             1f to Color.Transparent
@@ -82,52 +82,45 @@ fun NumberPicker(
             .collect { item -> state.selectedItem = item }
     }
     Box {
-        LazyRow(
+        LazyColumn(
+            modifier = modifier
+                .height(itemWidthDp * visibleItemsCount)
+                .fadingEdge(fadingEdgeGradient),
             state = listState,
             flingBehavior = flingBehavior,
-            horizontalArrangement = Arrangement.Center,
-            modifier = modifier
-                .width(itemWidthDp * visibleItemsCount)
-                .fadingEdge(fadingEdgeGradient)
+            verticalArrangement = Arrangement.Center
         ) {
-            item {
-                Spacer(
-                    modifier = Modifier.width(itemWidthDp)
-                )
-            }
+            item { Spacer(modifier = Modifier.height(itemWidthDp)) }
             items(listScrollCount) { index ->
                 Text(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onSizeChanged { size -> itemWidthPixels.value = size.height }
+                        .then(Modifier.padding(8.dp)),
                     text = getItem(index),
                     color = TRPTheme.colors.primaryText,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    style = textStyle,
-                    modifier = Modifier
-                        .onSizeChanged { size -> itemWidthPixels.value = size.width }
-                        .then(Modifier.padding(8.dp))
+                    style = textStyle
                 )
             }
-            item {
-                Spacer(
-                    modifier = Modifier.width(itemWidthDp)
-                )
-            }
+            item { Spacer(modifier = Modifier.height(itemWidthDp)) }
         }
         Divider(
-            color = TRPTheme.colors.myYellow,
             modifier = Modifier
-                .offset(x = itemWidthDp * visibleItemsMiddle)
-                .height(40.dp)
-                .width(1.dp)
-                .padding(vertical = 5.dp)
+                .offset(y = itemWidthDp * visibleItemsMiddle)
+                .fillMaxWidth()
+                .height(1.dp)
+                .padding(horizontal = 5.dp),
+            color = TRPTheme.colors.myYellow
         )
         Divider(
-            color = TRPTheme.colors.myYellow,
             modifier = Modifier
-                .offset(x = itemWidthDp * (visibleItemsMiddle + 1))
-                .height(40.dp)
-                .width(1.dp)
-                .padding(vertical = 5.dp)
+                .offset(y = itemWidthDp * (visibleItemsMiddle + 1))
+                .fillMaxWidth()
+                .height(1.dp)
+                .padding(horizontal = 5.dp),
+            color = TRPTheme.colors.myYellow
         )
     }
 }
