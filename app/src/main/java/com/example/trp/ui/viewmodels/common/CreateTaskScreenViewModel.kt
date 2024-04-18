@@ -22,7 +22,18 @@ class CreateTaskScreenViewModel @AssistedInject constructor(
     val languageList =
         listOf("c", "c++")
     private val cTypeList =
-        listOf("int", "int*", "int**", "double", "double*", "double**", "char", "char*", "char**", "bool")
+        listOf(
+            "int",
+            "int*",
+            "int**",
+            "double",
+            "double*",
+            "double**",
+            "char",
+            "char*",
+            "char**",
+            "bool"
+        )
     private val cppTypeList =
         listOf("int", "int*", "int**", "double", "double*", "double**", "char", "string", "bool")
 
@@ -214,7 +225,6 @@ class CreateTaskScreenViewModel @AssistedInject constructor(
                             title = title,
                             description = description,
                             language = language,
-                            functionName = functionName.takeIf { testable == "Yes" },
                             testable = false
                         )
                     )

@@ -32,7 +32,12 @@ class CreateTeamScreenViewModel @AssistedInject constructor(
         private set
     var teamSizeOverflow by mutableStateOf(false)
 
-    var disciplineId by mutableStateOf(repository.currentDiscipline)
+    var disciplineId by mutableStateOf(repository.currentDiscipline) // TODO
+
+    var showSelectLeaderDialog by mutableStateOf(false)
+        private set
+    var selectedGroupLeaderIndex by mutableStateOf(0)
+        private set
 
     @AssistedFactory
     interface Factory {
@@ -96,14 +101,29 @@ class CreateTeamScreenViewModel @AssistedInject constructor(
     }
 
     fun onAddButtonClick() {
+        showSelectLeaderDialog = true
+    }
+
+    fun onConfirmDialogButtonClick() {
         viewModelScope.launch {
             repository.postNewTeam(
                 PostTeamBody(
                     disciplineId = disciplineId,
                     groupId = groupId,
-                    studentIds = selectedStudents.mapNotNull { it.id }
+                    studentIds = selectedStudents.mapNotNull { it.id },
+                    // leaderStudentId = selectedStudents[selectedGroupLeaderIndex].id TODO
                 )
             )
         }
+        showSelectLeaderDialog = false
+    }
+
+    fun onDismissButtonClick() {
+        selectedGroupLeaderIndex = 0
+        showSelectLeaderDialog = false
+    }
+
+    fun onDialogStudentButtonClick(index: Int) {
+        selectedGroupLeaderIndex = index
     }
 }

@@ -115,9 +115,7 @@ fun TaskInfoTestsScreen(
         }
     }
     val indicator = @Composable { tabPositions: List<TabPosition> ->
-        MyNewIndicator(
-            Modifier.myTabIndicatorOffset(tabPositions[viewModel.selectedTabIndex])
-        )
+        MyNewIndicator(Modifier.myTabIndicatorOffset(tabPositions[viewModel.selectedTabIndex]))
     }
 
     BackHandler(
@@ -142,42 +140,42 @@ fun TaskInfoTestsScreen(
                 .background(TRPTheme.colors.primaryBackground)
                 .padding(top = scaffoldPadding.calculateTopPadding())
         ) {
-            TabRow(
-                modifier = Modifier
-                    .padding(top = 5.dp, start = 5.dp, end = 5.dp)
-                    .clip(
-                        shape = RoundedCornerShape(20.dp)
-                    )
-                    .background(Color.Transparent)
-                    .alpha(
-                        if (viewModel.taskReadOnlyMode.first && viewModel.testReadOnlyMode) {
-                            1f
-                        } else {
-                            0.6f
-                        }
-                    ),
-                selectedTabIndex = viewModel.selectedTabIndex,
-                containerColor = TRPTheme.colors.secondaryBackground,
-                indicator = indicator,
-                divider = {}
-            ) {
-                viewModel.taskTestsScreens.forEachIndexed { index, item ->
-                    Tab(
-                        modifier = Modifier
-                            .clip(shape = RoundedCornerShape(20.dp))
-                            .zIndex(2f),
-                        selected = index == viewModel.selectedTabIndex,
-                        interactionSource = DisabledInteractionSource(),
-                        onClick = { viewModel.setPagerState(index) },
-                        text = {
-                            Text(
-                                text = item.title,
-                                color = TRPTheme.colors.secondaryText,
-                                fontWeight = FontWeight.Bold
-                            )
-                        },
-                        enabled = viewModel.taskReadOnlyMode.first && viewModel.testReadOnlyMode
-                    )
+            if (viewModel.task.testable == true) {
+                TabRow(
+                    modifier = Modifier
+                        .padding(top = 5.dp, start = 5.dp, end = 5.dp)
+                        .clip(shape = RoundedCornerShape(20.dp))
+                        .background(Color.Transparent)
+                        .alpha(
+                            if (viewModel.taskReadOnlyMode.first && viewModel.testReadOnlyMode) {
+                                1f
+                            } else {
+                                0.6f
+                            }
+                        ),
+                    selectedTabIndex = viewModel.selectedTabIndex,
+                    containerColor = TRPTheme.colors.secondaryBackground,
+                    indicator = indicator,
+                    divider = {}
+                ) {
+                    viewModel.taskTestsScreens.forEachIndexed { index, item ->
+                        Tab(
+                            modifier = Modifier
+                                .clip(shape = RoundedCornerShape(20.dp))
+                                .zIndex(2f),
+                            selected = index == viewModel.selectedTabIndex,
+                            interactionSource = DisabledInteractionSource(),
+                            onClick = { viewModel.setPagerState(index) },
+                            text = {
+                                Text(
+                                    text = item.title,
+                                    color = TRPTheme.colors.secondaryText,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            },
+                            enabled = viewModel.taskReadOnlyMode.first && viewModel.testReadOnlyMode
+                        )
+                    }
                 }
             }
             HorizontalPager(
@@ -186,7 +184,9 @@ fun TaskInfoTestsScreen(
                     .weight(1f),
                 state = pagerState,
                 pageCount = viewModel.taskTestsScreens.size,
-                userScrollEnabled = viewModel.taskReadOnlyMode.first && viewModel.testReadOnlyMode
+                userScrollEnabled = viewModel.taskReadOnlyMode.first
+                        && viewModel.testReadOnlyMode
+                        && viewModel.task.testable == true
             ) { index ->
                 if (index == 0) {
                     TaskInfoScreen(viewModel = viewModel)
@@ -310,7 +310,11 @@ fun TaskInfoCenterAlignedTopAppBar(
 fun TaskInfoScreen(
     viewModel: TaskInfoTestsScreenViewModel
 ) {
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier
+            .padding(top = 10.dp)
+            .fillMaxSize()
+    ) {
         TitleField(viewModel = viewModel)
         DescriptionField(viewModel = viewModel)
         FunctionNameField(viewModel = viewModel)

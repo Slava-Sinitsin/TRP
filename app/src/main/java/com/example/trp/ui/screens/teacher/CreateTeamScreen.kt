@@ -4,6 +4,7 @@ import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,11 +17,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -69,6 +73,9 @@ fun CreateTeamScreen(
         }
     ) { scaffoldPadding ->
         SelectField(viewModel = viewModel, paddingValues = scaffoldPadding)
+        if (viewModel.showSelectLeaderDialog) {
+            SelectLeaderDialog(viewModel = viewModel, navController = navController)
+        }
     }
 }
 
@@ -95,8 +102,12 @@ fun CreateTeamCenterAlignedTopAppBar(
         actions = {
             IconButton(
                 onClick = {
-                    viewModel.onAddButtonClick()
-                    navController.popBackStack()
+                    if (viewModel.selectedStudents.size == 1) {
+                        viewModel.onConfirmDialogButtonClick()
+                        navController.popBackStack()
+                    } else {
+                        viewModel.onAddButtonClick()
+                    }
                 },
                 enabled = viewModel.selectedStudents.isNotEmpty()
             ) {
@@ -177,5 +188,92 @@ fun Student(
                 enabled = viewModel.studentsCheckBoxStates[index].isEnable
             )
         }
+    }
+}
+
+@Composable
+fun SelectLeaderDialog(viewModel: CreateTeamScreenViewModel, navController: NavHostController) {
+    AlertDialog(
+        onDismissRequest = {},
+        title = {
+            Text(
+                text = "Select group leader",
+                color = TRPTheme.colors.primaryText
+            )
+        },
+        containerColor = TRPTheme.colors.primaryBackground,
+        text = {
+            Column {
+                viewModel.selectedStudents.forEachIndexed { index, _ ->
+                    DialogStudent(viewModel = viewModel, index = index)
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    viewModel.onConfirmDialogButtonClick()
+                    navController.popBackStack()
+                },
+                colors = ButtonDefaults.buttonColors(TRPTheme.colors.myYellow)
+            ) {
+                Text(
+                    text = "Confirm",
+                    color = TRPTheme.colors.secondaryText
+                )
+            }
+        },
+        dismissButton = {
+            Button(
+                onClick = { viewModel.onDismissButtonClick() },
+                colors = ButtonDefaults.buttonColors(TRPTheme.colors.errorColor)
+            ) {
+                Text(
+                    text = "Dismiss",
+                    color = TRPTheme.colors.secondaryText
+                )
+            }
+        }
+    )
+}
+
+@Composable
+fun DialogStudent(
+    viewModel: CreateTeamScreenViewModel,
+    index: Int
+) {
+    Button(
+        modifier = Modifier.padding(top = 5.dp),
+        onClick = { viewModel.onDialogStudentButtonClick(index) },
+        elevation = ButtonDefaults.buttonElevation(
+            defaultElevation = 10.dp
+        ),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = TRPTheme.colors.cardButtonColor
+        ),
+        shape = RoundedCornerShape(30.dp),
+        contentPadding = PaddingValues()
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(start = 10.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = viewModel.selectedStudents[index].fullName ?: "",
+                color = TRPTheme.colors.primaryText,
+                fontSize = 16.sp
+            )
+            RadioButton(
+                selected = viewModel.selectedGroupLeaderIndex == index,
+                onClick = { viewModel.onDialogStudentButtonClick(index) },
+                colors = RadioButtonDefaults.colors(
+                    selectedColor = TRPTheme.colors.myYellow
+                )
+            )
+        }
+
     }
 }
