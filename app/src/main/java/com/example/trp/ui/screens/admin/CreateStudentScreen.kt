@@ -1,6 +1,7 @@
 package com.example.trp.ui.screens.admin
 
 import android.app.Activity
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -65,9 +66,12 @@ fun CreateStudentScreen(groupId: Int, navController: NavHostController) {
     ) { scaffoldPadding ->
         CreateStudentScreen(
             viewModel = viewModel,
-            navController = navController,
             paddingValues = scaffoldPadding
         )
+        if (viewModel.errorMessage.isNotEmpty()) {
+            Toast.makeText(LocalContext.current, viewModel.errorMessage, Toast.LENGTH_SHORT).show()
+            viewModel.updateErrorMessage("")
+        }
     }
 }
 
@@ -77,6 +81,11 @@ fun CreateStudentScreenTopAppBar(
     viewModel: CreateStudentScreenViewModel,
     navController: NavHostController
 ) {
+    LaunchedEffect(viewModel.createError) {
+        if (!viewModel.createError && viewModel.responseSuccess) {
+            navController.popBackStack()
+        }
+    }
     TopAppBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
             containerColor = TRPTheme.colors.myYellow,
@@ -116,14 +125,8 @@ fun CreateStudentScreenTopAppBar(
 @Composable
 fun CreateStudentScreen(
     viewModel: CreateStudentScreenViewModel,
-    navController: NavHostController,
     paddingValues: PaddingValues
 ) {
-    LaunchedEffect(viewModel.createError) {
-        if (!viewModel.createError) {
-            navController.popBackStack()
-        }
-    }
     Column(
         modifier = Modifier
             .padding(top = paddingValues.calculateTopPadding())

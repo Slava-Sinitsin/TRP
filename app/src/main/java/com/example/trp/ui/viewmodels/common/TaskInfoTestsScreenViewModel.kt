@@ -9,12 +9,15 @@ import androidx.lifecycle.viewModelScope
 import com.example.trp.data.mappers.CheckBoxState
 import com.example.trp.data.mappers.tasks.Task
 import com.example.trp.data.mappers.tasks.Test
+import com.example.trp.data.mappers.user.User
 import com.example.trp.data.repository.UserAPIRepositoryImpl
 import com.example.trp.ui.components.tabs.TaskTestsTabs
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
+import java.net.ConnectException
+import java.net.SocketTimeoutException
 
 class TaskInfoTestsScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
@@ -59,6 +62,12 @@ class TaskInfoTestsScreenViewModel @AssistedInject constructor(
 
     var isRefreshing by mutableStateOf(false)
         private set
+    var errorMessage by mutableStateOf("")
+        private set
+    var responseSuccess by mutableStateOf(false)
+        private set
+    var user by mutableStateOf(User())
+        private set
 
     @AssistedFactory
     interface Factory {
@@ -80,7 +89,11 @@ class TaskInfoTestsScreenViewModel @AssistedInject constructor(
     }
 
     init {
-        viewModelScope.launch {
+        viewModelScope.launch { init() }
+    }
+
+    private suspend fun init() {
+        try {
             task = repository.tasks.find { it.id == taskId } ?: Task()
             taskTitle = task.title ?: ""
             taskDescription = task.description ?: ""
@@ -88,21 +101,25 @@ class TaskInfoTestsScreenViewModel @AssistedInject constructor(
             taskLanguage = task.language ?: ""
             tests = repository.getTests(taskId).sortedByDescending { it.id }
             testsCheckBoxStates = List(tests.size) { CheckBoxState() }
+            user = repository.user
+        } catch (e: SocketTimeoutException) {
+            updateErrorMessage("Timeout")
+        } catch (e: ConnectException) {
+            updateErrorMessage("Check internet connection")
+        } catch (e: Exception) {
+            updateErrorMessage("Error")
         }
     }
 
     fun onRefresh() {
         viewModelScope.launch {
-            isRefreshing = true
-            task = repository.tasks.find { it.id == taskId } ?: Task()
-            taskTitle = task.title ?: ""
-            taskDescription = task.description ?: ""
-            taskFunctionName = task.functionName ?: ""
-            taskLanguage = task.language ?: ""
-            tests = repository.getTests(taskId)
-            testsCheckBoxStates = List(tests.size) { CheckBoxState() }
+            init()
             isRefreshing = false
         }
+    }
+
+    fun updateErrorMessage(newMessage: String) {
+        errorMessage = newMessage
     }
 
     fun updateTitleValue(newTitleValue: String) {
@@ -130,19 +147,29 @@ class TaskInfoTestsScreenViewModel @AssistedInject constructor(
     }
 
     fun onSaveButtonClick() {
+        responseSuccess = false
         viewModelScope.launch {
-            repository.putTask(
-                Task(
-                    id = task.id,
-                    labWorkId = task.labWorkId,
-                    title = taskTitle,
-                    description = taskDescription,
-                    functionName = taskFunctionName,
-                    language = taskLanguage
+            try {
+                repository.putTask(
+                    Task(
+                        id = task.id,
+                        labWorkId = task.labWorkId,
+                        title = taskTitle,
+                        description = taskDescription,
+                        functionName = taskFunctionName,
+                        language = taskLanguage
+                    )
                 )
-            )
-            task = repository.getTask(taskId)
-            taskReadOnlyMode = taskReadOnlyMode.copy(first = true, second = 0.6f)
+                task = repository.getTask(taskId)
+                taskReadOnlyMode = taskReadOnlyMode.copy(first = true, second = 0.6f)
+                responseSuccess = true
+            } catch (e: SocketTimeoutException) {
+                updateErrorMessage("Timeout")
+            } catch (e: ConnectException) {
+                updateErrorMessage("Check internet connection")
+            } catch (e: Exception) {
+                updateErrorMessage("Error")
+            }
         }
     }
 
@@ -159,8 +186,20 @@ class TaskInfoTestsScreenViewModel @AssistedInject constructor(
     }
 
     fun beforeConfirmButtonClick() {
-        viewModelScope.launch { task.id?.let { repository.deleteTask(it) } }
-        showDeleteDialog = false
+        responseSuccess = false
+        viewModelScope.launch {
+            try {
+                task.id?.let { repository.deleteTask(it) }
+                responseSuccess = true
+                showDeleteDialog = false
+            } catch (e: SocketTimeoutException) {
+                updateErrorMessage("Timeout")
+            } catch (e: ConnectException) {
+                updateErrorMessage("Check internet connection")
+            } catch (e: Exception) {
+                updateErrorMessage("Error")
+            }
+        }
     }
 
     fun onDismissButtonClick() {

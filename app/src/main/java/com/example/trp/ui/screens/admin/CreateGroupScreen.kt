@@ -1,6 +1,7 @@
 package com.example.trp.ui.screens.admin
 
 import android.app.Activity
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -101,6 +102,10 @@ fun CreateGroupScreen(navController: NavHostController) {
                 }
             }
         }
+        if (viewModel.errorMessage.isNotEmpty()) {
+            Toast.makeText(LocalContext.current, viewModel.errorMessage, Toast.LENGTH_SHORT).show()
+            viewModel.updateErrorMessage("")
+        }
     }
 }
 
@@ -111,7 +116,7 @@ fun CreateGroupScreenTopAppBar(
     navController: NavHostController
 ) {
     LaunchedEffect(viewModel.createError) {
-        if (!viewModel.createError) {
+        if (!viewModel.createError && viewModel.responseSuccess) {
             navController.popBackStack()
         }
     }

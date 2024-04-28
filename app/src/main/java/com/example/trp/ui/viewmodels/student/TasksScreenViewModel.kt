@@ -12,13 +12,17 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
+import java.net.ConnectException
+import java.net.SocketTimeoutException
 
 class TasksScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
     @Assisted
     val labId: Int
 ) : ViewModel() {
-    var tasks by mutableStateOf(repository.tasks)
+    var tasks by mutableStateOf(emptyList<Task>())
+        private set
+    var errorMessage by mutableStateOf("")
         private set
 
     @AssistedFactory
@@ -42,8 +46,20 @@ class TasksScreenViewModel @AssistedInject constructor(
 
     init {
         viewModelScope.launch {
-            tasks = repository.getTasks(labId = labId).sortedBy { it.title }
+            try {
+                tasks = repository.getTasks(labId = labId).sortedBy { it.title }
+            } catch (e: SocketTimeoutException) {
+                updateErrorMessage("Timeout")
+            } catch (e: ConnectException) {
+                updateErrorMessage("Check internet connection")
+            } catch (e: Exception) {
+                updateErrorMessage("Error")
+            }
         }
+    }
+
+    fun updateErrorMessage(newMessage: String) {
+        errorMessage = newMessage
     }
 
     fun getTask(index: Int): Task {

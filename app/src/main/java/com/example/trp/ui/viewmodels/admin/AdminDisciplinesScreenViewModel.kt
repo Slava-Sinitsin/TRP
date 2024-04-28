@@ -11,11 +11,19 @@ import com.example.trp.data.repository.UserAPIRepositoryImpl
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
+import java.net.ConnectException
+import java.net.SocketTimeoutException
 
 class AdminDisciplinesScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl
 ) : ViewModel() {
     var disciplines by mutableStateOf(emptyList<DisciplineData>())
+        private set
+    var errorMessage by mutableStateOf("")
+        private set
+    var responseSuccess by mutableStateOf(false)
+        private set
+    var isRefreshing by mutableStateOf(false)
         private set
 
     @AssistedFactory
@@ -37,12 +45,34 @@ class AdminDisciplinesScreenViewModel @AssistedInject constructor(
     }
 
     init {
-        viewModelScope.launch {
+        viewModelScope.launch { init() }
+    }
+
+    private suspend fun init() {
+        try {
             disciplines = repository.getDisciplines().sortedBy { it.name }
+        } catch (e: SocketTimeoutException) {
+            updateErrorMessage("Timeout")
+        } catch (e: ConnectException) {
+            updateErrorMessage("Check internet connection")
+        } catch (e: Exception) {
+            updateErrorMessage("Error")
         }
     }
 
-    fun getGroup(index: Int): DisciplineData {
+    fun onRefresh() {
+        viewModelScope.launch {
+            isRefreshing = true
+            init()
+            isRefreshing = false
+        }
+    }
+
+    fun updateErrorMessage(newMessage: String) {
+        errorMessage = newMessage
+    }
+
+    fun getDiscipline(index: Int): DisciplineData {
         return disciplines[index]
     }
 }

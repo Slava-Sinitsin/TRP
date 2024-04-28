@@ -15,6 +15,8 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import java.net.ConnectException
+import java.net.SocketTimeoutException
 import java.util.Locale
 
 class CreateGroupScreenViewModel @AssistedInject constructor(
@@ -55,6 +57,10 @@ class CreateGroupScreenViewModel @AssistedInject constructor(
         private set
     var conflictUsernameList by mutableStateOf(emptyList<String>())
         private set
+    var errorMessage by mutableStateOf("")
+        private set
+    var responseSuccess by mutableStateOf(false)
+        private set
 
     @AssistedFactory
     interface Factory {
@@ -78,6 +84,10 @@ class CreateGroupScreenViewModel @AssistedInject constructor(
         viewModelScope.launch {
 
         }
+    }
+
+    fun updateErrorMessage(newMessage: String) {
+        errorMessage = newMessage
     }
 
     fun updateGroupNameValue(newGroupName: String) {
@@ -247,30 +257,40 @@ class CreateGroupScreenViewModel @AssistedInject constructor(
     }
 
     fun onApplyCreateGroupClick() {
+        responseSuccess = false
         viewModelScope.launch {
-            val response = repository.postNewGroup(
-                PostNewGroupBody(
-                    name = groupName,
-                    students = students
+            try {
+                val response = repository.postNewGroup(
+                    PostNewGroupBody(
+                        name = groupName,
+                        students = students
+                    )
                 )
-            )
-            response?.errorBody()?.let {
-                val errorBody = it.string()
-                val postGroupResponse = PostGroupResponse(
-                    status = JSONObject(errorBody).getInt("status"),
-                    message = JSONObject(errorBody).getString("message"),
-                    error = JSONObject(errorBody).getString("error")
-                )
-                createError = true
-                groupApplyButtonEnabled = false
-                if (postGroupResponse.error == "This group already exists.") {
-                    bckGroupName = groupName
-                    groupNameCorrect = false
-                }
-                if (postGroupResponse.error?.startsWith("Usernames already exist in the database:") == true) {
-                    conflictUsernameList += extractUsernames(postGroupResponse.error)
-                }
-            } ?: run { createError = false }
+                response?.errorBody()?.let {
+                    val errorBody = it.string()
+                    val postGroupResponse = PostGroupResponse(
+                        status = JSONObject(errorBody).getInt("status"),
+                        message = JSONObject(errorBody).getString("message"),
+                        error = JSONObject(errorBody).getString("error")
+                    )
+                    createError = true
+                    groupApplyButtonEnabled = false
+                    if (postGroupResponse.error == "This group already exists.") {
+                        bckGroupName = groupName
+                        groupNameCorrect = false
+                    }
+                    if (postGroupResponse.error?.startsWith("Usernames already exist in the database:") == true) {
+                        conflictUsernameList += extractUsernames(postGroupResponse.error)
+                    }
+                } ?: run { createError = false }
+                responseSuccess = true
+            }catch (e: SocketTimeoutException) {
+                updateErrorMessage("Timeout")
+            } catch (e: ConnectException) {
+                updateErrorMessage("Check internet connection")
+            } catch (e: Exception) {
+                updateErrorMessage("Error")
+            }
         }
     }
 }

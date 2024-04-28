@@ -15,6 +15,8 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
+import java.net.ConnectException
+import java.net.SocketTimeoutException
 
 class CreateNewTestScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
@@ -40,6 +42,22 @@ class CreateNewTestScreenViewModel @AssistedInject constructor(
         private set
 
     var saveButtonEnabled by mutableStateOf(false)
+        private set
+
+    val placeholdersList = listOf(
+        Pair("int", "1"),
+        Pair("double", "1.0"),
+        Pair("char", "'a'"),
+        Pair("int*", "[1, 2, 3]"),
+        Pair("int**", "[[1, 2, 3], [4, 5, 6]]"),
+        Pair("double*", "[1.0, 2.0, 3.0]"),
+        Pair("double**", "[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]"),
+        Pair("char*", "['a', 'b', 'c']"),
+        Pair("char**", "[['a', 'b', 'c'], ['d', 'e', 'f']]")
+    )
+    var errorMessage by mutableStateOf("")
+        private set
+    var responseSuccess by mutableStateOf(false)
         private set
 
     @AssistedFactory
@@ -81,6 +99,10 @@ class CreateNewTestScreenViewModel @AssistedInject constructor(
             }
             outputRegex = splitRegexToList(task.outputRegex ?: "").first()
         }
+    }
+
+    fun updateErrorMessage(newMessage: String) {
+        errorMessage = newMessage
     }
 
     fun updateIsOpenValue(newIsOpenValue: String) {
@@ -131,15 +153,25 @@ class CreateNewTestScreenViewModel @AssistedInject constructor(
     }
 
     fun onSaveButtonClick() {
+        responseSuccess = false
         viewModelScope.launch {
-            repository.postNewTest(
-                Test(
-                    taskId = taskId,
-                    input = argumentsWithRegex.joinToString(", ") { it.value.toString() },
-                    output = outputValue,
-                    isOpen = isOpen == "Yes"
+            try {
+                repository.postNewTest(
+                    Test(
+                        taskId = taskId,
+                        input = argumentsWithRegex.joinToString(", ") { it.value.toString() },
+                        output = outputValue,
+                        isOpen = isOpen == "Yes"
+                    )
                 )
-            )
+                responseSuccess = true
+            } catch (e: SocketTimeoutException) {
+                updateErrorMessage("Timeout")
+            } catch (e: ConnectException) {
+                updateErrorMessage("Check internet connection")
+            } catch (e: Exception) {
+                updateErrorMessage("Error")
+            }
         }
     }
 }

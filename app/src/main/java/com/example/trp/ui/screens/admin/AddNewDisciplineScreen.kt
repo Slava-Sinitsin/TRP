@@ -1,6 +1,7 @@
 package com.example.trp.ui.screens.admin
 
 import android.app.Activity
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -121,6 +122,10 @@ fun AddNewDisciplineScreen(
                 }
             }
         }
+        if (viewModel.errorMessage.isNotEmpty()) {
+            Toast.makeText(LocalContext.current, viewModel.errorMessage, Toast.LENGTH_SHORT).show()
+            viewModel.updateErrorMessage("")
+        }
     }
 }
 
@@ -149,6 +154,11 @@ fun DisciplineInfoCenterAlignedTopAppBar(
     viewModel: AddNewDisciplineScreenViewModel,
     navController: NavHostController
 ) {
+    LaunchedEffect(viewModel.responseSuccess) {
+        if (viewModel.responseSuccess) {
+            navController.popBackStack()
+        }
+    }
     TopAppBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
             containerColor = TRPTheme.colors.myYellow,
@@ -182,10 +192,7 @@ fun DisciplineInfoCenterAlignedTopAppBar(
         actions = {
             if (viewModel.selectedTabIndex == 0) {
                 IconButton(
-                    onClick = {
-                        viewModel.beforeSaveButtonClick()
-                        navController.popBackStack()
-                    },
+                    onClick = { viewModel.beforeSaveButtonClick() },
                     enabled = viewModel.applyButtonEnabled
                 ) {
                     Icon(

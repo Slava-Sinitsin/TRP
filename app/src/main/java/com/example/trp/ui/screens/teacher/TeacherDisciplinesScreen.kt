@@ -1,6 +1,7 @@
 package com.example.trp.ui.screens.teacher
 
 import android.app.Activity
+import android.widget.Toast
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -36,6 +37,10 @@ fun TeacherDisciplinesScreen(onDisciplineClick: (index: Int) -> Unit) {
     )
 
     Disciplines(viewModel = viewModel, onDisciplineClick = onDisciplineClick)
+    if (viewModel.errorMessage.isNotEmpty()) {
+        Toast.makeText(LocalContext.current, viewModel.errorMessage, Toast.LENGTH_SHORT).show()
+        viewModel.updateErrorMessage("")
+    }
 }
 
 @Composable

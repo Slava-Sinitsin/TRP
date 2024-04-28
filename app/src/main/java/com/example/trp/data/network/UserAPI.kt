@@ -12,6 +12,7 @@ import com.example.trp.data.mappers.tasks.LabsResponse
 import com.example.trp.data.mappers.tasks.Output
 import com.example.trp.data.mappers.tasks.PostLabResponse
 import com.example.trp.data.mappers.tasks.PostNewStudentBody
+import com.example.trp.data.mappers.tasks.PostNewTeacherBody
 import com.example.trp.data.mappers.tasks.PostTeamBody
 import com.example.trp.data.mappers.tasks.PostTeamResponse
 import com.example.trp.data.mappers.tasks.PostTestResponse
@@ -28,8 +29,9 @@ import com.example.trp.data.mappers.teacherappointments.DeleteGroupResponse
 import com.example.trp.data.mappers.teacherappointments.GroupsResponse
 import com.example.trp.data.mappers.teacherappointments.PostGroupResponse
 import com.example.trp.data.mappers.teacherappointments.PostNewGroupBody
+import com.example.trp.data.mappers.teacherappointments.PostTeacherResponse
 import com.example.trp.data.mappers.teacherappointments.TeacherAppointmentsResponse
-import com.example.trp.data.mappers.teacherappointments.TeacherResponse
+import com.example.trp.data.mappers.teacherappointments.TeachersResponse
 import com.example.trp.data.mappers.user.AuthRequest
 import com.example.trp.data.mappers.user.User
 import retrofit2.Response
@@ -54,7 +56,7 @@ interface UserAPI {
         @Path("id") labId: Int
     ): Response<Tasks>
 
-    @GET("api/v2/lab-work-variants/{id}")
+    @GET("api/v2/lab-work-variants/{id}/openTests")
     suspend fun getTaskDescriptionResponse(
         @Header("Authorization") token: String,
         @Path("id") id: Int
@@ -109,8 +111,14 @@ interface UserAPI {
         @Path("id") taskId: Int,
     ): Response<Task>
 
-    @POST("api/v2/lab-work-variants")
-    suspend fun postTask(
+    @POST("api/v2/lab-work-variants/create-testable")
+    suspend fun postTestableTask(
+        @Header("Authorization") token: String,
+        @Body task: Task
+    ): Response<Task>
+
+    @POST("api/v2/lab-work-variants/create-non-testable")
+    suspend fun postNonTestableTask(
         @Header("Authorization") token: String,
         @Body task: Task
     ): Response<Task>
@@ -136,7 +144,7 @@ interface UserAPI {
     @GET("api/v2/teachers")
     suspend fun getTeachers(
         @Header("Authorization") token: String
-    ): Response<TeacherResponse>
+    ): Response<TeachersResponse>
 
     @GET("api/v2/groups")
     suspend fun getGroups(
@@ -208,4 +216,16 @@ interface UserAPI {
         @Header("Authorization") token: String,
         @Body id: Int
     ): Response<DeleteGroupResponse>
+
+    @POST("admin/registration/lecture-teacher")
+    suspend fun postNewLectureTeacher(
+        @Header("Authorization") token: String,
+        @Body teacher: PostNewTeacherBody
+    ): Response<PostTeacherResponse>
+
+    @POST("admin/registration/lab-work-teacher")
+    suspend fun postNewLabWorkTeacher(
+        @Header("Authorization") token: String,
+        @Body teacher: PostNewTeacherBody
+    ): Response<PostTeacherResponse>
 }

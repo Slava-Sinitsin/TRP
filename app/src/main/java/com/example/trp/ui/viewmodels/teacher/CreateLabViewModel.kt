@@ -12,6 +12,8 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
+import java.net.ConnectException
+import java.net.SocketTimeoutException
 
 class CreateLabViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
@@ -22,6 +24,10 @@ class CreateLabViewModel @AssistedInject constructor(
     var ratingList by mutableStateOf((0..150).map { it.toString() })
         private set
     var maxRating by mutableStateOf(ratingList[100])
+        private set
+    var errorMessage by mutableStateOf("")
+        private set
+    var responseSuccess by mutableStateOf(false)
         private set
 
     @AssistedFactory
@@ -60,14 +66,28 @@ class CreateLabViewModel @AssistedInject constructor(
     }
 
     fun onApplyButtonClick() {
+        responseSuccess = false
         viewModelScope.launch {
-            repository.postNewLab(
-                Lab(
-                    disciplineId = disciplineId,
-                    title = title,
-                    maxRating = maxRating.toInt()
+            try {
+                repository.postNewLab(
+                    Lab(
+                        disciplineId = disciplineId,
+                        title = title,
+                        maxRating = maxRating.toInt()
+                    )
                 )
-            )
+                responseSuccess = true
+            }catch (e: SocketTimeoutException) {
+                updateErrorMessage("Timeout")
+            } catch (e: ConnectException) {
+                updateErrorMessage("Check internet connection")
+            } catch (e: Exception) {
+                updateErrorMessage("Error")
+            }
         }
+    }
+
+    fun updateErrorMessage(newMessage: String) {
+        errorMessage = newMessage
     }
 }

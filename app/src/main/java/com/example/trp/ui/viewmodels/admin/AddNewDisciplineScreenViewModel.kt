@@ -14,6 +14,8 @@ import com.example.trp.ui.components.tabs.AddNewDisciplineTabs
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
+import java.net.ConnectException
+import java.net.SocketTimeoutException
 
 class AddNewDisciplineScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl
@@ -48,6 +50,10 @@ class AddNewDisciplineScreenViewModel @AssistedInject constructor(
         private set
     var selectedTeacher by mutableStateOf(Teacher())
         private set
+    var errorMessage by mutableStateOf("")
+        private set
+    var responseSuccess by mutableStateOf(false)
+        private set
 
     @AssistedFactory
     interface Factory {
@@ -68,10 +74,24 @@ class AddNewDisciplineScreenViewModel @AssistedInject constructor(
     }
 
     init {
-        viewModelScope.launch {
+        viewModelScope.launch { init() }
+    }
+
+    private suspend fun init() {
+        try {
             teachers = repository.getTeachers().sortedBy { it.fullName }
             groups = repository.getGroups().sortedBy { it.name }
+        } catch (e: SocketTimeoutException) {
+            updateErrorMessage("Timeout")
+        } catch (e: ConnectException) {
+            updateErrorMessage("Check internet connection")
+        } catch (e: Exception) {
+            updateErrorMessage("Error")
         }
+    }
+
+    fun updateErrorMessage(newMessage: String) {
+        errorMessage = newMessage
     }
 
     fun updateNameValue(newNameValue: String) {
@@ -92,15 +112,25 @@ class AddNewDisciplineScreenViewModel @AssistedInject constructor(
     }
 
     fun beforeSaveButtonClick() {
+        responseSuccess = false
         viewModelScope.launch {
-            repository.postNewDiscipline(
-                PostNewDisciplineBody(
-                    name = disciplineName,
-                    year = selectedYear.toInt(),
-                    halfYear = selectedHalfYear,
-                    deprecated = selectedDeprecated.toBoolean()
+            try {
+                repository.postNewDiscipline(
+                    PostNewDisciplineBody(
+                        name = disciplineName,
+                        year = selectedYear.toInt(),
+                        halfYear = selectedHalfYear,
+                        deprecated = selectedDeprecated.toBoolean()
+                    )
                 )
-            )
+                responseSuccess = true
+            } catch (e: SocketTimeoutException) {
+                updateErrorMessage("Timeout")
+            } catch (e: ConnectException) {
+                updateErrorMessage("Check internet connection")
+            } catch (e: Exception) {
+                updateErrorMessage("Error")
+            }
         }
     }
 

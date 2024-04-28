@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.trp.data.mappers.tasks.Task
 import com.example.trp.data.repository.UserAPIRepositoryImpl
+import com.example.trp.ui.components.tabs.TaskTabs
 import com.wakaztahir.codeeditor.highlight.model.CodeLang
 import com.wakaztahir.codeeditor.highlight.prettify.PrettifyParser
 import com.wakaztahir.codeeditor.highlight.theme.CodeThemeType
@@ -17,6 +18,8 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
+import java.net.ConnectException
+import java.net.SocketTimeoutException
 
 class TaskScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
@@ -34,11 +37,21 @@ class TaskScreenViewModel @AssistedInject constructor(
         private set
     var outputText by mutableStateOf("")
         private set
-
     private val language = CodeLang.C
     private val parser by mutableStateOf(PrettifyParser())
     private var themeState by mutableStateOf(CodeThemeType.Monokai)
     private val theme by mutableStateOf(themeState.theme())
+    val taskScreens = listOf(
+        TaskTabs.Description,
+        TaskTabs.Solution,
+        TaskTabs.Review
+    )
+    var selectedTabIndex by mutableStateOf(1)
+        private set
+    var userScrollEnabled by mutableStateOf(true)
+        private set
+    var errorMessage by mutableStateOf("")
+        private set
 
     @AssistedFactory
     interface Factory {
@@ -61,19 +74,31 @@ class TaskScreenViewModel @AssistedInject constructor(
 
     init {
         viewModelScope.launch {
-            task = repository.getTask(taskId)
-            disciplineName = repository.taskDisciplineData.name ?: ""
-            solutionTextFieldValue = TextFieldValue(
-                annotatedString = parseCodeAsAnnotatedString(
-                    parser = parser,
-                    theme = theme,
-                    lang = language,
-                    code = repository.taskSolution.code ?: ""
+            try {
+                task = repository.getTask(taskId)
+                disciplineName = repository.taskDisciplineData.name ?: ""
+                solutionTextFieldValue = TextFieldValue(
+                    annotatedString = parseCodeAsAnnotatedString(
+                        parser = parser,
+                        theme = theme,
+                        lang = language,
+                        code = repository.taskSolution.code ?: ""
+                    )
                 )
-            )
-            linesCount = solutionTextFieldValue.text.lineSequence().count()
-            updateLinesCount()
+                linesCount = solutionTextFieldValue.text.lineSequence().count()
+                updateLinesCount()
+            } catch (e: SocketTimeoutException) {
+                updateErrorMessage("Timeout")
+            } catch (e: ConnectException) {
+                updateErrorMessage("Check internet connection")
+            } catch (e: Exception) {
+                updateErrorMessage("Error")
+            }
         }
+    }
+
+    fun updateErrorMessage(newMessage: String) {
+        errorMessage = newMessage
     }
 
     fun updateTaskText(newTaskText: TextFieldValue) {
@@ -98,20 +123,45 @@ class TaskScreenViewModel @AssistedInject constructor(
 
     fun onSaveCodeButtonClick() {
         viewModelScope.launch {
-            solutionTextFieldValue.text.let { repository.postTaskSolution(it) }
+            try {
+                solutionTextFieldValue.text.let { repository.postTaskSolution(it) }
+            } catch (e: SocketTimeoutException) {
+                updateErrorMessage("Timeout")
+            } catch (e: ConnectException) {
+                updateErrorMessage("Check internet connection")
+            } catch (e: Exception) {
+                updateErrorMessage("Error")
+            }
         }
     }
 
     fun onRunCodeButtonClick() {
         viewModelScope.launch {
-            onSaveCodeButtonClick()
-            solutionTextFieldValue.text.let { repository.postTaskSolution(it) }
-            val output = repository.runCode()
-            outputText = if (output.data?.testPassed != null && output.data.totalTests != null) {
-                "Test passed: ${output.data.testPassed} / ${output.data.totalTests}"
-            } else {
-                "Error"
+            try {
+                onSaveCodeButtonClick()
+                solutionTextFieldValue.text.let { repository.postTaskSolution(it) }
+                val output = repository.runCode()
+                outputText =
+                    if (output.data?.testPassed != null && output.data.totalTests != null) {
+                        "Test passed: ${output.data.testPassed} / ${output.data.totalTests}"
+                    } else {
+                        "Error"
+                    }
+            } catch (e: SocketTimeoutException) {
+                updateErrorMessage("Timeout")
+            } catch (e: ConnectException) {
+                updateErrorMessage("Check internet connection")
+            } catch (e: Exception) {
+                updateErrorMessage("Error")
             }
         }
+    }
+
+    fun updateSelectedTabIndex(index: Int) {
+        selectedTabIndex = index
+    }
+
+    fun updateEnableUserScroll(isEnable: Boolean) {
+        userScrollEnabled = isEnable
     }
 }

@@ -1,6 +1,7 @@
 package com.example.trp.ui.screens.teacher
 
 import android.app.Activity
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -77,6 +78,10 @@ fun TeamsScreen(
             paddingValues = scaffoldPadding,
             onTeamClick = onTeamClick
         )
+        if (viewModel.errorMessage.isNotEmpty()) {
+            Toast.makeText(LocalContext.current, viewModel.errorMessage, Toast.LENGTH_SHORT).show()
+            viewModel.updateErrorMessage("")
+        }
     }
 }
 
@@ -165,7 +170,7 @@ fun Teams(
                 .fillMaxSize()
                 .background(TRPTheme.colors.primaryBackground)
         ) {
-            items(count = viewModel.showTeams.size) { index ->
+            items(count = viewModel.teams.size) { index ->
                 Team(viewModel = viewModel, index = index, onTeamClick = onTeamClick)
             }
             item { Spacer(modifier = Modifier.size(100.dp)) }

@@ -18,6 +18,7 @@ import com.example.trp.data.mappers.tasks.LabsResponse
 import com.example.trp.data.mappers.tasks.Output
 import com.example.trp.data.mappers.tasks.PostLabResponse
 import com.example.trp.data.mappers.tasks.PostNewStudentBody
+import com.example.trp.data.mappers.tasks.PostNewTeacherBody
 import com.example.trp.data.mappers.tasks.PostTeamBody
 import com.example.trp.data.mappers.tasks.PostTeamResponse
 import com.example.trp.data.mappers.tasks.PostTestResponse
@@ -38,10 +39,11 @@ import com.example.trp.data.mappers.teacherappointments.Group
 import com.example.trp.data.mappers.teacherappointments.GroupsResponse
 import com.example.trp.data.mappers.teacherappointments.PostGroupResponse
 import com.example.trp.data.mappers.teacherappointments.PostNewGroupBody
+import com.example.trp.data.mappers.teacherappointments.PostTeacherResponse
 import com.example.trp.data.mappers.teacherappointments.Teacher
 import com.example.trp.data.mappers.teacherappointments.TeacherAppointmentsData
 import com.example.trp.data.mappers.teacherappointments.TeacherAppointmentsResponse
-import com.example.trp.data.mappers.teacherappointments.TeacherResponse
+import com.example.trp.data.mappers.teacherappointments.TeachersResponse
 import com.example.trp.data.mappers.user.AuthRequest
 import com.example.trp.data.mappers.user.JWTDecoder
 import com.example.trp.data.mappers.user.User
@@ -147,8 +149,12 @@ class UserAPIRepositoryImpl(
         return ApiService.userAPI.deleteTask("Bearer $token", taskId)
     }
 
-    override suspend fun postTask(token: String, task: Task): Response<Task> {
-        return ApiService.userAPI.postTask("Bearer $token", task)
+    override suspend fun postTestableTask(token: String, task: Task): Response<Task> {
+        return ApiService.userAPI.postTestableTask("Bearer $token", task)
+    }
+
+    override suspend fun postNonTestableTask(token: String, task: Task): Response<Task> {
+        return ApiService.userAPI.postNonTestableTask("Bearer $token", task)
     }
 
     override suspend fun getAllTeamAppointments(
@@ -178,7 +184,7 @@ class UserAPIRepositoryImpl(
         )
     }
 
-    override suspend fun getTeachers(token: String): Response<TeacherResponse> {
+    override suspend fun getTeachers(token: String): Response<TeachersResponse> {
         return ApiService.userAPI.getTeachers("Bearer $token")
     }
 
@@ -245,6 +251,20 @@ class UserAPIRepositoryImpl(
         return ApiService.userAPI.deleteGroup("Bearer $token", id)
     }
 
+    override suspend fun postNewLectureTeacher(
+        token: String,
+        teacher: PostNewTeacherBody
+    ): Response<PostTeacherResponse> {
+        return ApiService.userAPI.postNewLectureTeacher("Bearer $token", teacher)
+    }
+
+    override suspend fun postNewLabWorkTeacher(
+        token: String,
+        teacher: PostNewTeacherBody
+    ): Response<PostTeacherResponse> {
+        return ApiService.userAPI.postNewLabWorkTeacher("Bearer $token", teacher)
+    }
+
     suspend fun getActiveUser(): User {
         user = mainDB.userDAO.getActiveUser() ?: User()
         return user
@@ -308,17 +328,14 @@ class UserAPIRepositoryImpl(
     }
 
     suspend fun getDisciplines(): List<DisciplineData> {
-        if (disciplinesChanged) {
-            mainDB.disciplinesDAO.deleteAllDisciplines()
-            val response = user.token?.let { getDisciplinesResponse(it) }
-            response?.body()?.let {
-                it.list?.forEach { discipline ->
-                    mainDB.disciplinesDAO.insertDiscipline(discipline)
-                }
-                disciplinesChanged = false
-            } ?: response?.errorBody()?.let {
-                return emptyList()
+        mainDB.disciplinesDAO.deleteAllDisciplines()
+        val response = user.token?.let { getDisciplinesResponse(it) }
+        response?.body()?.let {
+            it.list?.forEach { discipline ->
+                mainDB.disciplinesDAO.insertDiscipline(discipline)
             }
+        } ?: response?.errorBody()?.let {
+            return emptyList()
         }
         disciplines = mainDB.disciplinesDAO.getDisciplines() ?: emptyList()
         return disciplines
@@ -407,9 +424,15 @@ class UserAPIRepositoryImpl(
         }
     }
 
-    suspend fun postTask(task: Task) {
+    suspend fun postTestableTask(task: Task) {
         user.token?.let { token ->
-            postTask(token, task)
+            postTestableTask(token, task)
+        }
+    }
+
+    suspend fun postNonTestableTask(task: Task) {
+        user.token?.let { token ->
+            postNonTestableTask(token, task)
         }
     }
 
@@ -436,7 +459,6 @@ class UserAPIRepositoryImpl(
         user.token?.let { token ->
             postNewDiscipline(token, postNewDisciplineBody)
         }
-        disciplinesChanged = true
         disciplines = getDisciplines()
     }
 
@@ -517,5 +539,13 @@ class UserAPIRepositoryImpl(
 
     suspend fun deleteGroup(id: Int): DeleteGroupResponse {
         return user.token?.let { token -> deleteGroup(token, id).body() } ?: DeleteGroupResponse()
+    }
+
+    suspend fun postNewLectureTeacher(teacher: PostNewTeacherBody): Response<PostTeacherResponse>? {
+        return user.token?.let { token -> postNewLectureTeacher(token, teacher) }
+    }
+
+    suspend fun postNewLabWorkTeacher(teacher: PostNewTeacherBody): Response<PostTeacherResponse>? {
+        return user.token?.let { token -> postNewLabWorkTeacher(token, teacher) }
     }
 }

@@ -1,6 +1,7 @@
 package com.example.trp.ui.screens.teacher
 
 import android.app.Activity
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -107,6 +108,10 @@ fun TeacherTaskScreen(
         }
         if (viewModel.showRejectDialog) {
             RejectDialog(viewModel = viewModel, navController = navController)
+        }
+        if (viewModel.errorMessage.isNotEmpty()) {
+            Toast.makeText(LocalContext.current, viewModel.errorMessage, Toast.LENGTH_SHORT).show()
+            viewModel.updateErrorMessage("")
         }
     }
 }

@@ -13,6 +13,8 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
+import java.net.ConnectException
+import java.net.SocketTimeoutException
 
 class CreateTaskScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
@@ -64,6 +66,10 @@ class CreateTaskScreenViewModel @AssistedInject constructor(
         private set
 
     var applyButtonEnabled by mutableStateOf(false)
+    var errorMessage by mutableStateOf("")
+        private set
+    var responseSuccess by mutableStateOf(false)
+        private set
 
     @AssistedFactory
     interface Factory {
@@ -84,6 +90,10 @@ class CreateTaskScreenViewModel @AssistedInject constructor(
                 }
             }
         }
+    }
+
+    fun updateErrorMessage(newMessage: String) {
+        errorMessage = newMessage
     }
 
     fun updateTitleValue(newTitleValue: String) {
@@ -201,34 +211,42 @@ class CreateTaskScreenViewModel @AssistedInject constructor(
 
 
     fun beforeSaveButtonClick() {
+        responseSuccess = false
         viewModelScope.launch {
-            when (testable) {
-                "Yes" -> {
-                    repository.postTask(
-                        Task(
-                            labWorkId = labId,
-                            title = title,
-                            description = description,
-                            language = language,
-                            functionName = functionName.takeIf { testable == "Yes" },
-                            returnType = functionType.takeIf { testable == "Yes" },
-                            arguments = argumentList.map { it.first },
-                            testable = true
+            try {
+                when (testable) {
+                    "Yes" -> {
+                        repository.postTestableTask(
+                            Task(
+                                labWorkId = labId,
+                                title = title,
+                                description = description,
+                                language = language,
+                                functionName = functionName.takeIf { testable == "Yes" },
+                                returnType = functionType.takeIf { testable == "Yes" },
+                                arguments = argumentList.map { it.first },
+                            )
                         )
-                    )
-                }
+                    }
 
-                "No" -> {
-                    repository.postTask(
-                        Task(
-                            labWorkId = labId,
-                            title = title,
-                            description = description,
-                            language = language,
-                            testable = false
+                    "No" -> {
+                        repository.postNonTestableTask(
+                            Task(
+                                labWorkId = labId,
+                                title = title,
+                                description = description,
+                                language = language,
+                            )
                         )
-                    )
+                    }
                 }
+                responseSuccess = true
+            } catch (e: SocketTimeoutException) {
+                updateErrorMessage("Timeout")
+            } catch (e: ConnectException) {
+                updateErrorMessage("Check internet connection")
+            } catch (e: Exception) {
+                updateErrorMessage("Error")
             }
         }
     }

@@ -15,6 +15,8 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
+import java.net.ConnectException
+import java.net.SocketTimeoutException
 
 class CreateTeamScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
@@ -23,20 +25,25 @@ class CreateTeamScreenViewModel @AssistedInject constructor(
 ) : ViewModel() {
     var students by mutableStateOf(emptyList<Student>())
         private set
-    var teams by mutableStateOf(emptyList<Team>())
-        private set
+    private var teams by mutableStateOf(emptyList<Team>())
     private var maxTeamSize by mutableStateOf(0)
     var selectedStudents by mutableStateOf(emptyList<Student>())
         private set
     var studentsCheckBoxStates by mutableStateOf(emptyList<CheckBoxState>())
         private set
-    var teamSizeOverflow by mutableStateOf(false)
+    private var teamSizeOverflow by mutableStateOf(false)
 
     var disciplineId by mutableStateOf(repository.currentDiscipline) // TODO
 
     var showSelectLeaderDialog by mutableStateOf(false)
         private set
     var selectedGroupLeaderIndex by mutableStateOf(0)
+        private set
+    var errorMessage by mutableStateOf("")
+        private set
+    var responseSuccess by mutableStateOf(false)
+        private set
+    var isRefreshing by mutableStateOf(false)
         private set
 
     @AssistedFactory
@@ -60,14 +67,38 @@ class CreateTeamScreenViewModel @AssistedInject constructor(
         }
     }
 
-    init {
-        viewModelScope.launch {
+    private suspend fun init() {
+        try {
             students = repository.getStudents(groupId = groupId).sortedBy { it.fullName }
             studentsCheckBoxStates = List(students.size) { CheckBoxState() }
             teams = repository.getTeams(disciplineId)
             maxTeamSize = 2
             disableStudents()
+        } catch (e: SocketTimeoutException) {
+            updateErrorMessage("Timeout")
+        } catch (e: ConnectException) {
+            updateErrorMessage("Check internet connection")
+        } catch (e: Exception) {
+            updateErrorMessage("Error")
         }
+    }
+
+    init {
+        viewModelScope.launch {
+            init()
+        }
+    }
+
+    fun onRefresh() {
+        viewModelScope.launch {
+            isRefreshing = true
+            init()
+            isRefreshing = false
+        }
+    }
+
+    fun updateErrorMessage(newMessage: String) {
+        errorMessage = newMessage
     }
 
     fun getStudent(index: Int): Student {
@@ -91,7 +122,7 @@ class CreateTeamScreenViewModel @AssistedInject constructor(
     private fun disableStudents() {
         teams.forEach { team ->
             students.forEachIndexed { index, student ->
-                if (student.id in team.studentIds.orEmpty()) {
+                if (student in team.students.orEmpty()) {
                     studentsCheckBoxStates = studentsCheckBoxStates.toMutableList().also {
                         it[index] = CheckBoxState(isSelected = true, isEnable = false)
                     }
@@ -105,17 +136,27 @@ class CreateTeamScreenViewModel @AssistedInject constructor(
     }
 
     fun onConfirmDialogButtonClick() {
+        responseSuccess = false
         viewModelScope.launch {
-            repository.postNewTeam(
-                PostTeamBody(
-                    disciplineId = disciplineId,
-                    groupId = groupId,
-                    studentIds = selectedStudents.mapNotNull { it.id },
-                    // leaderStudentId = selectedStudents[selectedGroupLeaderIndex].id TODO
+            try {
+                repository.postNewTeam(
+                    PostTeamBody(
+                        disciplineId = disciplineId,
+                        groupId = groupId,
+                        studentIds = selectedStudents.mapNotNull { it.id },
+                        // leaderStudentId = selectedStudents[selectedGroupLeaderIndex].id TODO
+                    )
                 )
-            )
+                responseSuccess = true
+                showSelectLeaderDialog = false
+            } catch (e: SocketTimeoutException) {
+                updateErrorMessage("Timeout")
+            } catch (e: ConnectException) {
+                updateErrorMessage("Check internet connection")
+            } catch (e: Exception) {
+                updateErrorMessage("Error")
+            }
         }
-        showSelectLeaderDialog = false
     }
 
     fun onDismissButtonClick() {

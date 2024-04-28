@@ -1,6 +1,7 @@
 package com.example.trp.ui.screens.teacher
 
 import android.app.Activity
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,7 +16,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -45,8 +46,9 @@ import dagger.hilt.android.EntryPointAccessors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddTaskToStudentScreen(
+fun AddTaskToTeamScreen(
     teamId: Int,
+    labId: Int,
     navController: NavHostController
 ) {
     val factory = EntryPointAccessors.fromActivity(
@@ -56,64 +58,61 @@ fun AddTaskToStudentScreen(
     val viewModel: AddTaskToTeamScreenViewModel = viewModel(
         factory = AddTaskToTeamScreenViewModel.provideAddTaskToTeamScreenViewModel(
             factory,
-            teamId
+            teamId,
+            labId
         )
     )
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            AddTaskToStudentCenterAlignedTopAppBar(
+            AddTaskToStudentTopAppBar(
                 viewModel = viewModel,
                 navController = navController
             )
         }
     ) { scaffoldPadding ->
         Tasks(viewModel = viewModel, paddingValues = scaffoldPadding)
+        if (viewModel.errorMessage.isNotEmpty()) {
+            Toast.makeText(LocalContext.current, viewModel.errorMessage, Toast.LENGTH_SHORT).show()
+            viewModel.updateErrorMessage("")
+        }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddTaskToStudentCenterAlignedTopAppBar(
+fun AddTaskToStudentTopAppBar(
     viewModel: AddTaskToTeamScreenViewModel,
     navController: NavHostController
 ) {
+    LaunchedEffect(viewModel.responseSuccess) {
+        if (viewModel.responseSuccess) {
+            navController.popBackStack()
+        }
+    }
     TopAppBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
             containerColor = TRPTheme.colors.myYellow,
             titleContentColor = TRPTheme.colors.secondaryText,
         ),
-        title = { Text(text = viewModel.team.id.toString()) },
+        title = { Text(text = "Appoint new lab") },
         navigationIcon = {
-            if (!viewModel.isTaskChanged) {
-                IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(
-                        imageVector = Icons.Filled.ArrowBack,
-                        contentDescription = "BackIconButton"
-                    )
-                }
-            } else {
-                IconButton(onClick = { viewModel.onRollBackIconButtonClick() }) {
-                    Icon(
-                        imageVector = Icons.Filled.Close,
-                        contentDescription = "RollBackIconButton"
-                    )
-                }
+            IconButton(onClick = { navController.popBackStack() }) {
+                Icon(
+                    imageVector = Icons.Filled.ArrowBack,
+                    contentDescription = "BackIconButton"
+                )
             }
         },
         actions = {
-            if (viewModel.isTaskChanged) {
-                IconButton(
-                    onClick = {
-                        viewModel.beforeApplyButtonClick()
-                        navController.popBackStack()
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Done,
-                        contentDescription = "ApplyAddTasksToStudentButton",
-                    )
-                }
+            IconButton(
+                onClick = { viewModel.beforeApplyButtonClick() },
+                enabled = viewModel.tasksCheckBoxStates.any { it.isSelected }
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Done,
+                    contentDescription = "ApplyAddTasksToStudentButton",
+                )
             }
         }
     )
@@ -146,14 +145,16 @@ fun Task(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxSize(),
-        onClick = { }, // TODO
+        onClick = { viewModel.onCheckBoxClick(index) },
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 10.dp
         ),
         colors = ButtonDefaults.buttonColors(
-            containerColor = TRPTheme.colors.cardButtonColor
+            containerColor = TRPTheme.colors.cardButtonColor,
+            disabledContainerColor = TRPTheme.colors.cardButtonColor.copy(alpha = 0.6f)
         ),
-        shape = RoundedCornerShape(30.dp)
+        shape = RoundedCornerShape(30.dp),
+        enabled = viewModel.tasksCheckBoxStates[index].isEnable
     ) {
         Row(
             modifier = Modifier
@@ -172,13 +173,19 @@ fun Task(
                 modifier = Modifier.alpha(viewModel.tasksCheckBoxStates[index].enableAlpha)
             ) {
                 RoundCheckBox(
+                    modifier = Modifier.alpha(
+                        if (viewModel.tasksCheckBoxStates[index].isEnable) {
+                            1f
+                        } else {
+                            0.6f
+                        }
+                    ),
                     isChecked = viewModel.tasksCheckBoxStates[index].isSelected,
                     onClick = { viewModel.onCheckBoxClick(index) },
                     color = RoundCheckBoxDefaults.colors(
                         selectedColor = TRPTheme.colors.myYellow,
                         borderColor = TRPTheme.colors.myYellow,
                         tickColor = TRPTheme.colors.primaryText,
-                        disabledSelectedColor = TRPTheme.colors.myYellow
                     ),
                     enabled = viewModel.tasksCheckBoxStates[index].isEnable
                 )

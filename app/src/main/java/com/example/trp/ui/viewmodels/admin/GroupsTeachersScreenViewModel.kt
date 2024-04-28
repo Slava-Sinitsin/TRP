@@ -13,6 +13,8 @@ import com.example.trp.ui.components.tabs.UsersTabs
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
+import java.net.ConnectException
+import java.net.SocketTimeoutException
 
 class GroupsTeachersScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl
@@ -30,7 +32,8 @@ class GroupsTeachersScreenViewModel @AssistedInject constructor(
 
     var isRefreshing by mutableStateOf(false)
         private set
-
+    var errorMessage by mutableStateOf("")
+        private set
 
     @AssistedFactory
     interface Factory {
@@ -51,17 +54,31 @@ class GroupsTeachersScreenViewModel @AssistedInject constructor(
     }
 
     init {
-        viewModelScope.launch {
+        viewModelScope.launch { init() }
+    }
+
+    private suspend fun init() {
+        try {
             groups = repository.getGroups().sortedBy { it.name }
             teachers = repository.getTeachers().sortedBy { it.fullName }
+        } catch (e: SocketTimeoutException) {
+            updateErrorMessage("Timeout")
+        } catch (e: ConnectException) {
+            updateErrorMessage("Check internet connection")
+        } catch (e: Exception) {
+            updateErrorMessage("Error")
         }
+
+    }
+
+    fun updateErrorMessage(newMessage: String) {
+        errorMessage = newMessage
     }
 
     fun onRefresh() {
         viewModelScope.launch {
             isRefreshing = true
-            groups = repository.getGroups().sortedBy { it.name }
-            teachers = repository.getTeachers().sortedBy { it.fullName }
+            init()
             isRefreshing = false
         }
     }

@@ -14,5 +14,6 @@ data class Task(
     @SerializedName("arguments") val arguments: List<Argument>? = null,
     @SerializedName("testable") val testable: Boolean? = null,
     @SerializedName("inputRegex") val inputRegex: String? = null,
-    @SerializedName("outputRegex") val outputRegex: String? = null
+    @SerializedName("outputRegex") val outputRegex: String? = null,
+    @SerializedName("labWorkVariantTests") val tests: List<Test>? = null
 )

@@ -1,9 +1,9 @@
 package com.example.trp.ui.screens.teacher
 
 import android.app.Activity
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.trp.domain.di.ViewModelFactoryProvider
+import com.example.trp.ui.components.TabIndicator
 import com.example.trp.ui.components.myTabIndicatorOffset
 import com.example.trp.ui.components.tabs.DisabledInteractionSource
 import com.example.trp.ui.theme.TRPTheme
@@ -75,9 +76,7 @@ fun TeacherGroupsLabsScreen(
         }
     }
     val indicator = @Composable { tabPositions: List<TabPosition> ->
-        MyNewIndicator(
-            Modifier.myTabIndicatorOffset(tabPositions[viewModel.selectedTabIndex])
-        )
+        TabIndicator(Modifier.myTabIndicatorOffset(tabPositions[viewModel.selectedTabIndex]))
     }
 
     Surface(modifier = Modifier.fillMaxSize()) {
@@ -132,39 +131,46 @@ fun TeacherGroupsLabsScreen(
                 }
             }
         }
+        if (viewModel.errorMessage.isNotEmpty()) {
+            Toast.makeText(LocalContext.current, viewModel.errorMessage, Toast.LENGTH_SHORT).show()
+            viewModel.updateErrorMessage("")
+        }
     }
 }
 
-@Composable
-fun MyNewIndicator(modifier: Modifier = Modifier) {
-    Column(
-        modifier
-            .fillMaxSize()
-            .padding(5.dp)
-            .background(
-                TRPTheme.colors.myYellow,
-                RoundedCornerShape(20.dp),
-            ),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-    }
-}
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun Groups(
     viewModel: TeacherGroupsLabsScreenViewModel,
     onGroupClick: (groupId: Int) -> Unit
 ) {
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
-        items(viewModel.groups.size) { index ->
-            Group(
-                viewModel = viewModel,
-                index = index,
-                onGroupClick = onGroupClick
-            )
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = viewModel.isRefreshing,
+        onRefresh = { viewModel.onRefresh() }
+    )
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pullRefresh(state = pullRefreshState)
+    ) {
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            items(viewModel.groups.size) { index ->
+                Group(
+                    viewModel = viewModel,
+                    index = index,
+                    onGroupClick = onGroupClick
+                )
+            }
+            item { Spacer(modifier = Modifier.size(100.dp)) }
         }
-        item { Spacer(modifier = Modifier.size(100.dp)) }
+        PullRefreshIndicator(
+            modifier = Modifier.align(Alignment.TopCenter),
+            refreshing = viewModel.isRefreshing,
+            state = pullRefreshState,
+            backgroundColor = TRPTheme.colors.primaryBackground,
+            contentColor = TRPTheme.colors.myYellow
+        )
     }
 }
 

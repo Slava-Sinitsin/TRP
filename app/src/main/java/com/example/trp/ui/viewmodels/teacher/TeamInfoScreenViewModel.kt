@@ -3,20 +3,19 @@ package com.example.trp.ui.viewmodels.teacher
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.trp.data.mappers.TeamAppointments
-import com.example.trp.data.mappers.tasks.ShowTeam
+import com.example.trp.data.mappers.tasks.Lab
 import com.example.trp.data.mappers.tasks.Task
 import com.example.trp.data.mappers.tasks.Team
 import com.example.trp.data.repository.UserAPIRepositoryImpl
-import com.example.trp.ui.components.TaskStatus
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
+import java.net.ConnectException
+import java.net.SocketTimeoutException
 
 class TeamInfoScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
@@ -25,11 +24,14 @@ class TeamInfoScreenViewModel @AssistedInject constructor(
 ) : ViewModel() {
     var team by mutableStateOf(Team())
         private set
-    var showTeam by mutableStateOf(ShowTeam())
+    var labs by mutableStateOf(emptyList<Lab>())
         private set
     var tasks by mutableStateOf(emptyList<Task>())
         private set
-    private var teamAppointments by mutableStateOf(emptyList<TeamAppointments>())
+    var isRefreshing by mutableStateOf(false)
+        private set
+    var errorMessage by mutableStateOf("")
+        private set
 
     @AssistedFactory
     interface Factory {
@@ -51,42 +53,57 @@ class TeamInfoScreenViewModel @AssistedInject constructor(
     }
 
     init {
-        viewModelScope.launch { // TODO
+        viewModelScope.launch { init() }
+    } // TODO
+
+    private suspend fun init() {
+        try {
             team = repository.teams.find { it.id == teamId } ?: Team()
-            showTeam = ShowTeam(team.id, team.studentIds?.mapNotNull {
-                repository.students.find { student -> student.id == it }
-            })
-            teamAppointments = repository.getTeamAppointments(teamId)
-            tasks = repository.getTeamTasks(teamId)
+            labs = repository.getLabs(disciplineId = repository.currentDiscipline) // TODO
+            tasks = repository.getTeamTasks(teamId).sortedBy { it.labWorkId }
+        } catch (e: SocketTimeoutException) {
+            updateErrorMessage("Timeout")
+        } catch (e: ConnectException) {
+            updateErrorMessage("Check internet connection")
+        } catch (e: Exception) {
+            updateErrorMessage("Error")
         }
+    }
+
+    fun onRefresh() {
+        viewModelScope.launch {
+            isRefreshing = true
+            init()
+            isRefreshing = false
+        }
+    }
+
+    fun updateErrorMessage(newMessage: String) {
+        errorMessage = newMessage
     }
 
     fun getTask(index: Int): Task {
         return tasks.find { it.id == tasks[index].id } ?: Task()
     }
 
-    private fun getStudentAppointment(index: Int): TeamAppointments {
-        return teamAppointments.find { it.taskId == tasks[index].id } ?: TeamAppointments()
-    }
+    /*    fun getStatus(index: Int): Pair<Float, Color> {
+            return when (getStudentAppointment(index).status) {
+                TaskStatus.New.status -> Pair(
+                    TaskStatus.New.float,
+                    TaskStatus.New.color
+                )
 
-    fun getStatus(index: Int): Pair<Float, Color> {
-        return when (getStudentAppointment(index).status) {
-            TaskStatus.New.status -> Pair(
-                TaskStatus.New.float,
-                TaskStatus.New.color
-            )
+                TaskStatus.InProgress.status -> Pair(
+                    TaskStatus.InProgress.float,
+                    TaskStatus.InProgress.color
+                )
 
-            TaskStatus.InProgress.status -> Pair(
-                TaskStatus.InProgress.float,
-                TaskStatus.InProgress.color
-            )
+                TaskStatus.Complete.status -> Pair(
+                    TaskStatus.Complete.float,
+                    TaskStatus.Complete.color
+                )
 
-            TaskStatus.Complete.status -> Pair(
-                TaskStatus.Complete.float,
-                TaskStatus.Complete.color
-            )
-
-            else -> Pair(0f, Color.Transparent)
-        }
-    }
+                else -> Pair(0f, Color.Transparent)
+            }
+        }*/
 }

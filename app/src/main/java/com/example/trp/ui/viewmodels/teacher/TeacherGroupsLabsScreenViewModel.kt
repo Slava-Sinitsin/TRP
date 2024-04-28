@@ -15,6 +15,8 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
+import java.net.ConnectException
+import java.net.SocketTimeoutException
 
 class TeacherGroupsLabsScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
@@ -39,6 +41,8 @@ class TeacherGroupsLabsScreenViewModel @AssistedInject constructor(
     )
 
     var selectedTabIndex by mutableStateOf(0)
+    var errorMessage by mutableStateOf("")
+        private set
 
     @AssistedFactory
     interface Factory {
@@ -60,26 +64,44 @@ class TeacherGroupsLabsScreenViewModel @AssistedInject constructor(
     }
 
     init {
-        viewModelScope.launch {
+        viewModelScope.launch { init() }
+    }
+
+    private suspend fun init() {
+        try {
             teacherAppointments =
                 repository.getTeacherAppointments().filter { it.discipline?.id == disciplineId }
             groups = teacherAppointments.map { it.group ?: Group() }.sortedBy { it.name }
             labs = repository.getLabs(disciplineId = disciplineId).sortedBy { it.title }
             repository.setCurrentDisciplineId(disciplineId)
             repository.getAllTeamAppointments(disciplineId)
+        } catch (e: SocketTimeoutException) {
+            updateErrorMessage("Timeout")
+        } catch (e: ConnectException) {
+            updateErrorMessage("Check internet connection")
+        } catch (e: Exception) {
+            updateErrorMessage("Error")
         }
     }
 
     fun onRefresh() {
         viewModelScope.launch {
-            isRefreshing = true
-            teacherAppointments =
-                repository.getTeacherAppointments().filter { it.discipline?.id == disciplineId }
-            groups = teacherAppointments.map { it.group ?: Group() }.sortedBy { it.name }
-            labs = repository.getLabs(disciplineId = disciplineId).sortedBy { it.title }
-            teams = repository.getTeams(disciplineId)
-            isRefreshing = false
+            try {
+                isRefreshing = true
+                init()
+                isRefreshing = false
+            } catch (e: SocketTimeoutException) {
+                updateErrorMessage("Timeout")
+            } catch (e: ConnectException) {
+                updateErrorMessage("Check internet connection")
+            } catch (e: Exception) {
+                updateErrorMessage("Error")
+            }
         }
+    }
+
+    fun updateErrorMessage(newMessage: String) {
+        errorMessage = newMessage
     }
 
     fun getGroup(index: Int): Group {

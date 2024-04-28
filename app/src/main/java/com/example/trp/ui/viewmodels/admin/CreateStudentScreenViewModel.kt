@@ -7,13 +7,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.trp.data.mappers.tasks.PostNewStudentBody
-import com.example.trp.data.mappers.teacherappointments.PostGroupResponse
+import com.example.trp.data.mappers.tasks.StudentResponse
 import com.example.trp.data.repository.UserAPIRepositoryImpl
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import java.net.ConnectException
+import java.net.SocketTimeoutException
 import java.util.Locale
 
 class CreateStudentScreenViewModel @AssistedInject constructor(
@@ -33,6 +35,10 @@ class CreateStudentScreenViewModel @AssistedInject constructor(
         private set
     private var conflictUsernameList by mutableStateOf(emptyList<String>())
     var createError by mutableStateOf(true)
+        private set
+    var errorMessage by mutableStateOf("")
+        private set
+    var responseSuccess by mutableStateOf(false)
         private set
 
     @AssistedFactory
@@ -56,11 +62,27 @@ class CreateStudentScreenViewModel @AssistedInject constructor(
 
     init {
         viewModelScope.launch {
+            init()
+        }
+    }
+
+    private fun init() {
+        try {
             fullName = ""
             username = ""
             password = generatePassword()
             checkStudentFields()
+        } catch (e: SocketTimeoutException) {
+            updateErrorMessage("Timeout")
+        } catch (e: ConnectException) {
+            updateErrorMessage("Check internet connection")
+        } catch (e: Exception) {
+            updateErrorMessage("Error")
         }
+    }
+
+    fun updateErrorMessage(newMessage: String) {
+        errorMessage = newMessage
     }
 
     fun updateStudentFullNameValue(newStudentFullName: String) {
@@ -129,28 +151,38 @@ class CreateStudentScreenViewModel @AssistedInject constructor(
     }
 
     fun onApplyCreateStudentClick() {
+        responseSuccess = false
         viewModelScope.launch {
-            val response = repository.postNewStudent(
-                PostNewStudentBody(
-                    username = username,
-                    fullName = fullName,
-                    password = password,
-                    groupId = groupId
+            try {
+                val response = repository.postNewStudent(
+                    PostNewStudentBody(
+                        username = username,
+                        fullName = fullName,
+                        password = password,
+                        groupId = groupId
+                    )
                 )
-            )
-            response?.errorBody()?.let {
-                val errorBody = it.string()
-                val postGroupResponse = PostGroupResponse(
-                    status = JSONObject(errorBody).getInt("status"),
-                    message = JSONObject(errorBody).getString("message"),
-                    error = JSONObject(errorBody).getString("error")
-                )
-                if (postGroupResponse.error?.startsWith("Username is already taken") == true) {
-                    usernameCorrect = false
-                    studentApplyButtonEnabled = false
-                    conflictUsernameList += username
-                }
-            } ?: run { createError = false }
+                response?.errorBody()?.let {
+                    val errorBody = it.string()
+                    val postGroupResponse = StudentResponse(
+                        status = JSONObject(errorBody).getInt("status"),
+                        message = JSONObject(errorBody).getString("message"),
+                        error = JSONObject(errorBody).getString("error")
+                    )
+                    if (postGroupResponse.error?.startsWith("Username is already taken") == true) {
+                        usernameCorrect = false
+                        studentApplyButtonEnabled = false
+                        conflictUsernameList += username
+                    }
+                } ?: run { createError = false }
+                responseSuccess = true
+            } catch (e: SocketTimeoutException) {
+                updateErrorMessage("Timeout")
+            } catch (e: ConnectException) {
+                updateErrorMessage("Check internet connection")
+            } catch (e: Exception) {
+                updateErrorMessage("Error")
+            }
         }
     }
 }

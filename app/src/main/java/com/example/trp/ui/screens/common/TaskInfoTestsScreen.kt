@@ -1,6 +1,7 @@
 package com.example.trp.ui.screens.common
 
 import android.app.Activity
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -29,9 +30,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
@@ -53,7 +51,6 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -128,7 +125,7 @@ fun TaskInfoTestsScreen(
             .fillMaxSize()
             .clearFocusOnTap(),
         topBar = {
-            TaskInfoCenterAlignedTopAppBar(
+            TaskInfoTopAppBar(
                 viewModel = viewModel,
                 navController = navController
             )
@@ -202,12 +199,16 @@ fun TaskInfoTestsScreen(
                 DeleteDialog(viewModel = viewModel, navController = navController)
             }
         }
+        if (viewModel.errorMessage.isNotEmpty()) {
+            Toast.makeText(LocalContext.current, viewModel.errorMessage, Toast.LENGTH_SHORT).show()
+            viewModel.updateErrorMessage("")
+        }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaskInfoCenterAlignedTopAppBar(
+fun TaskInfoTopAppBar(
     viewModel: TaskInfoTestsScreenViewModel,
     navController: NavHostController
 ) {
@@ -261,36 +262,36 @@ fun TaskInfoCenterAlignedTopAppBar(
             }
         },
         actions = {
-            if (viewModel.selectedTabIndex == 0) {
-                if (viewModel.taskReadOnlyMode.first) {
-                    Row {
-                        IconButton(onClick = { viewModel.onDeleteButtonClick() }) {
+/*            if (viewModel.user.role == "ROLE_LECTURE_TEACHER") { //TODO
+                if (viewModel.selectedTabIndex == 0) {
+                    if (viewModel.taskReadOnlyMode.first) {
+                        Row {
+                            IconButton(onClick = { viewModel.onDeleteButtonClick() }) {
+                                Icon(
+                                    imageVector = Icons.Filled.Delete,
+                                    contentDescription = "DeleteTask"
+                                )
+                            }
+                            IconButton(onClick = { viewModel.onEditButtonClick() }) {
+                                Icon(
+                                    imageVector = Icons.Filled.Edit,
+                                    contentDescription = "EditTaskPropertiesButton"
+                                )
+                            }
+                        }
+                    } else {
+                        IconButton(
+                            onClick = { viewModel.onSaveButtonClick() },
+                            enabled = viewModel.applyButtonEnabled
+                        ) {
                             Icon(
-                                imageVector = Icons.Filled.Delete,
-                                contentDescription = "DeleteTask"
+                                imageVector = Icons.Filled.Done,
+                                contentDescription = "ApplyTaskPropertiesButton",
                             )
                         }
-                        IconButton(onClick = { viewModel.onEditButtonClick() }) {
-                            Icon(
-                                imageVector = Icons.Filled.Edit,
-                                contentDescription = "EditTaskPropertiesButton"
-                            )
-                        }
-                    }
-                } else {
-                    IconButton(
-                        onClick = { viewModel.onSaveButtonClick() },
-                        enabled = viewModel.applyButtonEnabled
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Done,
-                            contentDescription = "ApplyTaskPropertiesButton",
-                        )
                     }
                 }
-            }
-            if (viewModel.selectedTabIndex == 1) {
-                if (!viewModel.testReadOnlyMode) {
+                if (viewModel.selectedTabIndex == 1 && !viewModel.testReadOnlyMode) {
                     IconButton(
                         onClick = { viewModel.onDeleteTestsButtonClick() },
                         enabled = viewModel.isTestChanged
@@ -301,7 +302,7 @@ fun TaskInfoCenterAlignedTopAppBar(
                         )
                     }
                 }
-            }
+            }*/
         }
     )
 }
@@ -317,7 +318,9 @@ fun TaskInfoScreen(
     ) {
         TitleField(viewModel = viewModel)
         DescriptionField(viewModel = viewModel)
-        FunctionNameField(viewModel = viewModel)
+        if (viewModel.task.testable == true) {
+            FunctionNameField(viewModel = viewModel)
+        }
         LanguageField(viewModel = viewModel)
     }
 }
@@ -498,6 +501,11 @@ fun LanguageField(viewModel: TaskInfoTestsScreenViewModel) {
 
 @Composable
 fun DeleteDialog(viewModel: TaskInfoTestsScreenViewModel, navController: NavHostController) {
+    LaunchedEffect(viewModel.responseSuccess) {
+        if (viewModel.responseSuccess) {
+            navController.popBackStack()
+        }
+    }
     AlertDialog(
         onDismissRequest = {},
         title = {
@@ -515,10 +523,7 @@ fun DeleteDialog(viewModel: TaskInfoTestsScreenViewModel, navController: NavHost
         },
         confirmButton = {
             Button(
-                onClick = {
-                    viewModel.beforeConfirmButtonClick()
-                    navController.popBackStack()
-                },
+                onClick = { viewModel.beforeConfirmButtonClick() },
                 colors = ButtonDefaults.buttonColors(TRPTheme.colors.errorColor)
             ) {
                 Text(
@@ -652,7 +657,7 @@ fun Test(
         contentPadding = PaddingValues(),
         interactionSource = interactionSource
     ) {
-        if (pressed) {
+/*        if (pressed) { // TODO
             DisposableEffect(Unit) {
                 onDispose {
                     if (!scrollState.isScrollInProgress) {
@@ -660,7 +665,7 @@ fun Test(
                     }
                 }
             }
-        }
+        }*/
         Column(
             modifier = Modifier
                 .padding(start = 16.dp, top = 16.dp, bottom = 16.dp)

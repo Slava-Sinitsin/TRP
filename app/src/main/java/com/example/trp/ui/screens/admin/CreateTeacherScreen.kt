@@ -1,6 +1,7 @@
 package com.example.trp.ui.screens.admin
 
 import android.app.Activity
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,6 +27,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -144,7 +146,7 @@ fun CreateTeacherScreen(navController: NavHostController) {
                     errorIndicatorColor = TRPTheme.colors.errorColor,
                     errorCursorColor = TRPTheme.colors.primaryText
                 ),
-                isError = viewModel.teacherUsername.isEmpty(),
+                isError = !viewModel.usernameCorrect,
                 singleLine = true
             )
             Text(
@@ -184,6 +186,10 @@ fun CreateTeacherScreen(navController: NavHostController) {
                 singleLine = true
             )
         }
+        if (viewModel.errorMessage.isNotEmpty()) {
+            Toast.makeText(LocalContext.current, viewModel.errorMessage, Toast.LENGTH_SHORT).show()
+            viewModel.updateErrorMessage("")
+        }
     }
 }
 
@@ -193,6 +199,11 @@ fun CreateTeacherScreenTopBar(
     viewModel: CreateTeacherScreenViewModel,
     navController: NavHostController
 ) {
+    LaunchedEffect(viewModel.createError) {
+        if (!viewModel.createError && viewModel.responseSuccess) {
+            navController.popBackStack()
+        }
+    }
     TopAppBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
             containerColor = TRPTheme.colors.myYellow,
@@ -216,10 +227,7 @@ fun CreateTeacherScreenTopBar(
         },
         actions = {
             IconButton(
-                onClick = {
-                    viewModel.onApplyButtonClick()
-                    navController.popBackStack()
-                },
+                onClick = { viewModel.onApplyButtonClick() },
                 enabled = viewModel.applyButtonEnabled
             ) {
                 Icon(

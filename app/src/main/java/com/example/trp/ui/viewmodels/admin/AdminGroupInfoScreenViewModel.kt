@@ -12,6 +12,8 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
+import java.net.ConnectException
+import java.net.SocketTimeoutException
 
 class AdminGroupInfoScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
@@ -21,6 +23,8 @@ class AdminGroupInfoScreenViewModel @AssistedInject constructor(
     var students by mutableStateOf(emptyList<Student>())
         private set
     var isRefreshing by mutableStateOf(false)
+        private set
+    var errorMessage by mutableStateOf("")
         private set
 
     @AssistedFactory
@@ -43,17 +47,31 @@ class AdminGroupInfoScreenViewModel @AssistedInject constructor(
     }
 
     init {
-        viewModelScope.launch {
+        viewModelScope.launch { init() }
+    }
+
+    private suspend fun init() {
+        try {
             students = repository.getStudents(groupId).sortedBy { it.fullName }
+        } catch (e: SocketTimeoutException) {
+            updateErrorMessage("Timeout")
+        } catch (e: ConnectException) {
+            updateErrorMessage("Check internet connection")
+        } catch (e: Exception) {
+            updateErrorMessage("Error")
         }
     }
 
     fun onRefresh() {
         viewModelScope.launch {
             isRefreshing = true
-            students = repository.getStudents(groupId).sortedBy { it.fullName }
+            init()
             isRefreshing = false
         }
+    }
+
+    fun updateErrorMessage(newMessage: String) {
+        errorMessage = newMessage
     }
 
     fun getStudent(index: Int): Student = students[index]

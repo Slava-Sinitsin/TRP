@@ -1,6 +1,7 @@
 package com.example.trp.ui.screens.teacher
 
 import android.app.Activity
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,6 +40,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.trp.domain.di.ViewModelFactoryProvider
 import com.example.trp.ui.components.VerticalNumberPicker
+import com.example.trp.ui.components.clearFocusOnTap
 import com.example.trp.ui.components.rememberVerticalPickerState
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.teacher.CreateLabViewModel
@@ -62,7 +64,9 @@ fun CreateLabScreen(
     )
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .clearFocusOnTap(),
         topBar = {
             CreateLabTopBar(
                 viewModel = viewModel,
@@ -82,6 +86,10 @@ fun CreateLabScreen(
             TitleField(viewModel = viewModel)
             RatingPicker(viewModel = viewModel)
         }
+        if (viewModel.errorMessage.isNotEmpty()) {
+            Toast.makeText(LocalContext.current, viewModel.errorMessage, Toast.LENGTH_SHORT).show()
+            viewModel.updateErrorMessage("")
+        }
     }
 }
 
@@ -91,6 +99,11 @@ fun CreateLabTopBar(
     viewModel: CreateLabViewModel,
     navController: NavHostController
 ) {
+    LaunchedEffect(viewModel.responseSuccess) {
+        if (viewModel.responseSuccess) {
+            navController.popBackStack()
+        }
+    }
     TopAppBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
             containerColor = TRPTheme.colors.myYellow,
@@ -107,10 +120,7 @@ fun CreateLabTopBar(
         },
         actions = {
             IconButton(
-                onClick = {
-                    viewModel.onApplyButtonClick()
-                    navController.popBackStack()
-                },
+                onClick = { viewModel.onApplyButtonClick() },
                 enabled = viewModel.title.isNotEmpty()
             ) {
                 Icon(

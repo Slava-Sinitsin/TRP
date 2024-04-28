@@ -82,7 +82,6 @@ class AuthScreenViewModel @Inject constructor(val repository: UserAPIRepositoryI
             try {
                 repository.login(logValue, passValue).let { user ->
                     if (user.message == "OK") {
-                        repository.disciplinesChanged = true
                         repository.getDisciplines()
                         loggedChange(true)
                     } else {

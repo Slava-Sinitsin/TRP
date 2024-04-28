@@ -19,6 +19,8 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
+import java.net.ConnectException
+import java.net.SocketTimeoutException
 
 class TeacherTaskScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
@@ -110,6 +112,8 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
     var reviewMessage by mutableStateOf("")
     var maxMark by mutableStateOf(0f)
     var mark by mutableStateOf(0f)
+    var errorMessage by mutableStateOf("")
+        private set
 
     @AssistedFactory
     interface Factory {
@@ -132,12 +136,24 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
 
     init {
         viewModelScope.launch {
-            task = repository.getTask(taskId)
-            solution = repository.taskSolution.copy(code = taskCode)
-            codeList = padCodeList(splitCode(solution.code ?: ""))
-            maxMark = 10.toFloat() / 100f
-            mark = 8.toFloat() / 100f
+            try {
+                task = repository.getTask(taskId)
+                solution = repository.taskSolution.copy(code = taskCode)
+                codeList = padCodeList(splitCode(solution.code ?: ""))
+                maxMark = 10.toFloat() / 100f
+                mark = 8.toFloat() / 100f
+            } catch (e: SocketTimeoutException) {
+                updateErrorMessage("Timeout")
+            } catch (e: ConnectException) {
+                updateErrorMessage("Check internet connection")
+            } catch (e: Exception) {
+                updateErrorMessage("Error")
+            }
         }
+    }
+
+    fun updateErrorMessage(newMessage: String) {
+        errorMessage = newMessage
     }
 
     private fun splitCode(input: String): List<AnnotatedString> {

@@ -1,6 +1,7 @@
 package com.example.trp.ui.screens.admin
 
 import android.app.Activity
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -54,6 +55,10 @@ fun AdminGroupInfoScreen(
             viewModel = viewModel,
             paddingValues = scaffoldPadding
         )
+        if (viewModel.errorMessage.isNotEmpty()) {
+            Toast.makeText(LocalContext.current, viewModel.errorMessage, Toast.LENGTH_SHORT).show()
+            viewModel.updateErrorMessage("")
+        }
     }
 }
 

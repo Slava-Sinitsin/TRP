@@ -7,5 +7,5 @@ data class Test(
     @SerializedName("labWorkVariantId") val taskId: Int? = null,
     @SerializedName("input") val input: String? = null,
     @SerializedName("output") val output: String? = null,
-    @SerializedName("open") val isOpen: Boolean? = null,
+    @SerializedName("open") val isOpen: Boolean? = null
 )

@@ -1,12 +1,19 @@
 package com.example.trp.ui.screens.admin
 
 import android.app.Activity
+import android.widget.Toast
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
@@ -39,37 +46,59 @@ fun AdminDisciplinesScreen(
         )
     )
 
-    Groups(
+    Disciplines(
         viewModel = viewModel,
         onAddDisciplineClick = onAddDisciplineClick,
         onDisciplineClick = onDisciplineClick
     )
+    if (viewModel.errorMessage.isNotEmpty()) {
+        Toast.makeText(LocalContext.current, viewModel.errorMessage, Toast.LENGTH_SHORT).show()
+        viewModel.updateErrorMessage("")
+    }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun Groups(
+fun Disciplines(
     viewModel: AdminDisciplinesScreenViewModel,
     onAddDisciplineClick: () -> Unit,
     onDisciplineClick: (index: Int) -> Unit
 ) {
-    LazyColumn {
-        item { AddDiscipline(viewModel = viewModel, onAddDisciplineClick = onAddDisciplineClick) }
-        items(viewModel.disciplines.size) { index ->
-            Group(
-                viewModel = viewModel,
-                index = index,
-                onDisciplineClick = onDisciplineClick
-            )
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = viewModel.isRefreshing,
+        onRefresh = { viewModel.onRefresh() }
+    )
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(TRPTheme.colors.primaryBackground)
+            .pullRefresh(state = pullRefreshState)
+    ) {
+        LazyColumn {
+            item {
+                AddDiscipline(onAddDisciplineClick = onAddDisciplineClick)
+            }
+            items(viewModel.disciplines.size) { index ->
+                Discipline(
+                    viewModel = viewModel,
+                    index = index,
+                    onDisciplineClick = onDisciplineClick
+                )
+            }
+            item { Spacer(modifier = Modifier.size(100.dp)) }
         }
-        item { Spacer(modifier = Modifier.size(100.dp)) }
+        PullRefreshIndicator(
+            modifier = Modifier.align(Alignment.TopCenter),
+            refreshing = viewModel.isRefreshing,
+            state = pullRefreshState,
+            backgroundColor = TRPTheme.colors.primaryBackground,
+            contentColor = TRPTheme.colors.myYellow
+        )
     }
 }
 
 @Composable
-fun AddDiscipline(
-    viewModel: AdminDisciplinesScreenViewModel,
-    onAddDisciplineClick: () -> Unit
-) {
+fun AddDiscipline(onAddDisciplineClick: () -> Unit) {
     Button(
         modifier = Modifier
             .padding(8.dp)
@@ -96,7 +125,7 @@ fun AddDiscipline(
 }
 
 @Composable
-fun Group(
+fun Discipline(
     viewModel: AdminDisciplinesScreenViewModel,
     index: Int,
     onDisciplineClick: (index: Int) -> Unit
@@ -106,7 +135,7 @@ fun Group(
             .padding(8.dp)
             .fillMaxSize(),
         onClick = {
-            viewModel.getGroup(index = index).let { group ->
+            viewModel.getDiscipline(index = index).let { group ->
                 group.id?.let { id -> onDisciplineClick(id) }
             }
         },
@@ -123,8 +152,8 @@ fun Group(
                 .fillMaxSize()
                 .padding(top = 16.dp, bottom = 16.dp)
                 .align(Alignment.CenterVertically),
+            text = "${viewModel.getDiscipline(index = index).name} ${viewModel.getDiscipline(index = index).year}",
             textAlign = TextAlign.Start,
-            text = viewModel.getGroup(index = index).name.toString(),
             color = TRPTheme.colors.primaryText,
             fontSize = 25.sp
         )

@@ -1,6 +1,7 @@
 package com.example.trp.ui.screens.teacher
 
 import android.app.Activity
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,9 +15,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -30,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -66,7 +71,7 @@ fun CreateTeamScreen(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            CreateTeamCenterAlignedTopAppBar(
+            CreateTeamTopAppBar(
                 viewModel = viewModel,
                 navController = navController
             )
@@ -76,15 +81,24 @@ fun CreateTeamScreen(
         if (viewModel.showSelectLeaderDialog) {
             SelectLeaderDialog(viewModel = viewModel, navController = navController)
         }
+        if (viewModel.errorMessage.isNotEmpty()) {
+            Toast.makeText(LocalContext.current, viewModel.errorMessage, Toast.LENGTH_SHORT).show()
+            viewModel.updateErrorMessage("")
+        }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateTeamCenterAlignedTopAppBar(
+fun CreateTeamTopAppBar(
     viewModel: CreateTeamScreenViewModel,
     navController: NavHostController
 ) {
+    LaunchedEffect(viewModel.responseSuccess) {
+        if (viewModel.responseSuccess) {
+            navController.popBackStack()
+        }
+    }
     TopAppBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
             containerColor = TRPTheme.colors.myYellow,
@@ -104,7 +118,6 @@ fun CreateTeamCenterAlignedTopAppBar(
                 onClick = {
                     if (viewModel.selectedStudents.size == 1) {
                         viewModel.onConfirmDialogButtonClick()
-                        navController.popBackStack()
                     } else {
                         viewModel.onAddButtonClick()
                     }
@@ -120,16 +133,22 @@ fun CreateTeamCenterAlignedTopAppBar(
     )
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun SelectField(
     viewModel: CreateTeamScreenViewModel,
     paddingValues: PaddingValues
 ) {
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = viewModel.isRefreshing,
+        onRefresh = { viewModel.onRefresh() }
+    )
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(top = paddingValues.calculateTopPadding())
             .background(TRPTheme.colors.primaryBackground)
+            .pullRefresh(state = pullRefreshState)
     ) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(count = viewModel.students.size) { index ->
@@ -213,7 +232,6 @@ fun SelectLeaderDialog(viewModel: CreateTeamScreenViewModel, navController: NavH
             Button(
                 onClick = {
                     viewModel.onConfirmDialogButtonClick()
-                    navController.popBackStack()
                 },
                 colors = ButtonDefaults.buttonColors(TRPTheme.colors.myYellow)
             ) {

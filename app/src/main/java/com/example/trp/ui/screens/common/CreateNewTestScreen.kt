@@ -1,6 +1,7 @@
 package com.example.trp.ui.screens.common
 
 import android.app.Activity
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,6 +29,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -41,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.trp.domain.di.ViewModelFactoryProvider
+import com.example.trp.ui.components.clearFocusOnTap
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.common.CreateNewTestScreenViewModel
 import dagger.hilt.android.EntryPointAccessors
@@ -64,7 +67,8 @@ fun CreateNewTestScreen(
 
     Scaffold(
         modifier = Modifier
-            .fillMaxSize(),
+            .fillMaxSize()
+            .clearFocusOnTap(),
         topBar = { AddNewTestTopAppBar(viewModel = viewModel, navController = navController) }
     ) { scaffoldPadding ->
         LazyColumn(
@@ -77,6 +81,10 @@ fun CreateNewTestScreen(
             item { InputField(viewModel = viewModel) }
             item { OutputField(viewModel = viewModel) }
         }
+        if (viewModel.errorMessage.isNotEmpty()) {
+            Toast.makeText(LocalContext.current, viewModel.errorMessage, Toast.LENGTH_SHORT).show()
+            viewModel.updateErrorMessage("")
+        }
     }
 }
 
@@ -86,6 +94,11 @@ fun AddNewTestTopAppBar(
     viewModel: CreateNewTestScreenViewModel,
     navController: NavHostController
 ) {
+    LaunchedEffect(viewModel.responseSuccess) {
+        if (viewModel.responseSuccess) {
+            navController.popBackStack()
+        }
+    }
     TopAppBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
             containerColor = TRPTheme.colors.myYellow,
@@ -109,10 +122,7 @@ fun AddNewTestTopAppBar(
         },
         actions = {
             IconButton(
-                onClick = {
-                    viewModel.onSaveButtonClick()
-                    navController.popBackStack()
-                },
+                onClick = { viewModel.onSaveButtonClick() },
                 enabled = viewModel.saveButtonEnabled
             ) {
                 Icon(
@@ -188,7 +198,7 @@ fun IsOpenToggle(viewModel: CreateNewTestScreenViewModel) {
 @Composable
 fun InputField(viewModel: CreateNewTestScreenViewModel) {
     Column(modifier = Modifier.padding(horizontal = 5.dp)) {
-        viewModel.argumentsWithRegex.forEachIndexed { index, _ ->
+        viewModel.argumentsWithRegex.forEachIndexed { index, argument ->
             Text(
                 modifier = Modifier
                     .alpha(0.6f)
@@ -211,7 +221,7 @@ fun InputField(viewModel: CreateNewTestScreenViewModel) {
                 onValueChange = { viewModel.updateInputValue(index = index, newInputValue = it) },
                 placeholder = {
                     Text(
-                        "Input",
+                        text = "Example: ${viewModel.placeholdersList.find { it.first == argument.type }?.second ?: "input"}",
                         color = TRPTheme.colors.primaryText,
                         modifier = Modifier.alpha(0.6f)
                     )
@@ -258,7 +268,7 @@ fun OutputField(
             onValueChange = { viewModel.updateOutputValue(it) },
             placeholder = {
                 Text(
-                    "Output",
+                    text = "Example: ${viewModel.placeholdersList.find { it.first == viewModel.task.returnType }?.second ?: "input"}",
                     color = TRPTheme.colors.primaryText,
                     modifier = Modifier.alpha(0.6f)
                 )

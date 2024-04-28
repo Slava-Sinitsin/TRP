@@ -1,6 +1,7 @@
 package com.example.trp.ui.screens.common
 
 import android.app.Activity
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -41,6 +42,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -108,6 +110,10 @@ fun CreateTaskScreen(
                 item { Spacer(modifier = Modifier.size(100.dp)) }
             }
         }
+        if (viewModel.errorMessage.isNotEmpty()) {
+            Toast.makeText(LocalContext.current, viewModel.errorMessage, Toast.LENGTH_SHORT).show()
+            viewModel.updateErrorMessage("")
+        }
     }
 }
 
@@ -117,6 +123,11 @@ fun TaskInfoCenterAlignedTopAppBar(
     viewModel: CreateTaskScreenViewModel,
     navController: NavHostController
 ) {
+    LaunchedEffect(viewModel.responseSuccess) {
+        if (viewModel.responseSuccess) {
+            navController.popBackStack()
+        }
+    }
     TopAppBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
             containerColor = TRPTheme.colors.myYellow,
@@ -140,10 +151,7 @@ fun TaskInfoCenterAlignedTopAppBar(
         },
         actions = {
             IconButton(
-                onClick = {
-                    viewModel.beforeSaveButtonClick()
-                    navController.popBackStack()
-                },
+                onClick = { viewModel.beforeSaveButtonClick() },
                 enabled = viewModel.applyButtonEnabled
             ) {
                 Icon(

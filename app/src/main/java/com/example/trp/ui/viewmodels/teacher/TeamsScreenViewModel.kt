@@ -6,7 +6,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.trp.data.mappers.tasks.ShowTeam
 import com.example.trp.data.mappers.tasks.Student
 import com.example.trp.data.mappers.tasks.Team
 import com.example.trp.data.mappers.teacherappointments.Group
@@ -15,6 +14,8 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
+import java.net.ConnectException
+import java.net.SocketTimeoutException
 
 class TeamsScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
@@ -24,9 +25,7 @@ class TeamsScreenViewModel @AssistedInject constructor(
     var students by mutableStateOf(emptyList<Student>())
         private set
 
-    private var teams by mutableStateOf(emptyList<Team>())
-    var showTeams by mutableStateOf(emptyList<ShowTeam>())
-        private set
+    var teams by mutableStateOf(emptyList<Team>())
 
     var group by mutableStateOf(Group())
         private set
@@ -38,6 +37,8 @@ class TeamsScreenViewModel @AssistedInject constructor(
         private set
 
     var disciplineId by mutableStateOf(repository.currentDiscipline)
+    var errorMessage by mutableStateOf("")
+        private set
 
     @AssistedFactory
     interface Factory {
@@ -61,35 +62,39 @@ class TeamsScreenViewModel @AssistedInject constructor(
     }
 
     init {
-        viewModelScope.launch {
-            students = repository.getStudents(groupId = groupId).sortedBy { it.fullName }
-            group =
-                repository.teacherAppointments.find { it.group?.id == groupId }?.group ?: Group()
-            teams = repository.getTeams(disciplineId)
-            showTeams = teams.mapNotNull { team ->
-                val teamStudents = students.filter { it.id in team.studentIds.orEmpty() }
-                ShowTeam(id = team.id, students = teamStudents).takeIf { teamStudents.isNotEmpty() }
-            }
-        }
+        viewModelScope.launch { init() }
     }
 
     fun onRefresh() {
         viewModelScope.launch {
             isRefreshing = true
-            students = repository.getStudents(groupId = groupId).sortedBy { it.fullName }
-            group =
-                repository.teacherAppointments.find { it.group?.id == groupId }?.group ?: Group()
-            teams = repository.getTeams(disciplineId)
-            showTeams = teams.mapNotNull { team ->
-                val teamStudents = students.filter { it.id in team.studentIds.orEmpty() }
-                ShowTeam(id = team.id, students = teamStudents).takeIf { teamStudents.isNotEmpty() }
-            }
+            init()
             isRefreshing = false
         }
     }
 
-    fun getTeam(index: Int): ShowTeam {
-        return showTeams[index]
+    private suspend fun init() {
+        try {
+            students = repository.getStudents(groupId = groupId).sortedBy { it.fullName }
+            group =
+                repository.teacherAppointments.find { it.group?.id == groupId }?.group
+                    ?: Group()
+            teams = repository.getTeams(disciplineId)
+        } catch (e: SocketTimeoutException) {
+            updateErrorMessage("Timeout")
+        } catch (e: ConnectException) {
+            updateErrorMessage("Check internet connection")
+        } catch (e: Exception) {
+            updateErrorMessage("Error")
+        }
+    }
+
+    fun updateErrorMessage(newMessage: String) {
+        errorMessage = newMessage
+    }
+
+    fun getTeam(index: Int): Team {
+        return teams[index]
     }
 
     fun onMenuButtonClick() {
