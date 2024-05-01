@@ -18,11 +18,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -41,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.trp.domain.di.ViewModelFactoryProvider
+import com.example.trp.ui.components.TaskStatus
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.teacher.TeamInfoScreenViewModel
 import dagger.hilt.android.EntryPointAccessors
@@ -166,8 +169,8 @@ fun Task(
             .padding(8.dp)
             .fillMaxSize(),
         onClick = {
-            if (index < viewModel.tasks.size) {
-                viewModel.getTask(index).id?.let { onTaskClick(it) }
+            if (index < viewModel.teamAppointments.size) {
+                viewModel.teamAppointments[index].task?.id?.let { onTaskClick(it) }
             } else {
                 viewModel.labs[index].id?.let { onAddTaskToTeamClick(viewModel.teamId, it) }
             }
@@ -186,20 +189,35 @@ fun Task(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    modifier = Modifier.align(Alignment.CenterVertically),
                     textAlign = TextAlign.Start,
-                    text = if (index < viewModel.tasks.size) {
-                        viewModel.getTask(index).title.toString()
+                    text = if (index < viewModel.teamAppointments.size) {
+                        viewModel.teamAppointments[index].task?.title.toString()
                     } else {
                         "Not appoint"
                     },
                     color = TRPTheme.colors.primaryText,
                     fontSize = 25.sp
                 )
-/*                CircularProgressIndicator( TODO
-                    progress = viewModel.getStatus(index).first,
-                    color = viewModel.getStatus(index).second
-                )*/
+                if (index < viewModel.teamAppointments.size) {
+                    val status = viewModel.getStatus(index)
+                    if (status == TaskStatus.Rated) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Filled.Done,
+                                contentDescription = "Task is graded",
+                                tint = TRPTheme.colors.okColor
+                            )
+                            Text(text = "${viewModel.teamAppointments[index].grade}")
+                        }
+                    } else {
+                        Box {
+                            CircularProgressIndicator(
+                                progress = viewModel.getStatus(index).progress,
+                                color = viewModel.getStatus(index).color
+                            )
+                        }
+                    }
+                }
             }
         }
     }

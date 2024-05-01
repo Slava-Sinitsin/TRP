@@ -17,9 +17,11 @@ import java.net.SocketTimeoutException
 class TeacherDisciplinesScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl
 ) : ViewModel() {
-    var disciplines by mutableStateOf(repository.disciplines)
+    var disciplines by mutableStateOf(emptyList<DisciplineData>())
         private set
     var errorMessage by mutableStateOf("")
+        private set
+    var isRefreshing by mutableStateOf(false)
         private set
 
     @AssistedFactory
@@ -41,16 +43,27 @@ class TeacherDisciplinesScreenViewModel @AssistedInject constructor(
     }
 
     init {
+        viewModelScope.launch { init() }
+    }
+
+    private suspend fun init() {
+        try {
+            disciplines = repository.getDisciplines().sortedBy { it.name }
+        } catch (e: SocketTimeoutException) {
+            updateErrorMessage("Timeout")
+        } catch (e: ConnectException) {
+            updateErrorMessage("Check internet connection")
+        } catch (e: Exception) {
+            updateErrorMessage("Error")
+        }
+    }
+
+    fun onRefresh() {
         viewModelScope.launch {
-            try {
-                disciplines = repository.getDisciplines().sortedBy { it.name }
-            } catch (e: SocketTimeoutException) {
-                updateErrorMessage("Timeout")
-            } catch (e: ConnectException) {
-                updateErrorMessage("Check internet connection")
-            } catch (e: Exception) {
-                updateErrorMessage("Error")
-            }
+            isRefreshing = true
+            repository.newUpdateDiscipline(true)
+            init()
+            isRefreshing = false
         }
     }
 

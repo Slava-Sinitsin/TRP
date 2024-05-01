@@ -144,7 +144,7 @@ class CreateTeamScreenViewModel @AssistedInject constructor(
                         disciplineId = disciplineId,
                         groupId = groupId,
                         studentIds = selectedStudents.mapNotNull { it.id },
-                        // leaderStudentId = selectedStudents[selectedGroupLeaderIndex].id TODO
+                        leaderId = selectedStudents[selectedGroupLeaderIndex].id
                     )
                 )
                 responseSuccess = true

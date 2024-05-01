@@ -42,6 +42,7 @@ import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface UserAPI {
     @POST("auth/login")
@@ -123,10 +124,11 @@ interface UserAPI {
         @Body task: Task
     ): Response<Task>
 
-    @GET("api/v2/disciplines/{id}/team-appointments")
+    @GET("/api/v2/team-appointments")
     suspend fun getAllTeamAppointments(
         @Header("Authorization") token: String,
-        @Path("id") disciplineId: Int
+        @Query("disciplineId") disciplineId: Int,
+        @Query("groupId") groupId: Int
     ): Response<TeamAppointmentsResponse>
 
     @POST("api/v2/team-appointments")

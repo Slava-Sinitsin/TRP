@@ -74,7 +74,6 @@ class TeacherGroupsLabsScreenViewModel @AssistedInject constructor(
             groups = teacherAppointments.map { it.group ?: Group() }.sortedBy { it.name }
             labs = repository.getLabs(disciplineId = disciplineId).sortedBy { it.title }
             repository.setCurrentDisciplineId(disciplineId)
-            repository.getAllTeamAppointments(disciplineId)
         } catch (e: SocketTimeoutException) {
             updateErrorMessage("Timeout")
         } catch (e: ConnectException) {

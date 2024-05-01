@@ -62,7 +62,6 @@ class UserAPIRepositoryImpl(
 
     var disciplines by mutableStateOf(emptyList<DisciplineData>())
     var currentDiscipline by mutableStateOf(0) // TODO
-    var disciplinesChanged by mutableStateOf(true)
 
     var tasks by mutableStateOf(emptyList<Task>())
         private set
@@ -159,9 +158,10 @@ class UserAPIRepositoryImpl(
 
     override suspend fun getAllTeamAppointments(
         token: String,
-        disciplineId: Int
+        disciplineId: Int,
+        groupId: Int
     ): Response<TeamAppointmentsResponse> {
-        return ApiService.userAPI.getAllTeamAppointments("Bearer $token", disciplineId)
+        return ApiService.userAPI.getAllTeamAppointments("Bearer $token", disciplineId, groupId)
     }
 
     override suspend fun postTeamAppointments(
@@ -327,17 +327,26 @@ class UserAPIRepositoryImpl(
         )
     }
 
+    private var updateDiscipline by mutableStateOf(true) // TODO
+
+    fun newUpdateDiscipline(newUpdateDisciplineValue: Boolean) {
+        updateDiscipline = newUpdateDisciplineValue
+    }
+
     suspend fun getDisciplines(): List<DisciplineData> {
-        mainDB.disciplinesDAO.deleteAllDisciplines()
-        val response = user.token?.let { getDisciplinesResponse(it) }
-        response?.body()?.let {
-            it.list?.forEach { discipline ->
-                mainDB.disciplinesDAO.insertDiscipline(discipline)
+        if (updateDiscipline) {
+            mainDB.disciplinesDAO.deleteAllDisciplines()
+            val response = user.token?.let { getDisciplinesResponse(it) }
+            response?.body()?.let {
+                it.list?.forEach { discipline ->
+                    mainDB.disciplinesDAO.insertDiscipline(discipline)
+                }
+            } ?: response?.errorBody()?.let {
+                return emptyList()
             }
-        } ?: response?.errorBody()?.let {
-            return emptyList()
+            disciplines = mainDB.disciplinesDAO.getDisciplines() ?: emptyList()
         }
-        disciplines = mainDB.disciplinesDAO.getDisciplines() ?: emptyList()
+        newUpdateDiscipline(false)
         return disciplines
     }
 
@@ -442,9 +451,9 @@ class UserAPIRepositoryImpl(
         }
     }
 
-    suspend fun getAllTeamAppointments(disciplineId: Int): List<TeamAppointments> {
+    suspend fun getAllTeamAppointments(disciplineId: Int, groupId: Int): List<TeamAppointments> {
         teamAppointments = user.token?.let { token ->
-            getAllTeamAppointments(token, disciplineId)
+            getAllTeamAppointments(token, disciplineId, groupId)
         }?.body()?.data ?: emptyList()
         return teamAppointments
     }

@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,6 +18,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.StarRate
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -218,11 +220,23 @@ fun Team(
                     )
             ) {
                 students?.forEach { student ->
-                    Text(
-                        text = viewModel.students.find { it.id == student.id }?.fullName ?: "",
-                        color = TRPTheme.colors.primaryText,
-                        fontSize = 20.sp
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = viewModel.students.find { it.id == student.id }?.fullName ?: "",
+                            color = TRPTheme.colors.primaryText,
+                            fontSize = 20.sp
+                        )
+                        if (student.id == viewModel.getTeam(index).leaderStudentId) {
+                            Icon(
+                                imageVector = Icons.Filled.StarRate,
+                                contentDescription = "It is team leader",
+                                tint = TRPTheme.colors.primaryText
+                            )
+                        }
+                    }
                 }
             }
         }

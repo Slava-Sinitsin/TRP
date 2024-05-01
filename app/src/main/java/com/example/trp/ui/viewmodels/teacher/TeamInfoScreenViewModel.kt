@@ -6,10 +6,11 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.trp.data.mappers.TeamAppointments
 import com.example.trp.data.mappers.tasks.Lab
-import com.example.trp.data.mappers.tasks.Task
 import com.example.trp.data.mappers.tasks.Team
 import com.example.trp.data.repository.UserAPIRepositoryImpl
+import com.example.trp.ui.components.TaskStatus
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -24,9 +25,9 @@ class TeamInfoScreenViewModel @AssistedInject constructor(
 ) : ViewModel() {
     var team by mutableStateOf(Team())
         private set
-    var labs by mutableStateOf(emptyList<Lab>())
+    var teamAppointments by mutableStateOf(emptyList<TeamAppointments>())
         private set
-    var tasks by mutableStateOf(emptyList<Task>())
+    var labs by mutableStateOf(emptyList<Lab>())
         private set
     var isRefreshing by mutableStateOf(false)
         private set
@@ -54,13 +55,13 @@ class TeamInfoScreenViewModel @AssistedInject constructor(
 
     init {
         viewModelScope.launch { init() }
-    } // TODO
+    }
 
     private suspend fun init() {
         try {
+            teamAppointments = repository.teamAppointments.filter { it.team?.id == teamId } // TODO
             team = repository.teams.find { it.id == teamId } ?: Team()
             labs = repository.getLabs(disciplineId = repository.currentDiscipline) // TODO
-            tasks = repository.getTeamTasks(teamId).sortedBy { it.labWorkId }
         } catch (e: SocketTimeoutException) {
             updateErrorMessage("Timeout")
         } catch (e: ConnectException) {
@@ -82,28 +83,18 @@ class TeamInfoScreenViewModel @AssistedInject constructor(
         errorMessage = newMessage
     }
 
-    fun getTask(index: Int): Task {
-        return tasks.find { it.id == tasks[index].id } ?: Task()
+    fun getStatus(index: Int): TaskStatus {
+        return when (teamAppointments[index].status) {
+            TaskStatus.New.status -> TaskStatus.New
+            TaskStatus.InProgress.status -> TaskStatus.InProgress
+            TaskStatus.OnTesting.status -> TaskStatus.OnTesting
+            TaskStatus.Tested.status -> TaskStatus.Tested
+            TaskStatus.SentToCodeReview.status -> TaskStatus.SentToCodeReview
+            TaskStatus.CodeReview.status -> TaskStatus.CodeReview
+            TaskStatus.SentToRework.status -> TaskStatus.SentToRework
+            TaskStatus.WaitingForGrade.status -> TaskStatus.WaitingForGrade
+            TaskStatus.Rated.status -> TaskStatus.Rated
+            else -> TaskStatus.New
+        }
     }
-
-    /*    fun getStatus(index: Int): Pair<Float, Color> {
-            return when (getStudentAppointment(index).status) {
-                TaskStatus.New.status -> Pair(
-                    TaskStatus.New.float,
-                    TaskStatus.New.color
-                )
-
-                TaskStatus.InProgress.status -> Pair(
-                    TaskStatus.InProgress.float,
-                    TaskStatus.InProgress.color
-                )
-
-                TaskStatus.Complete.status -> Pair(
-                    TaskStatus.Complete.float,
-                    TaskStatus.Complete.color
-                )
-
-                else -> Pair(0f, Color.Transparent)
-            }
-        }*/
 }

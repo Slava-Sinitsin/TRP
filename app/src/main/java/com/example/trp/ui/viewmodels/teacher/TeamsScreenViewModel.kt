@@ -75,6 +75,10 @@ class TeamsScreenViewModel @AssistedInject constructor(
 
     private suspend fun init() {
         try {
+            repository.getAllTeamAppointments(
+                disciplineId = repository.currentDiscipline,
+                groupId = groupId
+            )
             students = repository.getStudents(groupId = groupId).sortedBy { it.fullName }
             group =
                 repository.teacherAppointments.find { it.group?.id == groupId }?.group

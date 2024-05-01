@@ -14,7 +14,7 @@ val darkScheme = TRPColors(
     icon = Color(0xFF7A8A99),
     iconBackground = Color(0xFF5F6B77),
     cardButtonColor = Color(0xFF2C2C2C),
-    okColor = Color(0xFF77C66E)
+    okColor = Color(0xFF00CE7C)
 )
 
 val lightScheme = TRPColors(
@@ -29,5 +29,5 @@ val lightScheme = TRPColors(
     icon = Color(0xFF7A8A99),
     iconBackground = Color(0xFF5F6B77),
     cardButtonColor = Color(0xFFEEEEEE),
-    okColor = Color(0xFF77C66E)
+    okColor = Color(0xFF00CE7C)
 )

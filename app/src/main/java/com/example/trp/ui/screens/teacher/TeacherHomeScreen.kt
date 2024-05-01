@@ -113,7 +113,7 @@ fun Event(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxSize(),
-        onClick = { },
+        onClick = { onEventClick(index) },
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 10.dp
         ),
@@ -128,7 +128,7 @@ fun Event(
                 .padding(top = 16.dp, bottom = 16.dp)
                 .align(Alignment.CenterVertically),
             textAlign = TextAlign.Start,
-            text = viewModel.getEvent(index = index).toString(),
+            text = "Event ${viewModel.getEvent(index = index)}",
             color = TRPTheme.colors.primaryText,
             fontSize = 25.sp
         )
