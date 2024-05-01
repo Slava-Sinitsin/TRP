@@ -2,6 +2,7 @@ package com.example.trp.ui.screens.teacher
 
 import android.app.Activity
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,6 +16,8 @@ import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -29,6 +32,7 @@ import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.teacher.TeacherDisciplinesScreenViewModel
 import dagger.hilt.android.EntryPointAccessors
 
+@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun TeacherDisciplinesScreen(onDisciplineClick: (index: Int) -> Unit) {
     val factory = EntryPointAccessors.fromActivity(
@@ -40,46 +44,41 @@ fun TeacherDisciplinesScreen(onDisciplineClick: (index: Int) -> Unit) {
             factory
         )
     )
-
-    Disciplines(viewModel = viewModel, onDisciplineClick = onDisciplineClick)
-    if (viewModel.errorMessage.isNotEmpty()) {
-        Toast.makeText(LocalContext.current, viewModel.errorMessage, Toast.LENGTH_SHORT).show()
-        viewModel.updateErrorMessage("")
-    }
-}
-
-@OptIn(ExperimentalMaterialApi::class)
-@Composable
-fun Disciplines(
-    viewModel: TeacherDisciplinesScreenViewModel,
-    onDisciplineClick: (id: Int) -> Unit
-) {
-    val pullRefreshState = rememberPullRefreshState(
-        refreshing = viewModel.isRefreshing,
-        onRefresh = { viewModel.onRefresh() }
-    )
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .pullRefresh(state = pullRefreshState)
-    ) {
-        LazyColumn {
-            items(viewModel.disciplines.size) { index ->
-                Discipline(
-                    viewModel = viewModel,
-                    index = index,
-                    onDisciplineClick = onDisciplineClick
-                )
-            }
-            item { Spacer(modifier = Modifier.size(100.dp)) }
-        }
-        PullRefreshIndicator(
-            modifier = Modifier.align(Alignment.TopCenter),
+    Scaffold(
+        modifier = Modifier.fillMaxSize()
+    ) { scaffoldPadding ->
+        val pullRefreshState = rememberPullRefreshState(
             refreshing = viewModel.isRefreshing,
-            state = pullRefreshState,
-            backgroundColor = TRPTheme.colors.primaryBackground,
-            contentColor = TRPTheme.colors.myYellow
+            onRefresh = { viewModel.onRefresh() }
         )
+        Box(
+            modifier = Modifier
+                .padding(top = scaffoldPadding.calculateTopPadding())
+                .background(TRPTheme.colors.primaryBackground)
+                .pullRefresh(state = pullRefreshState)
+        ) {
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                items(viewModel.disciplines.size) { index ->
+                    Discipline(
+                        viewModel = viewModel,
+                        index = index,
+                        onDisciplineClick = onDisciplineClick
+                    )
+                }
+                item { Spacer(modifier = Modifier.size(100.dp)) }
+            }
+            PullRefreshIndicator(
+                modifier = Modifier.align(Alignment.TopCenter),
+                refreshing = viewModel.isRefreshing,
+                state = pullRefreshState,
+                backgroundColor = TRPTheme.colors.primaryBackground,
+                contentColor = TRPTheme.colors.myYellow
+            )
+        }
+        if (viewModel.errorMessage.isNotEmpty()) {
+            Toast.makeText(LocalContext.current, viewModel.errorMessage, Toast.LENGTH_SHORT).show()
+            viewModel.updateErrorMessage("")
+        }
     }
 }
 

@@ -7,7 +7,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.trp.data.mappers.tasks.Task
+import com.example.trp.data.mappers.TeamAppointments
 import com.example.trp.data.repository.UserAPIRepositoryImpl
 import com.example.trp.ui.components.tabs.TaskTabs
 import com.wakaztahir.codeeditor.highlight.model.CodeLang
@@ -26,9 +26,7 @@ class TaskScreenViewModel @AssistedInject constructor(
     @Assisted
     val taskId: Int
 ) : ViewModel() {
-    var task by mutableStateOf(Task())
-        private set
-    var disciplineName by mutableStateOf("")
+    var teamAppointment by mutableStateOf(TeamAppointments())
         private set
     var solutionTextFieldValue by mutableStateOf(TextFieldValue())
         private set
@@ -51,6 +49,16 @@ class TaskScreenViewModel @AssistedInject constructor(
     var userScrollEnabled by mutableStateOf(true)
         private set
     var errorMessage by mutableStateOf("")
+        private set
+    var runCodeButtonEnabled by mutableStateOf(true)
+        private set
+    var codeBck by mutableStateOf("")
+        private set
+    var isSaveDialogShow by mutableStateOf(false)
+        private set
+    var responseSuccess by mutableStateOf(false)
+        private set
+    var reviewButtonEnabled by mutableStateOf(false)
         private set
 
     @AssistedFactory
@@ -75,17 +83,20 @@ class TaskScreenViewModel @AssistedInject constructor(
     init {
         viewModelScope.launch {
             try {
-                task = repository.getTask(taskId)
-                disciplineName = repository.taskDisciplineData.name ?: ""
+                teamAppointment =
+                    repository.teamAppointments.find { it.task?.id == taskId } ?: TeamAppointments()
                 solutionTextFieldValue = TextFieldValue(
                     annotatedString = parseCodeAsAnnotatedString(
                         parser = parser,
                         theme = theme,
                         lang = language,
-                        code = repository.taskSolution.code ?: ""
+                        code = teamAppointment.task?.id?.let {
+                            repository.getTaskSolution(it).code
+                        } ?: ""
                     )
                 )
                 linesCount = solutionTextFieldValue.text.lineSequence().count()
+                codeBck = solutionTextFieldValue.text
                 updateLinesCount()
             } catch (e: SocketTimeoutException) {
                 updateErrorMessage("Timeout")
@@ -121,38 +132,38 @@ class TaskScreenViewModel @AssistedInject constructor(
         }
     }
 
-    fun onSaveCodeButtonClick() {
-        viewModelScope.launch {
-            try {
-                solutionTextFieldValue.text.let { repository.postTaskSolution(it) }
-            } catch (e: SocketTimeoutException) {
-                updateErrorMessage("Timeout")
-            } catch (e: ConnectException) {
-                updateErrorMessage("Check internet connection")
-            } catch (e: Exception) {
-                updateErrorMessage("Error")
-            }
-        }
-    }
-
     fun onRunCodeButtonClick() {
         viewModelScope.launch {
+            outputText = "Testing..."
+            runCodeButtonEnabled = false
             try {
                 onSaveCodeButtonClick()
-                solutionTextFieldValue.text.let { repository.postTaskSolution(it) }
-                val output = repository.runCode()
+                solutionTextFieldValue.text.let {
+                    repository.postTaskSolution(
+                        taskId = taskId,
+                        solutionText = it
+                    )
+                }
+                val output = repository.runCode(taskId)
                 outputText =
                     if (output.data?.testPassed != null && output.data.totalTests != null) {
                         "Test passed: ${output.data.testPassed} / ${output.data.totalTests}"
                     } else {
                         "Error"
                     }
+                reviewButtonEnabled = output.data?.testPassed == output.data?.totalTests
+                codeBck = solutionTextFieldValue.text
             } catch (e: SocketTimeoutException) {
+                outputText = "Timeout"
                 updateErrorMessage("Timeout")
             } catch (e: ConnectException) {
+                outputText = "Check internet connection"
                 updateErrorMessage("Check internet connection")
             } catch (e: Exception) {
+                outputText = "Error"
                 updateErrorMessage("Error")
+            } finally {
+                runCodeButtonEnabled = true
             }
         }
     }
@@ -163,5 +174,35 @@ class TaskScreenViewModel @AssistedInject constructor(
 
     fun updateEnableUserScroll(isEnable: Boolean) {
         userScrollEnabled = isEnable
+    }
+
+    fun showSaveDialog() {
+        responseSuccess = false
+        isSaveDialogShow = true
+    }
+
+    fun onSaveCodeButtonClick() {
+        responseSuccess = false
+        viewModelScope.launch {
+            try {
+                solutionTextFieldValue.text.let {
+                    repository.postTaskSolution(
+                        taskId = taskId,
+                        solutionText = it
+                    )
+                }
+                responseSuccess = true
+            } catch (e: SocketTimeoutException) {
+                updateErrorMessage("Timeout")
+            } catch (e: ConnectException) {
+                updateErrorMessage("Check internet connection")
+            } catch (e: Exception) {
+                updateErrorMessage("Error")
+            }
+        }
+    }
+
+    fun onDoNotSaveCodeButtonClick() {
+        isSaveDialogShow = false
     }
 }

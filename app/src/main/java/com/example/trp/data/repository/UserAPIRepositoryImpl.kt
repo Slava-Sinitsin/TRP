@@ -67,8 +67,7 @@ class UserAPIRepositoryImpl(
         private set
     private var tasksChanged by mutableStateOf(true)
 
-    var task by mutableStateOf(Task())
-    private var taskChanged by mutableStateOf(true)
+    var task by mutableStateOf(Task()) // TODO
 
     var taskDisciplineData by mutableStateOf(DisciplineData())
 
@@ -205,9 +204,9 @@ class UserAPIRepositoryImpl(
 
     override suspend fun getTeamAppointments(
         token: String,
-        teamId: Int
+        disciplineId: Int
     ): Response<TeamAppointmentsResponse> {
-        return ApiService.userAPI.getTeamAppointments("Bearer $token", teamId)
+        return ApiService.userAPI.getTeamAppointments("Bearer $token", disciplineId)
     }
 
     override suspend fun getTeams(token: String, disciplineId: Int): Response<TeamResponse> {
@@ -364,18 +363,16 @@ class UserAPIRepositoryImpl(
     }
 
     suspend fun getTask(taskId: Int): Task {
-        if (taskChanged) {
-            val taskResponse =
-                user.token?.let { getTaskDescriptionResponse(it, taskId) }
-            taskResponse?.body()?.let {
-                task = it.task ?: Task()
-                if (task != Task()) {
-                    taskDisciplineData = getTaskDisciplineData()
-                    taskSolution = getTaskSolution()
-                }
-            } ?: taskResponse?.errorBody()?.let {
-                task = Task()
+        val taskResponse =
+            user.token?.let { getTaskDescriptionResponse(it, taskId) }
+        taskResponse?.body()?.let {
+            task = it.task ?: Task()
+            if (task != Task()) {
+                taskDisciplineData = getTaskDisciplineData()
+                taskSolution = getTaskSolution()
             }
+        } ?: taskResponse?.errorBody()?.let {
+            task = Task()
         }
         return task
     }
@@ -393,15 +390,21 @@ class UserAPIRepositoryImpl(
         }?.body()?.data ?: Solution()
     }
 
-    suspend fun postTaskSolution(solutionText: String) {
+    suspend fun getTaskSolution(taskId: Int): Solution {
+        return user.token?.let { token ->
+            getTaskSolution(token, taskId)
+        }?.body()?.data ?: Solution()
+    }
+
+    suspend fun postTaskSolution(taskId: Int, solutionText: String) {
         user.token?.let { token ->
-            task.id?.let { taskId -> postTaskSolution(token, taskId, solutionText) }
+            postTaskSolution(token, taskId, solutionText)
         }
     }
 
-    suspend fun runCode(): Output {
+    suspend fun runCode(taskId: Int): Output {
         val response =
-            user.token?.let { token -> task.id?.let { taskId -> runCode(token, taskId) } }
+            user.token?.let { token -> runCode(token, taskId) }
         return response?.body() ?: response?.errorBody()?.let {
             val errorBody = it.string()
             Output().copy(
@@ -493,10 +496,11 @@ class UserAPIRepositoryImpl(
         user.token?.let { token -> postNewTest(token, test) }
     }
 
-    suspend fun getTeamAppointments(teamId: Int): List<TeamAppointments> {
-        return user.token?.let { token ->
-            getTeamAppointments(token, teamId).body()?.data
+    suspend fun getTeamAppointments(disciplineId: Int): List<TeamAppointments> {
+        teamAppointments = user.token?.let { token ->
+            getTeamAppointments(token, disciplineId).body()?.data
         } ?: emptyList()
+        return teamAppointments
     }
 
     suspend fun getTeams(disciplineId: Int): List<Team> {

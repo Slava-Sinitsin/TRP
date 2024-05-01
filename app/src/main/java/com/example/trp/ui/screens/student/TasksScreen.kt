@@ -26,7 +26,7 @@ import dagger.hilt.android.EntryPointAccessors
 
 @Composable
 fun TasksScreen(
-    labId: Int,
+    disciplineId: Int,
     onTaskClick: (id: Int) -> Unit,
 ) {
     val factory = EntryPointAccessors.fromActivity(
@@ -36,7 +36,7 @@ fun TasksScreen(
     val viewModel: TasksScreenViewModel = viewModel(
         factory = TasksScreenViewModel.provideTasksScreenViewModel(
             factory,
-            labId
+            disciplineId
         )
     )
 
@@ -57,7 +57,7 @@ fun Tasks(
     onTaskClick: (id: Int) -> Unit
 ) {
     LazyColumn {
-        items(count = viewModel.tasks.size) { index ->
+        items(count = viewModel.teamAppointments.size) { index ->
             Task(viewModel = viewModel, index = index, onTaskClick = onTaskClick)
         }
         item { Spacer(modifier = Modifier.size(100.dp)) }
@@ -75,7 +75,9 @@ fun Task(
             .padding(8.dp)
             .fillMaxSize(),
         onClick = {
-            viewModel.getTask(index = index).let { task -> task.id?.let { id -> onTaskClick(id) } }
+            viewModel.teamAppointments[index].let { teamAppointment ->
+                teamAppointment.task?.id?.let { id -> onTaskClick(id) }
+            }
         },
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 10.dp
@@ -91,7 +93,7 @@ fun Task(
                 .padding(top = 16.dp, bottom = 16.dp)
                 .align(Alignment.CenterVertically),
             textAlign = TextAlign.Start,
-            text = viewModel.getTask(index = index).title.toString(),
+            text = viewModel.getTask(index = index).task?.title ?: "",
             color = TRPTheme.colors.primaryText,
             fontSize = 25.sp
         )

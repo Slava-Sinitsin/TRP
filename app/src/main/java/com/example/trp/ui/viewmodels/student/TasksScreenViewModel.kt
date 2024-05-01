@@ -6,7 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.trp.data.mappers.tasks.Task
+import com.example.trp.data.mappers.TeamAppointments
 import com.example.trp.data.repository.UserAPIRepositoryImpl
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -18,9 +18,9 @@ import java.net.SocketTimeoutException
 class TasksScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
     @Assisted
-    val labId: Int
+    val disciplineId: Int
 ) : ViewModel() {
-    var tasks by mutableStateOf(emptyList<Task>())
+    var teamAppointments by mutableStateOf(emptyList<TeamAppointments>())
         private set
     var errorMessage by mutableStateOf("")
         private set
@@ -47,7 +47,8 @@ class TasksScreenViewModel @AssistedInject constructor(
     init {
         viewModelScope.launch {
             try {
-                tasks = repository.getTasks(labId = labId).sortedBy { it.title }
+                teamAppointments = repository.getTeamAppointments(disciplineId = disciplineId)
+                    .sortedBy { it.task?.title }
             } catch (e: SocketTimeoutException) {
                 updateErrorMessage("Timeout")
             } catch (e: ConnectException) {
@@ -62,7 +63,7 @@ class TasksScreenViewModel @AssistedInject constructor(
         errorMessage = newMessage
     }
 
-    fun getTask(index: Int): Task {
-        return tasks[index]
+    fun getTask(index: Int): TeamAppointments {
+        return teamAppointments[index]
     }
 }

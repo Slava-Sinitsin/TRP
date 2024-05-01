@@ -165,10 +165,10 @@ interface UserAPI {
         @Body test: Test
     ): Response<PostTestResponse>
 
-    @GET("api/v2/teams/{id}/team-appointments")
+    @GET("api/v2/disciplines/{id}/team-appointments")
     suspend fun getTeamAppointments(
         @Header("Authorization") token: String,
-        @Path("id") teamId: Int
+        @Path("id") disciplineId: Int
     ): Response<TeamAppointmentsResponse>
 
     @GET("api/v2/disciplines/{id}/teams")

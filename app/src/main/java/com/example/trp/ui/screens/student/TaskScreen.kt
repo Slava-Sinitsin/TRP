@@ -2,6 +2,7 @@ package com.example.trp.ui.screens.student
 
 import android.app.Activity
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -16,7 +17,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -27,13 +27,15 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.PlayCircleOutline
-import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Reviews
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabPosition
 import androidx.compose.material3.TabRow
@@ -47,6 +49,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
@@ -69,6 +72,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.trp.domain.di.ViewModelFactoryProvider
 import com.example.trp.ui.components.TabIndicator
+import com.example.trp.ui.components.TaskStatus
 import com.example.trp.ui.components.clearFocusOnTap
 import com.example.trp.ui.components.keyboardAsState
 import com.example.trp.ui.components.myTabIndicatorOffset
@@ -106,6 +110,14 @@ fun TaskScreen(
     val indicator = @Composable { tabPositions: List<TabPosition> ->
         TabIndicator(Modifier.myTabIndicatorOffset(tabPositions[viewModel.selectedTabIndex]))
     }
+
+    BackHandler(enabled = true, onBack = {
+        if (viewModel.solutionTextFieldValue.text == viewModel.codeBck) {
+            navController.popBackStack()
+        } else {
+            viewModel.showSaveDialog()
+        }
+    })
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     Scaffold(
@@ -180,6 +192,9 @@ fun TaskScreen(
                 }
             }
         }
+        if (viewModel.isSaveDialogShow) {
+            SaveDialog(viewModel = viewModel, navController = navController)
+        }
         if (viewModel.errorMessage.isNotEmpty()) {
             Toast.makeText(LocalContext.current, viewModel.errorMessage, Toast.LENGTH_SHORT).show()
             viewModel.updateErrorMessage("")
@@ -200,14 +215,20 @@ fun TaskScreenTopAppBar(
         ),
         title = {
             Text(
-                text = viewModel.task.title ?: "",
+                text = viewModel.teamAppointment.task?.title ?: "",
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 fontSize = 20.sp
             )
         },
         navigationIcon = {
-            IconButton(onClick = { navController.popBackStack() }) {
+            IconButton(onClick = {
+                if (viewModel.solutionTextFieldValue.text == viewModel.codeBck) {
+                    navController.popBackStack()
+                } else {
+                    viewModel.showSaveDialog()
+                }
+            }) {
                 Icon(
                     imageVector = Icons.Filled.ArrowBack,
                     contentDescription = "BackIconButton"
@@ -216,17 +237,24 @@ fun TaskScreenTopAppBar(
         },
         actions = {
             if (viewModel.selectedTabIndex == 1) {
-                IconButton(onClick = { viewModel.onSaveCodeButtonClick() }) {
-                    Icon(
-                        imageVector = Icons.Filled.Save,
-                        contentDescription = "SaveCodeButton"
-                    )
-                }
-                IconButton(onClick = { viewModel.onRunCodeButtonClick() }) {
-                    Icon(
-                        imageVector = Icons.Filled.PlayCircleOutline,
-                        contentDescription = "RunCodeButton"
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (viewModel.teamAppointment.status == TaskStatus.Tested.status && viewModel.reviewButtonEnabled) {
+                        IconButton(onClick = { }) {
+                            Icon(
+                                imageVector = Icons.Filled.Reviews,
+                                contentDescription = "Send to code review"
+                            )
+                        }
+                    }
+                    IconButton(
+                        onClick = { viewModel.onRunCodeButtonClick() },
+                        enabled = viewModel.runCodeButtonEnabled
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.PlayCircleOutline,
+                            contentDescription = "RunCodeButton"
+                        )
+                    }
                 }
             }
         },
@@ -263,7 +291,7 @@ fun TitleField(viewModel: TaskScreenViewModel) {
                 shape = RoundedCornerShape(8.dp)
             ),
         textStyle = TextStyle.Default.copy(fontSize = 15.sp),
-        value = viewModel.task.title ?: "",
+        value = viewModel.teamAppointment.task?.title ?: "",
         onValueChange = { },
         placeholder = {
             Text(
@@ -309,7 +337,7 @@ fun DescriptionField(viewModel: TaskScreenViewModel) {
                 shape = RoundedCornerShape(8.dp)
             ),
         textStyle = TextStyle.Default.copy(fontSize = 15.sp),
-        value = viewModel.task.description ?: "",
+        value = viewModel.teamAppointment.task?.description ?: "",
         onValueChange = { },
         placeholder = {
             Text(
@@ -348,7 +376,7 @@ fun TestsField(viewModel: TaskScreenViewModel) { // TODO
             .padding(horizontal = 5.dp)
             .fillMaxWidth()
     ) {
-        viewModel.task.tests?.forEach { test ->
+        viewModel.teamAppointment.task?.tests?.forEach { test ->
             Box(
                 modifier = Modifier
                     .padding(vertical = 5.dp)
@@ -501,7 +529,7 @@ fun TaskText(
 fun OutputText(
     viewModel: TaskScreenViewModel
 ) {
-    Surface(
+    TextField(
         modifier = Modifier
             .padding(
                 top = 10.dp,
@@ -509,30 +537,74 @@ fun OutputText(
                 end = 5.dp
             )
             .fillMaxWidth()
-            .wrapContentSize(),
-        color = Color.Transparent,
-        shadowElevation = 6.dp,
-        shape = RoundedCornerShape(8.dp)
-    ) {
-        TextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(100.dp)
-                .horizontalScroll(rememberScrollState()),
-            value = viewModel.outputText,
-            onValueChange = { },
-            shape = RoundedCornerShape(8.dp),
-            colors = TextFieldDefaults.textFieldColors(
-                containerColor = TRPTheme.colors.secondaryBackground,
-                textColor = TRPTheme.colors.primaryText,
-                cursorColor = TRPTheme.colors.primaryText,
-                focusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
+            .height(100.dp)
+            .shadow(
+                elevation = 10.dp,
+                shape = RoundedCornerShape(8.dp)
             ),
-            readOnly = true
-        )
+        value = viewModel.outputText,
+        onValueChange = { },
+        shape = RoundedCornerShape(8.dp),
+        colors = TextFieldDefaults.textFieldColors(
+            containerColor = TRPTheme.colors.secondaryBackground,
+            textColor = TRPTheme.colors.primaryText,
+            cursorColor = TRPTheme.colors.primaryText,
+            focusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent
+        ),
+        readOnly = true
+    )
+}
+
+@Composable
+fun SaveDialog(viewModel: TaskScreenViewModel, navController: NavHostController) {
+    LaunchedEffect(viewModel.responseSuccess) {
+        if (viewModel.responseSuccess) {
+            navController.popBackStack()
+        }
     }
+    AlertDialog(
+        onDismissRequest = { viewModel.onDoNotSaveCodeButtonClick() },
+        title = {
+            Text(
+                text = "Save changes?",
+                color = TRPTheme.colors.primaryText
+            )
+        },
+        containerColor = TRPTheme.colors.primaryBackground,
+        text = {
+            Text(
+                text = "Do you want to save changes?",
+                color = TRPTheme.colors.primaryText
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = { viewModel.onSaveCodeButtonClick() },
+                colors = ButtonDefaults.buttonColors(TRPTheme.colors.myYellow)
+            ) {
+                Text(
+                    text = "Yes",
+                    color = TRPTheme.colors.secondaryText
+                )
+            }
+        },
+        dismissButton = {
+            Button(
+                onClick = {
+                    viewModel.onDoNotSaveCodeButtonClick()
+                    navController.popBackStack()
+                },
+                colors = ButtonDefaults.buttonColors(TRPTheme.colors.errorColor)
+            ) {
+                Text(
+                    text = "No",
+                    color = TRPTheme.colors.secondaryText
+                )
+            }
+        }
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

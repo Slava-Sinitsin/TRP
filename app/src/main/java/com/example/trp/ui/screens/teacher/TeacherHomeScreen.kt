@@ -43,18 +43,6 @@ fun TeacherHomeScreen(onEventClick: (id: Int) -> Unit) {
         factory = TeacherHomeScreenViewModel.provideTeacherHomeScreenViewModel(factory)
     )
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        Text(
-            "Teacher home",
-            Modifier.align(Alignment.Center),
-            fontSize = 40.sp,
-            color = TRPTheme.colors.primaryText
-        )
-    }
-
     Scaffold(
         modifier = Modifier.fillMaxSize()
     ) { scaffoldPadding ->
@@ -81,13 +69,10 @@ fun Events(
         modifier = Modifier
             .fillMaxSize()
             .padding(top = paddingValues.calculateTopPadding())
+            .background(TRPTheme.colors.primaryBackground)
             .pullRefresh(state = pullRefreshState)
     ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(TRPTheme.colors.primaryBackground)
-        ) {
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(count = viewModel.events.size) { index ->
                 Event(viewModel = viewModel, index = index, onEventClick = onEventClick)
             }
