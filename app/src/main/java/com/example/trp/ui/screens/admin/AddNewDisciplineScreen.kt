@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -36,6 +36,9 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabPosition
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
@@ -57,12 +60,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.trp.domain.di.ViewModelFactoryProvider
 import com.example.trp.ui.components.HorizontalNumberPicker
+import com.example.trp.ui.components.TabIndicator
 import com.example.trp.ui.components.clearFocusOnTap
+import com.example.trp.ui.components.myTabIndicatorOffset
 import com.example.trp.ui.components.rememberHorizontalPickerState
+import com.example.trp.ui.components.tabs.DisabledInteractionSource
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.admin.AddNewDisciplineScreenViewModel
 import dagger.hilt.android.EntryPointAccessors
@@ -292,6 +299,9 @@ fun YearPicker(viewModel: AddNewDisciplineScreenViewModel) {
 
 @Composable
 fun HalfYearToggle(viewModel: AddNewDisciplineScreenViewModel) {
+    val indicator = @Composable { tabPositions: List<TabPosition> ->
+        TabIndicator(Modifier.myTabIndicatorOffset(tabPositions[viewModel.selectedHalfYearIndex]))
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -303,48 +313,40 @@ fun HalfYearToggle(viewModel: AddNewDisciplineScreenViewModel) {
     ) {
         Text(
             modifier = Modifier
+                .weight(1f)
                 .padding(start = 5.dp)
                 .alpha(0.6f),
             text = "Half year",
             color = TRPTheme.colors.primaryText,
             fontSize = 15.sp,
         )
-        Box(
+        TabRow(
             modifier = Modifier
-                .wrapContentSize()
+                .weight(1f)
                 .clip(RoundedCornerShape(30.dp))
+                .border(
+                    width = 2.dp,
+                    color = TRPTheme.colors.secondaryBackground,
+                    shape = RoundedCornerShape(30.dp)
+                ),
+            selectedTabIndex = viewModel.selectedHalfYearIndex,
+            indicator = indicator,
+            divider = {},
+            containerColor = TRPTheme.colors.primaryBackground
         ) {
-            Row(
-                modifier = Modifier
-                    .clip(shape = RoundedCornerShape(30.dp))
-                    .background(TRPTheme.colors.cardButtonColor)
-            ) {
-                viewModel.disciplineHalfYear.forEach { text ->
-                    Button(
-                        modifier = Modifier
-                            .clip(shape = RoundedCornerShape(30.dp))
-                            .background(
-                                if (text == viewModel.selectedHalfYear) {
-                                    TRPTheme.colors.myYellow
-                                } else {
-                                    TRPTheme.colors.cardButtonColor
-                                }
-                            ),
-                        onClick = { viewModel.updateHalfYearValue(text) },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (text == viewModel.selectedHalfYear) {
-                                TRPTheme.colors.myYellow
-                            } else {
-                                TRPTheme.colors.cardButtonColor
-                            }
-                        )
-                    ) {
+            viewModel.disciplineHalfYear.forEachIndexed { index, item ->
+                Tab(
+                    modifier = Modifier.zIndex(2f),
+                    selected = index == viewModel.selectedHalfYearIndex,
+                    interactionSource = DisabledInteractionSource(),
+                    onClick = { viewModel.updateHalfYearIndex(index) },
+                    text = {
                         Text(
-                            text = text[0] + text.substring(1).lowercase(),
+                            text = item,
                             color = TRPTheme.colors.primaryText
                         )
                     }
-                }
+                )
             }
         }
     }
@@ -352,6 +354,9 @@ fun HalfYearToggle(viewModel: AddNewDisciplineScreenViewModel) {
 
 @Composable
 fun DeprecatedToggle(viewModel: AddNewDisciplineScreenViewModel) {
+    val indicator = @Composable { tabPositions: List<TabPosition> ->
+        TabIndicator(Modifier.myTabIndicatorOffset(tabPositions[viewModel.selectedDeprecatedIndex]))
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -363,43 +368,40 @@ fun DeprecatedToggle(viewModel: AddNewDisciplineScreenViewModel) {
     ) {
         Text(
             modifier = Modifier
+                .weight(1f)
                 .padding(start = 5.dp)
                 .alpha(0.6f),
             text = "Deprecated",
             color = TRPTheme.colors.primaryText,
             fontSize = 15.sp,
         )
-        Box(
+        TabRow(
             modifier = Modifier
-                .wrapContentSize()
+                .weight(1f)
                 .clip(RoundedCornerShape(30.dp))
+                .border(
+                    width = 2.dp,
+                    color = TRPTheme.colors.secondaryBackground,
+                    shape = RoundedCornerShape(30.dp)
+                ),
+            selectedTabIndex = viewModel.selectedDeprecatedIndex,
+            indicator = indicator,
+            divider = {},
+            containerColor = TRPTheme.colors.primaryBackground
         ) {
-            Row(
-                modifier = Modifier
-                    .clip(shape = RoundedCornerShape(30.dp))
-                    .background(TRPTheme.colors.cardButtonColor)
-            ) {
-                viewModel.disciplineDeprecated.forEach { text ->
-                    Button(
-                        modifier = Modifier
-                            .clip(shape = RoundedCornerShape(30.dp))
-                            .background(
-                                if (text == viewModel.selectedDeprecated) {
-                                    TRPTheme.colors.myYellow
-                                } else {
-                                    TRPTheme.colors.cardButtonColor
-                                }
-                            ),
-                        onClick = { viewModel.updateDeprecatedValue(text) },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (text == viewModel.selectedDeprecated) {
-                                TRPTheme.colors.myYellow
-                            } else {
-                                TRPTheme.colors.cardButtonColor
-                            }
+            viewModel.disciplineDeprecated.forEachIndexed { index, item ->
+                Tab(
+                    modifier = Modifier.zIndex(2f),
+                    selected = index == viewModel.selectedDeprecatedIndex,
+                    interactionSource = DisabledInteractionSource(),
+                    onClick = { viewModel.updateDeprecatedIndex(index) },
+                    text = {
+                        Text(
+                            text = item,
+                            color = TRPTheme.colors.primaryText
                         )
-                    ) { Text(text = text, color = TRPTheme.colors.primaryText) }
-                }
+                    }
+                )
             }
         }
     }

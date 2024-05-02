@@ -10,5 +10,5 @@ data class TeamAppointments(
     @SerializedName("labWorkVariant") val task: Task? = null,
     @SerializedName("status") val status: String? = null,
     @SerializedName("grade") val grade: Int? = null,
-    @SerializedName("codeReviewUrl") val codeReviewUrl: String? = null
+    @SerializedName("codeReviewIds") val codeReviewIds: List<Int>? = null
 )

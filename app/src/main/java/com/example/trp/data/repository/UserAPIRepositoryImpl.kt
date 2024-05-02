@@ -264,6 +264,13 @@ class UserAPIRepositoryImpl(
         return ApiService.userAPI.postNewLabWorkTeacher("Bearer $token", teacher)
     }
 
+    override suspend fun postCodeReview(
+        token: String,
+        teamAppointmentId: Int
+    ): Response<PostTeacherResponse> {
+        return ApiService.userAPI.postCodeReview("Bearer $token", teamAppointmentId)
+    }
+
     suspend fun getActiveUser(): User {
         user = mainDB.userDAO.getActiveUser() ?: User()
         return user
@@ -560,5 +567,9 @@ class UserAPIRepositoryImpl(
 
     suspend fun postNewLabWorkTeacher(teacher: PostNewTeacherBody): Response<PostTeacherResponse>? {
         return user.token?.let { token -> postNewLabWorkTeacher(token, teacher) }
+    }
+
+    suspend fun postCodeReview(teamAppointmentId: Int): Response<PostTeacherResponse>? {
+        return user.token?.let { token -> postCodeReview(token, teamAppointmentId) }
     }
 }

@@ -195,6 +195,9 @@ fun TaskScreen(
         if (viewModel.isSaveDialogShow) {
             SaveDialog(viewModel = viewModel, navController = navController)
         }
+        if (viewModel.isReviewDialogShow) {
+            ReviewDialog(viewModel = viewModel)
+        }
         if (viewModel.errorMessage.isNotEmpty()) {
             Toast.makeText(LocalContext.current, viewModel.errorMessage, Toast.LENGTH_SHORT).show()
             viewModel.updateErrorMessage("")
@@ -239,21 +242,23 @@ fun TaskScreenTopAppBar(
             if (viewModel.selectedTabIndex == 1) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (viewModel.teamAppointment.status == TaskStatus.Tested.status && viewModel.reviewButtonEnabled) {
-                        IconButton(onClick = { }) {
+                        IconButton(onClick = { viewModel.showReviewDialog() }) {
                             Icon(
                                 imageVector = Icons.Filled.Reviews,
                                 contentDescription = "Send to code review"
                             )
                         }
                     }
-                    IconButton(
-                        onClick = { viewModel.onRunCodeButtonClick() },
-                        enabled = viewModel.runCodeButtonEnabled
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.PlayCircleOutline,
-                            contentDescription = "RunCodeButton"
-                        )
+                    if (viewModel.isRunButtonEnabled) {
+                        IconButton(
+                            onClick = { viewModel.onRunCodeButtonClick() },
+                            enabled = viewModel.runCodeButtonEnabled
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.PlayCircleOutline,
+                                contentDescription = "RunCodeButton"
+                            )
+                        }
                     }
                 }
             }
@@ -362,33 +367,35 @@ fun DescriptionField(viewModel: TaskScreenViewModel) {
 }
 
 @Composable
-fun TestsField(viewModel: TaskScreenViewModel) { // TODO
-    Text(
-        text = "Example",
-        color = TRPTheme.colors.primaryText,
-        fontSize = 15.sp,
-        modifier = Modifier
-            .alpha(0.6f)
-            .padding(start = 5.dp, top = 10.dp)
-    )
-    Column(
-        modifier = Modifier
-            .padding(horizontal = 5.dp)
-            .fillMaxWidth()
-    ) {
-        viewModel.teamAppointment.task?.tests?.forEach { test ->
-            Box(
-                modifier = Modifier
-                    .padding(vertical = 5.dp)
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(TRPTheme.colors.secondaryBackground)
-            ) {
-                Text(
-                    modifier = Modifier.padding(start = 5.dp, top = 5.dp, bottom = 5.dp),
-                    text = "${test.input} -> ${test.output}",
-                    color = TRPTheme.colors.primaryText
-                )
+fun TestsField(viewModel: TaskScreenViewModel) {
+    if (viewModel.teamAppointment.task?.tests?.isNotEmpty() == true) {
+        Text(
+            text = "Example",
+            color = TRPTheme.colors.primaryText,
+            fontSize = 15.sp,
+            modifier = Modifier
+                .alpha(0.6f)
+                .padding(start = 5.dp, top = 10.dp)
+        )
+        Column(
+            modifier = Modifier
+                .padding(horizontal = 5.dp)
+                .fillMaxWidth()
+        ) {
+            viewModel.teamAppointment.task?.tests?.forEach { test ->
+                Box(
+                    modifier = Modifier
+                        .padding(vertical = 5.dp)
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(TRPTheme.colors.secondaryBackground)
+                ) {
+                    Text(
+                        modifier = Modifier.padding(start = 5.dp, top = 5.dp, bottom = 5.dp),
+                        text = "${test.input} -> ${test.output}",
+                        color = TRPTheme.colors.primaryText
+                    )
+                }
             }
         }
     }
@@ -596,6 +603,48 @@ fun SaveDialog(viewModel: TaskScreenViewModel, navController: NavHostController)
                     viewModel.onDoNotSaveCodeButtonClick()
                     navController.popBackStack()
                 },
+                colors = ButtonDefaults.buttonColors(TRPTheme.colors.errorColor)
+            ) {
+                Text(
+                    text = "No",
+                    color = TRPTheme.colors.secondaryText
+                )
+            }
+        }
+    )
+}
+
+@Composable
+fun ReviewDialog(viewModel: TaskScreenViewModel) {
+    AlertDialog(
+        onDismissRequest = { viewModel.onDoNotSaveCodeButtonClick() },
+        title = {
+            Text(
+                text = "Send to review?",
+                color = TRPTheme.colors.primaryText
+            )
+        },
+        containerColor = TRPTheme.colors.primaryBackground,
+        text = {
+            Text(
+                text = "Are you sure you want to submit this code for review?",
+                color = TRPTheme.colors.primaryText
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = { viewModel.onPostCodeReviewButtonClick() },
+                colors = ButtonDefaults.buttonColors(TRPTheme.colors.myYellow)
+            ) {
+                Text(
+                    text = "Yes",
+                    color = TRPTheme.colors.secondaryText
+                )
+            }
+        },
+        dismissButton = {
+            Button(
+                onClick = { viewModel.onDismissReviewButtonClick() },
                 colors = ButtonDefaults.buttonColors(TRPTheme.colors.errorColor)
             ) {
                 Text(

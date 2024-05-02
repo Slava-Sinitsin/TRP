@@ -28,7 +28,7 @@ class CreateNewTestScreenViewModel @AssistedInject constructor(
 
     var isOpenList by mutableStateOf(listOf("Yes", "No"))
         private set
-    var isOpen by mutableStateOf(isOpenList[1])
+    var isOpenSelectedIndex by mutableStateOf(1)
         private set
     private var arguments by mutableStateOf(emptyList<Argument>())
     private var argumentsRegexes by mutableStateOf(emptyList<String>())
@@ -105,8 +105,8 @@ class CreateNewTestScreenViewModel @AssistedInject constructor(
         errorMessage = newMessage
     }
 
-    fun updateIsOpenValue(newIsOpenValue: String) {
-        isOpen = newIsOpenValue
+    fun updateIsOpenIndex(newIsOpenIndex: Int) {
+        isOpenSelectedIndex = newIsOpenIndex
     }
 
     fun updateInputValue(index: Int, newInputValue: String) {
@@ -161,7 +161,7 @@ class CreateNewTestScreenViewModel @AssistedInject constructor(
                         taskId = taskId,
                         input = argumentsWithRegex.joinToString(", ") { it.value.toString() },
                         output = outputValue,
-                        isOpen = isOpen == "Yes"
+                        isOpen = isOpenList[isOpenSelectedIndex] == "Yes"
                     )
                 )
                 responseSuccess = true

@@ -37,7 +37,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -165,9 +164,7 @@ fun Task(
     onAddTaskToTeamClick: (teamId: Int, labId: Int) -> Unit
 ) {
     Button(
-        modifier = Modifier
-            .padding(8.dp)
-            .fillMaxSize(),
+        modifier = Modifier.padding(8.dp),
         onClick = {
             if (index < viewModel.teamAppointments.size) {
                 viewModel.teamAppointments[index].task?.id?.let { onTaskClick(it) }
@@ -181,42 +178,46 @@ fun Task(
         ),
         shape = RoundedCornerShape(30.dp)
     ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Text(modifier = Modifier.alpha(0.6f), text = "Lab ${index + 1}")
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
             ) {
-                Text(
-                    textAlign = TextAlign.Start,
-                    text = if (index < viewModel.teamAppointments.size) {
-                        viewModel.teamAppointments[index].task?.title.toString()
-                    } else {
-                        "Not appoint"
-                    },
-                    color = TRPTheme.colors.primaryText,
-                    fontSize = 25.sp
-                )
+                Text(modifier = Modifier.alpha(0.6f), text = "Lab ${index + 1}")
                 if (index < viewModel.teamAppointments.size) {
-                    val status = viewModel.getStatus(index)
-                    if (status == TaskStatus.Rated) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Filled.Done,
-                                contentDescription = "Task is graded",
-                                tint = TRPTheme.colors.okColor
-                            )
-                            Text(text = "${viewModel.teamAppointments[index].grade}")
-                        }
-                    } else {
-                        Box {
-                            CircularProgressIndicator(
-                                progress = viewModel.getStatus(index).progress,
-                                color = viewModel.getStatus(index).color
-                            )
-                        }
+                    Text(
+                        text = viewModel.teamAppointments[index].task?.title.toString(),
+                        color = TRPTheme.colors.primaryText,
+                        fontSize = 25.sp
+                    )
+                } else {
+                    Text(
+                        text = "Not appoint",
+                        color = TRPTheme.colors.primaryText,
+                        fontSize = 25.sp
+                    )
+                }
+            }
+            if (index < viewModel.teamAppointments.size) {
+                val status = viewModel.getStatus(index)
+                if (status == TaskStatus.Rated) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Filled.Done,
+                            contentDescription = "Task is graded",
+                            tint = TRPTheme.colors.okColor
+                        )
+                        Text(text = "${viewModel.teamAppointments[index].grade}")
                     }
+                } else {
+                    CircularProgressIndicator(
+                        progress = status.progress,
+                        color = status.color
+                    )
                 }
             }
         }

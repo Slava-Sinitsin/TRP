@@ -7,7 +7,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.trp.data.mappers.TeamAppointments
+import com.example.trp.data.mappers.tasks.Lab
 import com.example.trp.data.repository.UserAPIRepositoryImpl
+import com.example.trp.ui.components.TaskStatus
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -23,6 +25,10 @@ class TasksScreenViewModel @AssistedInject constructor(
     var teamAppointments by mutableStateOf(emptyList<TeamAppointments>())
         private set
     var errorMessage by mutableStateOf("")
+        private set
+    var isRefreshing by mutableStateOf(false)
+        private set
+    var labs by mutableStateOf(emptyList<Lab>())
         private set
 
     @AssistedFactory
@@ -45,17 +51,28 @@ class TasksScreenViewModel @AssistedInject constructor(
     }
 
     init {
+        viewModelScope.launch { init() }
+    }
+
+    private suspend fun init() {
+        try {
+            labs = repository.getLabs(disciplineId = disciplineId)
+            teamAppointments = repository.getTeamAppointments(disciplineId = disciplineId)
+                .sortedBy { it.task?.labWorkId }
+        } catch (e: SocketTimeoutException) {
+            updateErrorMessage("Timeout")
+        } catch (e: ConnectException) {
+            updateErrorMessage("Check internet connection")
+        } catch (e: Exception) {
+            updateErrorMessage("Error")
+        }
+    }
+
+    fun onRefresh() {
         viewModelScope.launch {
-            try {
-                teamAppointments = repository.getTeamAppointments(disciplineId = disciplineId)
-                    .sortedBy { it.task?.title }
-            } catch (e: SocketTimeoutException) {
-                updateErrorMessage("Timeout")
-            } catch (e: ConnectException) {
-                updateErrorMessage("Check internet connection")
-            } catch (e: Exception) {
-                updateErrorMessage("Error")
-            }
+            isRefreshing = true
+            init()
+            isRefreshing = false
         }
     }
 
@@ -65,5 +82,20 @@ class TasksScreenViewModel @AssistedInject constructor(
 
     fun getTask(index: Int): TeamAppointments {
         return teamAppointments[index]
+    }
+
+    fun getStatus(index: Int): TaskStatus {
+        return when (teamAppointments[index].status) {
+            TaskStatus.New.status -> TaskStatus.New
+            TaskStatus.InProgress.status -> TaskStatus.InProgress
+            TaskStatus.OnTesting.status -> TaskStatus.OnTesting
+            TaskStatus.Tested.status -> TaskStatus.Tested
+            TaskStatus.SentToCodeReview.status -> TaskStatus.SentToCodeReview
+            TaskStatus.CodeReview.status -> TaskStatus.CodeReview
+            TaskStatus.SentToRework.status -> TaskStatus.SentToRework
+            TaskStatus.WaitingForGrade.status -> TaskStatus.WaitingForGrade
+            TaskStatus.Rated.status -> TaskStatus.Rated
+            else -> TaskStatus.New
+        }
     }
 }

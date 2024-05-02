@@ -230,4 +230,10 @@ interface UserAPI {
         @Header("Authorization") token: String,
         @Body teacher: PostNewTeacherBody
     ): Response<PostTeacherResponse>
+
+    @POST("api/v2/team-appointments/{id}/code-review")
+    suspend fun postCodeReview(
+        @Header("Authorization") token: String,
+        @Path("id") teamAppointmentId: Int
+    ): Response<PostTeacherResponse>
 }

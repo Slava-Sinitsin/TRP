@@ -47,7 +47,7 @@ class CreateTaskScreenViewModel @AssistedInject constructor(
         private set
     var testableList by mutableStateOf(listOf("Yes", "No"))
         private set
-    var testable by mutableStateOf(testableList[0])
+    var testableIndex by mutableStateOf(0)
         private set
     var functionType by mutableStateOf("")
         private set
@@ -129,8 +129,8 @@ class CreateTaskScreenViewModel @AssistedInject constructor(
         checkFields()
     }
 
-    fun updateTestableValue(newTestableValue: String) {
-        testable = newTestableValue
+    fun updateTestableValue(newTestableValue: Int) {
+        testableIndex = newTestableValue
         checkFields()
     }
 
@@ -202,7 +202,7 @@ class CreateTaskScreenViewModel @AssistedInject constructor(
 
     private fun checkFields() {
         applyButtonEnabled =
-            ((title.isNotEmpty() && description.isNotEmpty() && language.isNotEmpty() && testable == "No")
+            ((title.isNotEmpty() && description.isNotEmpty() && language.isNotEmpty() && testableList[testableIndex] == "No")
                     || (title.isNotEmpty() && description.isNotEmpty() && language.isNotEmpty()
                     && functionType.isNotEmpty() && functionName.isNotEmpty()
                     && argumentList.all { it.first.type?.isNotEmpty() ?: false }
@@ -214,7 +214,7 @@ class CreateTaskScreenViewModel @AssistedInject constructor(
         responseSuccess = false
         viewModelScope.launch {
             try {
-                when (testable) {
+                when (testableList[testableIndex]) {
                     "Yes" -> {
                         repository.postTestableTask(
                             Task(
@@ -222,8 +222,8 @@ class CreateTaskScreenViewModel @AssistedInject constructor(
                                 title = title,
                                 description = description,
                                 language = language,
-                                functionName = functionName.takeIf { testable == "Yes" },
-                                returnType = functionType.takeIf { testable == "Yes" },
+                                functionName = functionName,
+                                returnType = functionType,
                                 arguments = argumentList.map { it.first },
                             )
                         )

@@ -109,10 +109,14 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
         private set
     var showRejectDialog by mutableStateOf(false)
         private set
+    var showSubmitDialog by mutableStateOf(false)
+        private set
     var reviewMessage by mutableStateOf("")
     var maxMark by mutableStateOf(0f)
     var mark by mutableStateOf(0f)
     var errorMessage by mutableStateOf("")
+        private set
+    var finishButtonsEnabled by mutableStateOf(true)
         private set
 
     @AssistedFactory
@@ -193,6 +197,7 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
 
     fun addComment(lines: String = "") {
         commentList += CommentLine(lines = lines, isMatch = false)
+        finishButtonsEnabled = false
     }
 
     fun getComment(index: Int): CommentLine {
@@ -261,6 +266,17 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
                 }
             }
         }
+        if (commentList.isNotEmpty()) {
+            commentList.forEach {
+                if (it.isMatch == false) {
+                    finishButtonsEnabled = false
+                    return@forEach
+                }
+                finishButtonsEnabled = true
+            }
+        } else {
+            finishButtonsEnabled = true
+        }
     }
 
     private fun findIntersectingLines(): List<Int> {
@@ -317,7 +333,7 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
         showRejectDialog = true
     }
 
-    fun rejectConfirmButtonClick() {
+    fun rejectConfirmButtonClick() { // TODO
         showRejectDialog = false
     }
 
@@ -326,11 +342,24 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
         showRejectDialog = false
     }
 
+    fun onSubmitButtonClick() {
+        showSubmitDialog = true
+    }
+
+    fun submitConfirmButtonClick() { // TODO
+        showSubmitDialog = false
+    }
+
+    fun submitDismissButtonClick() {
+        reviewMessage = ""
+        showSubmitDialog = false
+    }
+
     fun onAcceptButtonClick() {
         showAcceptDialog = true
     }
 
-    fun acceptConfirmButtonClick() {
+    fun acceptConfirmButtonClick() { // TODO
         showAcceptDialog = false
     }
 

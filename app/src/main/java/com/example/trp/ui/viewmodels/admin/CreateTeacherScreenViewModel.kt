@@ -32,9 +32,9 @@ class CreateTeacherScreenViewModel @AssistedInject constructor(
     var applyButtonEnabled by mutableStateOf(false)
         private set
 
-    var positions by mutableStateOf(listOf("ROLE_LECTURER", "ROLE_ASSISTANT"))
+    var positions by mutableStateOf(listOf("Lecturer", "Assistant"))
         private set
-    var selectedPosition by mutableStateOf(positions[0])
+    var selectedPositionIndex by mutableStateOf(0)
         private set
     var errorMessage by mutableStateOf("")
         private set
@@ -132,16 +132,16 @@ class CreateTeacherScreenViewModel @AssistedInject constructor(
                     && teacherPassword.isNotEmpty() && usernameCorrect)
     }
 
-    fun updatePositionValue(newPosition: String) {
-        selectedPosition = newPosition
+    fun updatePositionValue(newPosition: Int) {
+        selectedPositionIndex = newPosition
     }
 
     fun onApplyButtonClick() {
         responseSuccess = false
         viewModelScope.launch {
             try {
-                when (selectedPosition) {
-                    "ROLE_LECTURER" -> {
+                when (positions[selectedPositionIndex]) {
+                    "Lecturer" -> {
                         val response = repository.postNewLectureTeacher(
                             PostNewTeacherBody(
                                 username = teacherUsername,
@@ -164,7 +164,7 @@ class CreateTeacherScreenViewModel @AssistedInject constructor(
                         } ?: run { createError = false }
                     }
 
-                    "ROLE_ASSISTANT" -> {
+                    "Assistant" -> {
                         val response = repository.postNewLabWorkTeacher(
                             PostNewTeacherBody(
                                 username = teacherUsername,

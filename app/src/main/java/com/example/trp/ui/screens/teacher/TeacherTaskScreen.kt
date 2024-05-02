@@ -100,14 +100,17 @@ fun TeacherTaskScreen(
                 )
             }
             item { Comments(viewModel = viewModel) }
-            item { AcceptRejectButtons(viewModel = viewModel) }
+            item { AcceptSubmitRejectButtons(viewModel = viewModel) }
             item { Spacer(modifier = Modifier.size(100.dp)) }
-        }
-        if (viewModel.showAcceptDialog) {
-            AcceptDialog(viewModel = viewModel, navController = navController)
         }
         if (viewModel.showRejectDialog) {
             RejectDialog(viewModel = viewModel, navController = navController)
+        }
+        if (viewModel.showSubmitDialog) {
+            SubmitDialog(viewModel = viewModel, navController = navController)
+        }
+        if (viewModel.showAcceptDialog) {
+            AcceptDialog(viewModel = viewModel, navController = navController)
         }
         if (viewModel.errorMessage.isNotEmpty()) {
             Toast.makeText(LocalContext.current, viewModel.errorMessage, Toast.LENGTH_SHORT).show()
@@ -153,8 +156,8 @@ fun ReviewField(
     paddingValues: PaddingValues
 ) {
     val freeScrollState = rememberFreeScrollState()
-    val primaryBackground = TRPTheme.colors.primaryBackground
-    val secondaryBackground = TRPTheme.colors.secondaryBackground
+    val primaryBackground = TRPTheme.colors.primaryBackground.copy(alpha = 0.6f)
+    val secondaryBackground = TRPTheme.colors.secondaryBackground.copy(alpha = 0.6f)
     val selectedColor = TRPTheme.colors.okColor.copy(alpha = 0.3f)
 
     Surface(
@@ -364,7 +367,7 @@ fun Comment(
 }
 
 @Composable
-fun AcceptRejectButtons(
+fun AcceptSubmitRejectButtons(
     viewModel: TeacherTaskScreenViewModel
 ) {
     Row(
@@ -378,10 +381,12 @@ fun AcceptRejectButtons(
             modifier = Modifier.weight(1f),
             onClick = { viewModel.onRejectButtonClick() },
             colors = ButtonDefaults.buttonColors(
-                containerColor = TRPTheme.colors.errorColor
+                containerColor = TRPTheme.colors.errorColor,
+                disabledContainerColor = TRPTheme.colors.errorColor.copy(alpha = 0.6f)
             ),
             shape = RoundedCornerShape(30.dp),
-            contentPadding = PaddingValues()
+            contentPadding = PaddingValues(),
+            enabled = viewModel.finishButtonsEnabled
         ) {
             Text(
                 text = "Reject",
@@ -391,12 +396,31 @@ fun AcceptRejectButtons(
         Spacer(modifier = Modifier.size(5.dp))
         Button(
             modifier = Modifier.weight(1f),
-            onClick = { viewModel.onAcceptButtonClick() },
+            onClick = { viewModel.onSubmitButtonClick() },
             colors = ButtonDefaults.buttonColors(
-                containerColor = TRPTheme.colors.myYellow
+                containerColor = TRPTheme.colors.myYellow,
+                disabledContainerColor = TRPTheme.colors.myYellow.copy(alpha = 0.6f)
             ),
             shape = RoundedCornerShape(30.dp),
-            contentPadding = PaddingValues()
+            contentPadding = PaddingValues(),
+            enabled = viewModel.finishButtonsEnabled
+        ) {
+            Text(
+                text = "Submit",
+                color = TRPTheme.colors.secondaryText
+            )
+        }
+        Spacer(modifier = Modifier.size(5.dp))
+        Button(
+            modifier = Modifier.weight(1f),
+            onClick = { viewModel.onAcceptButtonClick() },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = TRPTheme.colors.okColor,
+                disabledContainerColor = TRPTheme.colors.okColor.copy(alpha = 0.6f)
+            ),
+            shape = RoundedCornerShape(30.dp),
+            contentPadding = PaddingValues(),
+            enabled = viewModel.finishButtonsEnabled
         ) {
             Text(
                 text = "Accept",
@@ -471,6 +495,83 @@ fun RejectDialog(viewModel: TeacherTaskScreenViewModel, navController: NavHostCo
         dismissButton = {
             Button(
                 onClick = { viewModel.rejectDismissButtonClick() },
+                colors = ButtonDefaults.buttonColors(TRPTheme.colors.errorColor)
+            ) {
+                Text(
+                    text = "Dismiss",
+                    color = TRPTheme.colors.secondaryText
+                )
+            }
+        },
+        properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = true)
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SubmitDialog(viewModel: TeacherTaskScreenViewModel, navController: NavHostController) {
+    AlertDialog(
+        onDismissRequest = { viewModel.submitDismissButtonClick() },
+        title = {
+            Text(
+                text = "Submit these comments",
+                color = TRPTheme.colors.primaryText
+            )
+        },
+        containerColor = TRPTheme.colors.primaryBackground,
+        text = {
+            OutlinedTextField(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp)
+                    .padding(vertical = 5.dp, horizontal = 5.dp),
+                textStyle = TextStyle.Default.copy(fontSize = 15.sp),
+                value = viewModel.reviewMessage,
+                onValueChange = { viewModel.updateReviewMessage(it) },
+                placeholder = {
+                    Text(
+                        "General comment",
+                        color = TRPTheme.colors.primaryText,
+                        modifier = Modifier.alpha(0.6f),
+                        fontSize = 15.sp
+                    )
+                },
+                shape = RoundedCornerShape(8.dp),
+                colors = TextFieldDefaults.textFieldColors(
+                    containerColor = TRPTheme.colors.secondaryBackground,
+                    textColor = TRPTheme.colors.primaryText,
+                    cursorColor = TRPTheme.colors.primaryText,
+                    focusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    errorIndicatorColor = TRPTheme.colors.errorColor,
+                    errorCursorColor = TRPTheme.colors.primaryText
+                ),
+                isError = viewModel.reviewMessage.isEmpty()
+            )
+        },
+        confirmButton = {
+            Button(
+                modifier = Modifier.alpha(if (viewModel.reviewMessage.isEmpty()) 0.6f else 1.0f),
+                onClick = {
+                    viewModel.submitConfirmButtonClick()
+                    navController.popBackStack()
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = TRPTheme.colors.myYellow,
+                    disabledContainerColor = TRPTheme.colors.myYellow
+                ),
+                enabled = viewModel.reviewMessage.isNotEmpty()
+            ) {
+                Text(
+                    text = "Confirm",
+                    color = TRPTheme.colors.secondaryText
+                )
+            }
+        },
+        dismissButton = {
+            Button(
+                onClick = { viewModel.submitDismissButtonClick() },
                 colors = ButtonDefaults.buttonColors(TRPTheme.colors.errorColor)
             ) {
                 Text(

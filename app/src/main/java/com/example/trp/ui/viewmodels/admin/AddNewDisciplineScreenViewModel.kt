@@ -25,13 +25,13 @@ class AddNewDisciplineScreenViewModel @AssistedInject constructor(
     var disciplineYear by mutableStateOf((2000..2030).map { it.toString() })
         private set
     private var selectedYear by mutableStateOf(disciplineYear[0])
-    var disciplineHalfYear by mutableStateOf(listOf("FIRST", "SECOND"))
+    var disciplineHalfYear by mutableStateOf(listOf("First", "Second"))
         private set
-    var selectedHalfYear by mutableStateOf(disciplineHalfYear[0])
+    var selectedHalfYearIndex by mutableStateOf(0)
         private set
-    var disciplineDeprecated by mutableStateOf(listOf("True", "False"))
+    var disciplineDeprecated by mutableStateOf(listOf("Yes", "No"))
         private set
-    var selectedDeprecated by mutableStateOf(disciplineDeprecated[1])
+    var selectedDeprecatedIndex by mutableStateOf(1)
         private set
     var applyButtonEnabled by mutableStateOf(false)
         private set
@@ -103,12 +103,12 @@ class AddNewDisciplineScreenViewModel @AssistedInject constructor(
         selectedYear = newYearValue
     }
 
-    fun updateHalfYearValue(newHalfYearValue: String) {
-        selectedHalfYear = newHalfYearValue
+    fun updateHalfYearIndex(newHalfYearValue: Int) {
+        selectedHalfYearIndex = newHalfYearValue
     }
 
-    fun updateDeprecatedValue(newDeprecatedValue: String) {
-        selectedDeprecated = newDeprecatedValue
+    fun updateDeprecatedIndex(newDeprecatedValue: Int) {
+        selectedDeprecatedIndex = newDeprecatedValue
     }
 
     fun beforeSaveButtonClick() {
@@ -119,8 +119,16 @@ class AddNewDisciplineScreenViewModel @AssistedInject constructor(
                     PostNewDisciplineBody(
                         name = disciplineName,
                         year = selectedYear.toInt(),
-                        halfYear = selectedHalfYear,
-                        deprecated = selectedDeprecated.toBoolean()
+                        halfYear = when (disciplineHalfYear[selectedHalfYearIndex]) {
+                            "First" -> "FIRST"
+                            "Second" -> "SECOND"
+                            else -> null
+                        },
+                        deprecated = when (disciplineDeprecated[selectedDeprecatedIndex]) {
+                            "Yes" -> true
+                            "No" -> false
+                            else -> null
+                        }
                     )
                 )
                 responseSuccess = true

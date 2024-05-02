@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.trp.data.mappers.TeamAppointments
 import com.example.trp.data.repository.UserAPIRepositoryImpl
+import com.example.trp.ui.components.TaskStatus
 import com.example.trp.ui.components.tabs.TaskTabs
 import com.wakaztahir.codeeditor.highlight.model.CodeLang
 import com.wakaztahir.codeeditor.highlight.prettify.PrettifyParser
@@ -39,10 +40,9 @@ class TaskScreenViewModel @AssistedInject constructor(
     private val parser by mutableStateOf(PrettifyParser())
     private var themeState by mutableStateOf(CodeThemeType.Monokai)
     private val theme by mutableStateOf(themeState.theme())
-    val taskScreens = listOf(
+    val taskScreens = mutableListOf(
         TaskTabs.Description,
-        TaskTabs.Solution,
-        TaskTabs.Review
+        TaskTabs.Solution
     )
     var selectedTabIndex by mutableStateOf(1)
         private set
@@ -59,6 +59,10 @@ class TaskScreenViewModel @AssistedInject constructor(
     var responseSuccess by mutableStateOf(false)
         private set
     var reviewButtonEnabled by mutableStateOf(false)
+        private set
+    var isReviewDialogShow by mutableStateOf(false)
+        private set
+    var isRunButtonEnabled by mutableStateOf(false)
         private set
 
     @AssistedFactory
@@ -85,6 +89,9 @@ class TaskScreenViewModel @AssistedInject constructor(
             try {
                 teamAppointment =
                     repository.teamAppointments.find { it.task?.id == taskId } ?: TeamAppointments()
+                if (teamAppointment.codeReviewIds?.isNotEmpty() == true) {
+                    taskScreens.add(TaskTabs.Review)
+                }
                 solutionTextFieldValue = TextFieldValue(
                     annotatedString = parseCodeAsAnnotatedString(
                         parser = parser,
@@ -97,6 +104,10 @@ class TaskScreenViewModel @AssistedInject constructor(
                 )
                 linesCount = solutionTextFieldValue.text.lineSequence().count()
                 codeBck = solutionTextFieldValue.text
+                isRunButtonEnabled = teamAppointment.status == TaskStatus.New.status
+                        || teamAppointment.status == TaskStatus.InProgress.status
+                        || teamAppointment.status == TaskStatus.OnTesting.status
+                        || teamAppointment.status == TaskStatus.Tested.status
                 updateLinesCount()
             } catch (e: SocketTimeoutException) {
                 updateErrorMessage("Timeout")
@@ -152,6 +163,7 @@ class TaskScreenViewModel @AssistedInject constructor(
                         "Error"
                     }
                 reviewButtonEnabled = output.data?.testPassed == output.data?.totalTests
+                        && repository.user.id == teamAppointment.team?.leaderStudentId
                 codeBck = solutionTextFieldValue.text
             } catch (e: SocketTimeoutException) {
                 outputText = "Timeout"
@@ -204,5 +216,30 @@ class TaskScreenViewModel @AssistedInject constructor(
 
     fun onDoNotSaveCodeButtonClick() {
         isSaveDialogShow = false
+    }
+
+    fun showReviewDialog() {
+        isReviewDialogShow = true
+    }
+
+    fun onDismissReviewButtonClick() {
+        isReviewDialogShow = false
+    }
+
+    fun onPostCodeReviewButtonClick() {
+        viewModelScope.launch {
+            try {
+                teamAppointment.id?.let { repository.postCodeReview(it) }
+                reviewButtonEnabled = false
+                isReviewDialogShow = false
+                isRunButtonEnabled = false
+            } catch (e: SocketTimeoutException) {
+                updateErrorMessage("Timeout")
+            } catch (e: ConnectException) {
+                updateErrorMessage("Check internet connection")
+            } catch (e: Exception) {
+                updateErrorMessage("Error")
+            }
+        }
     }
 }
