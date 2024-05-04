@@ -1,5 +1,6 @@
 package com.example.trp.data.network
 
+import com.example.trp.data.mappers.PostRateBody
 import com.example.trp.data.mappers.PostStudentAppointmentsResponse
 import com.example.trp.data.mappers.PostTeamAppointmentsBody
 import com.example.trp.data.mappers.TeamAppointmentsResponse
@@ -7,12 +8,15 @@ import com.example.trp.data.mappers.disciplines.DisciplineResponse
 import com.example.trp.data.mappers.disciplines.Disciplines
 import com.example.trp.data.mappers.disciplines.PostNewDisciplineBody
 import com.example.trp.data.mappers.disciplines.PostNewDisciplineResponse
+import com.example.trp.data.mappers.tasks.CloseCodeReviewResponse
+import com.example.trp.data.mappers.tasks.CodeReviewResponse
 import com.example.trp.data.mappers.tasks.Lab
 import com.example.trp.data.mappers.tasks.LabsResponse
 import com.example.trp.data.mappers.tasks.Output
 import com.example.trp.data.mappers.tasks.PostLabResponse
 import com.example.trp.data.mappers.tasks.PostNewStudentBody
 import com.example.trp.data.mappers.tasks.PostNewTeacherBody
+import com.example.trp.data.mappers.tasks.PostRateResponse
 import com.example.trp.data.mappers.tasks.PostTeamBody
 import com.example.trp.data.mappers.tasks.PostTeamResponse
 import com.example.trp.data.mappers.tasks.PostTestResponse
@@ -236,4 +240,36 @@ interface UserAPI {
         @Header("Authorization") token: String,
         @Path("id") teamAppointmentId: Int
     ): Response<PostTeacherResponse>
+
+    @GET("api/v2/code-reviews/{codeReviewId}")
+    suspend fun getCodeReview(
+        @Header("Authorization") token: String,
+        @Path("codeReviewId") codeReviewId: Int
+    ): Response<CodeReviewResponse>
+
+    @PUT("api/v2/code-reviews/{codeReviewId}/close")
+    suspend fun closeCodeReview(
+        @Header("Authorization") token: String,
+        @Path("codeReviewId") codeReviewId: Int
+    ): Response<CloseCodeReviewResponse>
+
+    @PUT("/api/v2/code-reviews/{codeReviewId}/approve")
+    suspend fun approveCodeReview(
+        @Header("Authorization") token: String,
+        @Path("codeReviewId") codeReviewId: Int
+    ): Response<CloseCodeReviewResponse>
+
+    @POST("api/v2/code-reviews/{codeReviewId}/note")
+    suspend fun addNoteToCodeReview(
+        @Header("Authorization") token: String,
+        @Path("codeReviewId") codeReviewId: Int,
+        @Query("note") note: String
+    ): Response<CodeReviewResponse>
+
+    @POST("api/v2/team-appointments/{teamAppointmentId}/rate")
+    suspend fun postRate(
+        @Header("Authorization") token: String,
+        @Path("teamAppointmentId ") teamAppointmentId: Int,
+        @Body postRateBody: PostRateBody
+    ): Response<PostRateResponse>
 }

@@ -4,21 +4,25 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.example.trp.data.maindb.MainDB
+import com.example.trp.data.mappers.PostRateBody
 import com.example.trp.data.mappers.PostStudentAppointmentsResponse
 import com.example.trp.data.mappers.PostTeamAppointmentsBody
-import com.example.trp.data.mappers.TeamAppointments
+import com.example.trp.data.mappers.TeamAppointment
 import com.example.trp.data.mappers.TeamAppointmentsResponse
 import com.example.trp.data.mappers.disciplines.DisciplineData
 import com.example.trp.data.mappers.disciplines.DisciplineResponse
 import com.example.trp.data.mappers.disciplines.Disciplines
 import com.example.trp.data.mappers.disciplines.PostNewDisciplineBody
 import com.example.trp.data.mappers.disciplines.PostNewDisciplineResponse
+import com.example.trp.data.mappers.tasks.CloseCodeReviewResponse
+import com.example.trp.data.mappers.tasks.CodeReviewResponse
 import com.example.trp.data.mappers.tasks.Lab
 import com.example.trp.data.mappers.tasks.LabsResponse
 import com.example.trp.data.mappers.tasks.Output
 import com.example.trp.data.mappers.tasks.PostLabResponse
 import com.example.trp.data.mappers.tasks.PostNewStudentBody
 import com.example.trp.data.mappers.tasks.PostNewTeacherBody
+import com.example.trp.data.mappers.tasks.PostRateResponse
 import com.example.trp.data.mappers.tasks.PostTeamBody
 import com.example.trp.data.mappers.tasks.PostTeamResponse
 import com.example.trp.data.mappers.tasks.PostTestResponse
@@ -77,7 +81,7 @@ class UserAPIRepositoryImpl(
 
     var students by mutableStateOf(emptyList<Student>())
 
-    var teamAppointments by mutableStateOf(emptyList<TeamAppointments>())
+    var teamAppointments by mutableStateOf(emptyList<TeamAppointment>())
 
     var teams by mutableStateOf(emptyList<Team>())
 
@@ -271,32 +275,65 @@ class UserAPIRepositoryImpl(
         return ApiService.userAPI.postCodeReview("Bearer $token", teamAppointmentId)
     }
 
+    override suspend fun getCodeReview(
+        token: String,
+        codeReviewId: Int
+    ): Response<CodeReviewResponse> {
+        return ApiService.userAPI.getCodeReview("Bearer $token", codeReviewId)
+    }
+
+    override suspend fun closeCodeReview(
+        token: String,
+        codeReviewId: Int
+    ): Response<CloseCodeReviewResponse> {
+        return ApiService.userAPI.closeCodeReview("Bearer $token", codeReviewId)
+    }
+
+    override suspend fun approveCodeReview(
+        token: String,
+        codeReviewId: Int
+    ): Response<CloseCodeReviewResponse> {
+        return ApiService.userAPI.approveCodeReview("Bearer $token", codeReviewId)
+    }
+
+    override suspend fun addNoteToCodeReview(
+        token: String,
+        codeReviewId: Int,
+        note: String
+    ): Response<CodeReviewResponse> {
+        return ApiService.userAPI.addNoteToCodeReview("Bearer $token", codeReviewId, note)
+    }
+
+    override suspend fun postRate(
+        token: String,
+        teamAppointmentId: Int,
+        postRateBody: PostRateBody
+    ): Response<PostRateResponse> {
+        return ApiService.userAPI.postRate("Bearer $token", teamAppointmentId, postRateBody)
+    }
+
     suspend fun getActiveUser(): User {
         user = mainDB.userDAO.getActiveUser() ?: User()
         return user
     }
 
     suspend fun login(login: String, password: String): User {
-        if (userChanged) {
-            val response = getUserResponse(
-                AuthRequest(login, password)
-            )
-            response.body()?.let {
-                it.token?.let { token ->
-                    it.message?.let { message ->
-                        return addUserInformation(login, password, token, message)
-                    }
-                }
-                userChanged = false
-            } ?: run {
-                response.errorBody()?.let { errorBody ->
-                    return User().copy(message = JSONObject(errorBody.string()).getString("error"))
-                } ?: run {
-                    return User().copy(message = "Bad response")
+        val response = getUserResponse(
+            AuthRequest(login, password)
+        )
+        response.body()?.let {
+            it.token?.let { token ->
+                it.message?.let { message ->
+                    return addUserInformation(login, password, token, message)
                 }
             }
+        } ?: run {
+            response.errorBody()?.let { errorBody ->
+                return User().copy(message = JSONObject(errorBody.string()).getString("error"))
+            } ?: run {
+                return User().copy(message = "Bad response")
+            }
         }
-        return User()
     }
 
     private suspend fun addUserInformation(
@@ -310,12 +347,17 @@ class UserAPIRepositoryImpl(
             password = password,
             token = token,
             message = message,
-            isActive = true
+            isActive = true,
+            isLogged = true
         )
         mainDB.userDAO.setAllIsActiveFalse()
         mainDB.userDAO.insertActiveUser(updatedUser)
         user = mainDB.userDAO.getActiveUser() ?: User()
         return user
+    }
+
+    suspend fun setUserIsLogged(newUserIsLogged: Boolean) {
+        mainDB.userDAO.insertActiveUser(user.copy(isLogged = newUserIsLogged))
     }
 
     private fun parseToken(token: String): User {
@@ -461,7 +503,7 @@ class UserAPIRepositoryImpl(
         }
     }
 
-    suspend fun getAllTeamAppointments(disciplineId: Int, groupId: Int): List<TeamAppointments> {
+    suspend fun getAllTeamAppointments(disciplineId: Int, groupId: Int): List<TeamAppointment> {
         teamAppointments = user.token?.let { token ->
             getAllTeamAppointments(token, disciplineId, groupId)
         }?.body()?.data ?: emptyList()
@@ -503,7 +545,7 @@ class UserAPIRepositoryImpl(
         user.token?.let { token -> postNewTest(token, test) }
     }
 
-    suspend fun getTeamAppointments(disciplineId: Int): List<TeamAppointments> {
+    suspend fun getTeamAppointments(disciplineId: Int): List<TeamAppointment> {
         teamAppointments = user.token?.let { token ->
             getTeamAppointments(token, disciplineId).body()?.data
         } ?: emptyList()
@@ -571,5 +613,31 @@ class UserAPIRepositoryImpl(
 
     suspend fun postCodeReview(teamAppointmentId: Int): Response<PostTeacherResponse>? {
         return user.token?.let { token -> postCodeReview(token, teamAppointmentId) }
+    }
+
+    suspend fun getCodeReview(codeReviewId: Int): Response<CodeReviewResponse>? {
+        return user.token?.let { token -> getCodeReview(token, codeReviewId) }
+    }
+
+    suspend fun closeCodeReview(codeReviewId: Int): Response<CloseCodeReviewResponse>? {
+        return user.token?.let { token -> closeCodeReview(token, codeReviewId) }
+    }
+
+    suspend fun approveCodeReview(codeReviewId: Int): Response<CloseCodeReviewResponse>? {
+        return user.token?.let { token -> approveCodeReview(token, codeReviewId) }
+    }
+
+    suspend fun addNoteToCodeReview(
+        codeReviewId: Int,
+        note: String
+    ): Response<CodeReviewResponse>? {
+        return user.token?.let { token -> addNoteToCodeReview(token, codeReviewId, note) }
+    }
+
+    suspend fun postRate(
+        teamAppointmentId: Int,
+        postRateBody: PostRateBody
+    ): Response<PostRateResponse>? {
+        return user.token?.let { token -> postRate(token, teamAppointmentId, postRateBody) }
     }
 }

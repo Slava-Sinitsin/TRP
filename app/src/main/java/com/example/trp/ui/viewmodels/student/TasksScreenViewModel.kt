@@ -6,7 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.trp.data.mappers.TeamAppointments
+import com.example.trp.data.mappers.TeamAppointment
 import com.example.trp.data.mappers.tasks.Lab
 import com.example.trp.data.repository.UserAPIRepositoryImpl
 import com.example.trp.ui.components.TaskStatus
@@ -22,7 +22,7 @@ class TasksScreenViewModel @AssistedInject constructor(
     @Assisted
     val disciplineId: Int
 ) : ViewModel() {
-    var teamAppointments by mutableStateOf(emptyList<TeamAppointments>())
+    var teamAppointments by mutableStateOf(emptyList<TeamAppointment>())
         private set
     var errorMessage by mutableStateOf("")
         private set
@@ -80,7 +80,7 @@ class TasksScreenViewModel @AssistedInject constructor(
         errorMessage = newMessage
     }
 
-    fun getTask(index: Int): TeamAppointments {
+    fun getTask(index: Int): TeamAppointment {
         return teamAppointments[index]
     }
 

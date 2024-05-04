@@ -41,6 +41,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -104,17 +105,22 @@ fun TeacherTaskScreen(
             item { Spacer(modifier = Modifier.size(100.dp)) }
         }
         if (viewModel.showRejectDialog) {
-            RejectDialog(viewModel = viewModel, navController = navController)
+            RejectDialog(viewModel = viewModel)
         }
         if (viewModel.showSubmitDialog) {
-            SubmitDialog(viewModel = viewModel, navController = navController)
+            SubmitDialog(viewModel = viewModel)
         }
         if (viewModel.showAcceptDialog) {
-            AcceptDialog(viewModel = viewModel, navController = navController)
+            AcceptDialog(viewModel = viewModel)
         }
         if (viewModel.errorMessage.isNotEmpty()) {
             Toast.makeText(LocalContext.current, viewModel.errorMessage, Toast.LENGTH_SHORT).show()
             viewModel.updateErrorMessage("")
+        }
+        LaunchedEffect(viewModel.responseSuccess) {
+            if (viewModel.responseSuccess) {
+                navController.popBackStack()
+            }
         }
     }
 }
@@ -132,7 +138,7 @@ fun TeacherTaskScreenTopBar(
         ),
         title = {
             Text(
-                text = viewModel.task.title ?: "",
+                text = viewModel.teamAppointment.task?.title ?: "",
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 fontSize = 20.sp
@@ -432,7 +438,7 @@ fun AcceptSubmitRejectButtons(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RejectDialog(viewModel: TeacherTaskScreenViewModel, navController: NavHostController) {
+fun RejectDialog(viewModel: TeacherTaskScreenViewModel) {
     AlertDialog(
         onDismissRequest = { viewModel.rejectDismissButtonClick() },
         title = {
@@ -476,10 +482,7 @@ fun RejectDialog(viewModel: TeacherTaskScreenViewModel, navController: NavHostCo
         confirmButton = {
             Button(
                 modifier = Modifier.alpha(if (viewModel.reviewMessage.isEmpty()) 0.6f else 1.0f),
-                onClick = {
-                    viewModel.rejectConfirmButtonClick()
-                    navController.popBackStack()
-                },
+                onClick = { viewModel.rejectConfirmButtonClick() },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = TRPTheme.colors.myYellow,
                     disabledContainerColor = TRPTheme.colors.myYellow
@@ -509,7 +512,7 @@ fun RejectDialog(viewModel: TeacherTaskScreenViewModel, navController: NavHostCo
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SubmitDialog(viewModel: TeacherTaskScreenViewModel, navController: NavHostController) {
+fun SubmitDialog(viewModel: TeacherTaskScreenViewModel) {
     AlertDialog(
         onDismissRequest = { viewModel.submitDismissButtonClick() },
         title = {
@@ -553,10 +556,7 @@ fun SubmitDialog(viewModel: TeacherTaskScreenViewModel, navController: NavHostCo
         confirmButton = {
             Button(
                 modifier = Modifier.alpha(if (viewModel.reviewMessage.isEmpty()) 0.6f else 1.0f),
-                onClick = {
-                    viewModel.submitConfirmButtonClick()
-                    navController.popBackStack()
-                },
+                onClick = { viewModel.submitConfirmButtonClick() },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = TRPTheme.colors.myYellow,
                     disabledContainerColor = TRPTheme.colors.myYellow
@@ -586,7 +586,7 @@ fun SubmitDialog(viewModel: TeacherTaskScreenViewModel, navController: NavHostCo
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AcceptDialog(viewModel: TeacherTaskScreenViewModel, navController: NavHostController) {
+fun AcceptDialog(viewModel: TeacherTaskScreenViewModel) {
     AlertDialog(
         onDismissRequest = { viewModel.acceptDismissButtonClick() },
         title = {
@@ -600,6 +600,7 @@ fun AcceptDialog(viewModel: TeacherTaskScreenViewModel, navController: NavHostCo
             Column {
                 OutlinedTextField(
                     modifier = Modifier
+                        .padding(bottom = 10.dp)
                         .fillMaxWidth()
                         .height(100.dp),
                     textStyle = TextStyle.Default.copy(fontSize = 15.sp),
@@ -626,34 +627,34 @@ fun AcceptDialog(viewModel: TeacherTaskScreenViewModel, navController: NavHostCo
                     ),
                     isError = viewModel.reviewMessage.isEmpty()
                 )
-                Text(
-                    modifier = Modifier.padding(top = 10.dp),
-                    text = "Mark: ${(viewModel.mark * 100).toInt()}",
-                    color = TRPTheme.colors.primaryText
-                )
-                Slider(
-                    value = viewModel.mark,
-                    onValueChange = {
-                        viewModel.updateMark(it)
-                    },
-                    colors = SliderDefaults.colors(
-                        thumbColor = TRPTheme.colors.myYellow,
-                        activeTrackColor = TRPTheme.colors.myYellow,
-                        activeTickColor = Color.Transparent,
-                        inactiveTickColor = Color.Transparent
-                    ),
-                    valueRange = 0f..viewModel.maxMark,
-                    steps = (viewModel.maxMark * 100).toInt()
-                )
+                Column {
+                    viewModel.teamAppointment.team?.students?.forEachIndexed { index, student ->
+                        Text(
+                            text = "${student.fullName}: ${(viewModel.rateList[index].grade)}",
+                            color = TRPTheme.colors.primaryText
+                        )
+                        Slider(
+                            value = viewModel.rateList[index].grade?.toFloat()?.div(100f) ?: 0f,
+                            onValueChange = {
+                                viewModel.updateMark(it, index)
+                            },
+                            colors = SliderDefaults.colors(
+                                thumbColor = TRPTheme.colors.myYellow,
+                                activeTrackColor = TRPTheme.colors.myYellow,
+                                activeTickColor = Color.Transparent,
+                                inactiveTickColor = Color.Transparent
+                            ),
+                            valueRange = 0f..viewModel.maxRate,
+                            steps = (viewModel.maxRate * 100).toInt()
+                        )
+                    }
+                }
             }
         },
         confirmButton = {
             Button(
                 modifier = Modifier.alpha(if (viewModel.reviewMessage.isEmpty()) 0.6f else 1.0f),
-                onClick = {
-                    viewModel.acceptConfirmButtonClick()
-                    navController.popBackStack()
-                },
+                onClick = { viewModel.acceptConfirmButtonClick() },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = TRPTheme.colors.myYellow,
                     disabledContainerColor = TRPTheme.colors.myYellow

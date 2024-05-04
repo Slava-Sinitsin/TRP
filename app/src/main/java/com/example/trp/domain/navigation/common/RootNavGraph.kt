@@ -1,26 +1,38 @@
 package com.example.trp.domain.navigation.common
 
+import android.util.Log
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.trp.ui.screens.admin.AdminWelcomeScreen
+import com.example.trp.ui.screens.common.LoginScreen
 import com.example.trp.ui.screens.common.SplashScreen
 import com.example.trp.ui.screens.student.StudentWelcomeScreen
 import com.example.trp.ui.screens.teacher.TeacherWelcomeScreen
 
 @Composable
-fun RootNavGraph(navController: NavHostController) {
+fun RootNavGraph(startDestination: String = Graph.SPLASH, navController: NavHostController) {
     NavHost(
         navController = navController,
         route = Graph.ROOT,
-        startDestination = Graph.SPLASH
+        startDestination = startDestination
     ) {
-        authNavGraph(navController = navController)
+        navController.currentDestination?.hierarchy?.forEach {
+            Log.e("AuthNavGraph it.route", it.route.toString())
+        }
+        Log.e("AuthNavGraph it.route", "\n")
         composable(route = Graph.SPLASH) {
-            SplashScreen(navigate = {
+            SplashScreen(navigate = { destination ->
                 navController.popBackStack()
-                navController.navigate(Graph.AUTHENTICATION)
+                navController.navigate(destination)
+            })
+        }
+        composable(route = Graph.LOGIN) {
+            LoginScreen(onLogin = { destination ->
+                navController.popBackStack()
+                navController.navigate(destination)
             })
         }
         composable(route = Graph.STUDENT_WELCOME) {
@@ -38,7 +50,7 @@ fun RootNavGraph(navController: NavHostController) {
 object Graph {
     const val ROOT = "root_graph"
     const val SPLASH = "splash_graph"
-    const val AUTHENTICATION = "auth_graph"
+    const val LOGIN = "login_graph"
     const val STUDENT_WELCOME = "student_welcome_graph"
     const val STUDENT_DISCIPLINES = "student_disciplines_graph"
     const val TEACHER_WELCOME = "teacher_welcome_graph"

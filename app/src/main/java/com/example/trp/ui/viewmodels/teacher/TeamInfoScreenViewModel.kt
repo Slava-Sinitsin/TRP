@@ -6,7 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.trp.data.mappers.TeamAppointments
+import com.example.trp.data.mappers.TeamAppointment
 import com.example.trp.data.mappers.tasks.Lab
 import com.example.trp.data.mappers.tasks.Team
 import com.example.trp.data.repository.UserAPIRepositoryImpl
@@ -25,7 +25,7 @@ class TeamInfoScreenViewModel @AssistedInject constructor(
 ) : ViewModel() {
     var team by mutableStateOf(Team())
         private set
-    var teamAppointments by mutableStateOf(emptyList<TeamAppointments>())
+    var teamAppointments by mutableStateOf(emptyList<TeamAppointment>())
         private set
     var labs by mutableStateOf(emptyList<Lab>())
         private set

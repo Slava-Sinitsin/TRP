@@ -49,27 +49,27 @@ import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.common.AuthScreenViewModel
 
 @Composable
-fun LoginScreen(
-    onLoginClick: (destination: String) -> Unit
-) {
+fun LoginScreen(onLogin: (destination: String) -> Unit) {
     val viewModel: AuthScreenViewModel = hiltViewModel()
-    LaunchedEffect(viewModel.isLogged) {
-        if (viewModel.isLogged) {
-            onLoginClick(viewModel.destination)
+    LaunchedEffect(viewModel.destination) {
+        if (viewModel.destination != "") {
+            onLogin(viewModel.destination)
         }
     }
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(TRPTheme.colors.primaryBackground),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Message(viewModel = viewModel)
-        MailField(viewModel = viewModel)
-        PassField(viewModel = viewModel)
-        ConfirmButton(viewModel = viewModel)
-        Spacer(modifier = Modifier.size(70.dp))
+    if (!viewModel.isLoading && !viewModel.isLogged) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(TRPTheme.colors.primaryBackground),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Message(viewModel = viewModel)
+            MailField(viewModel = viewModel)
+            PassField(viewModel = viewModel)
+            ConfirmButton(viewModel = viewModel)
+            Spacer(modifier = Modifier.size(70.dp))
+        }
     }
 }
 
@@ -111,7 +111,7 @@ fun Message(viewModel: AuthScreenViewModel) {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    viewModel.message,
+                    text = viewModel.message,
                     color = TRPTheme.colors.errorColor,
                     modifier = Modifier.padding(
                         horizontal = animateDpAsState(
@@ -213,9 +213,7 @@ fun PassField(viewModel: AuthScreenViewModel) {
 @Composable
 fun ConfirmButton(viewModel: AuthScreenViewModel) {
     Button(
-        onClick = {
-            viewModel.login()
-        },
+        onClick = { viewModel.onLoginButtonClick() },
         modifier = Modifier.padding(5.dp),
         colors = ButtonDefaults.buttonColors(TRPTheme.colors.myYellow)
     ) {

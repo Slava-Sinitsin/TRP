@@ -14,6 +14,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -44,7 +45,6 @@ fun AdminWelcomeScreen(navController: NavHostController = rememberNavController(
         )
     )
 
-    navController.currentBackStackEntryAsState().value?.destination
     Scaffold(
         bottomBar = {
             AdminNavigationBar(
@@ -63,38 +63,41 @@ fun AdminNavigationBar(
     viewModel: AdminWelcomeScreenViewModel,
     navController: NavHostController
 ) {
-    Surface(
-        modifier = Modifier
-            .wrapContentSize()
-            .padding(10.dp),
-        color = Color.Transparent,
-        shape = RoundedCornerShape(30.dp),
-        shadowElevation = 6.dp
-    ) {
-        NavigationBar(
-            containerColor = TRPTheme.colors.secondaryBackground
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    if (viewModel.screens.any { it.route == navBackStackEntry?.destination?.route }) {
+        Surface(
+            modifier = Modifier
+                .wrapContentSize()
+                .padding(10.dp),
+            color = Color.Transparent,
+            shape = RoundedCornerShape(30.dp),
+            shadowElevation = 6.dp
         ) {
-            viewModel.screens.forEach { screen ->
-                NavigationBarItem(
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = TRPTheme.colors.myYellow,
-                        selectedTextColor = TRPTheme.colors.myYellow,
-                        indicatorColor = TRPTheme.colors.iconBackground,
-                        unselectedIconColor = TRPTheme.colors.icon,
-                        unselectedTextColor = TRPTheme.colors.icon
-                    ),
-                    icon = { Icon(screen.icon, contentDescription = screen.title) },
-                    label = { Text(screen.title) },
-                    selected = navController.currentDestination?.hierarchy?.any {
-                        it.route?.startsWith(screen.route) == true
-                    } ?: false,
-                    onClick = {
-                        navController.navigate(screen.route) {
-                            popUpTo(navController.graph.findStartDestination().id)
-                            launchSingleTop = true
+            NavigationBar(
+                containerColor = TRPTheme.colors.secondaryBackground
+            ) {
+                viewModel.screens.forEach { screen ->
+                    NavigationBarItem(
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = TRPTheme.colors.myYellow,
+                            selectedTextColor = TRPTheme.colors.myYellow,
+                            indicatorColor = TRPTheme.colors.iconBackground,
+                            unselectedIconColor = TRPTheme.colors.icon,
+                            unselectedTextColor = TRPTheme.colors.icon
+                        ),
+                        icon = { Icon(screen.icon, contentDescription = screen.title) },
+                        label = { Text(screen.title) },
+                        selected = navController.currentDestination?.hierarchy?.any {
+                            it.route?.startsWith(screen.route) == true
+                        } ?: false,
+                        onClick = {
+                            navController.navigate(screen.route) {
+                                popUpTo(navController.graph.findStartDestination().id)
+                                launchSingleTop = true
+                            }
                         }
-                    }
-                )
+                    )
+                }
             }
         }
     }

@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.trp.data.mappers.user.User
 import com.example.trp.data.repository.UserAPIRepositoryImpl
 import com.example.trp.domain.navigation.common.Graph
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,25 +16,36 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AuthScreenViewModel @Inject constructor(val repository: UserAPIRepositoryImpl) : ViewModel() {
+    var user by mutableStateOf(User())
+        private set
     var logValue by mutableStateOf("")
         private set
     var passValue by mutableStateOf("")
         private set
-    var isLogged by mutableStateOf(false)
-        private set
-    var message by mutableStateOf(repository.user.message.toString())
+    var message by mutableStateOf("")
         private set
     var messageVisibility by mutableStateOf(false)
         private set
     var passwordVisibility by mutableStateOf(false)
         private set
-    var destination by mutableStateOf(Graph.STUDENT_WELCOME)
+    var isLogged by mutableStateOf(false)
+        private set
+    var destination by mutableStateOf("")
+        private set
+    var isLoading by mutableStateOf(false)
         private set
 
     init {
         viewModelScope.launch {
-            logValue = repository.getActiveUser().login ?: "android_student"
-            passValue = repository.getActiveUser().password ?: "rebustubus"
+            user = repository.getActiveUser()
+            isLogged = user.isLogged ?: false
+            if (isLogged) {
+                loggedChange()
+            } else {
+                logValue = user.login ?: "android_student"
+                passValue = user.password ?: "rebustubus"
+            }
+            isLoading = false
         }
     }
 
@@ -51,47 +63,38 @@ class AuthScreenViewModel @Inject constructor(val repository: UserAPIRepositoryI
         passValue = newPassValue
     }
 
-    @Suppress("SameParameterValue")
-    private fun loggedChange(newIsLogged: Boolean) {
-        when (repository.user.role) {
-            "ROLE_STUDENT" -> {
-                destination = Graph.STUDENT_WELCOME
-                isLogged = newIsLogged
-            }
-
-            "ROLE_LECTURE_TEACHER" -> {
-                destination = Graph.TEACHER_WELCOME
-                isLogged = newIsLogged
-            }
-
-            "ROLE_ADMIN" -> {
-                destination = Graph.ADMIN_WELCOME
-                isLogged = newIsLogged
-            }
+    private fun loggedChange() {
+        when (user.role) {
+            "ROLE_STUDENT" -> destination = Graph.STUDENT_WELCOME
+            "ROLE_LECTURE_TEACHER" -> destination = Graph.TEACHER_WELCOME
+            "ROLE_ADMIN" -> destination = Graph.ADMIN_WELCOME
         }
     }
 
-    private fun messageChange(newMessage: String) {
+    private fun updateErrorMessage(newMessage: String) {
         messageVisibility = true
         message = newMessage
     }
 
-    fun login() {
+    fun onLoginButtonClick() {
         messageVisibility = false
         viewModelScope.launch {
             try {
-                repository.login(logValue, passValue).let { user ->
+                user = repository.login(logValue, passValue)
+                user.let { user ->
                     if (user.message == "OK") {
                         repository.getDisciplines()
-                        loggedChange(true)
+                        loggedChange()
                     } else {
-                        user.message?.let { messageChange(it) }
+                        user.message?.let { updateErrorMessage(it) }
                     }
                 }
             } catch (e: SocketTimeoutException) {
-                messageChange("Timeout")
+                updateErrorMessage("Timeout")
             } catch (e: ConnectException) {
-                messageChange("Check internet connection")
+                updateErrorMessage("Check internet connection")
+            } catch (e: Exception) {
+                updateErrorMessage("Error")
             }
         }
     }

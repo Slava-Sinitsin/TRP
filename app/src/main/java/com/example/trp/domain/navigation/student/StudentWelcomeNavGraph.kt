@@ -4,7 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.trp.domain.navigation.common.Graph
+import com.example.trp.domain.navigation.common.RootNavGraph
 import com.example.trp.ui.screens.common.MeScreen
 import com.example.trp.ui.screens.student.DisciplinesScreen
 import com.example.trp.ui.screens.student.StudentBottomBarScreen
@@ -26,7 +28,10 @@ fun StudentWelcomeNavGraph(navController: NavHostController) {
             StudentHomeScreen()
         }
         composable(route = StudentBottomBarScreen.Me.route) {
-            MeScreen()
+            MeScreen(navController = navController)
+        }
+        composable(route = Graph.LOGIN) {
+            RootNavGraph(startDestination = Graph.LOGIN, navController = rememberNavController())
         }
         tasksNavGraph(navController = navController)
     }

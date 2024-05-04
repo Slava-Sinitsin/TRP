@@ -194,9 +194,7 @@ fun Team(
     onTeamClick: (id: Int) -> Unit
 ) {
     Button(
-        modifier = Modifier
-            .padding(8.dp)
-            .fillMaxSize(),
+        modifier = Modifier.padding(8.dp),
         onClick = {
             viewModel.getTeam(index = index).let { team -> team.id?.let { id -> onTeamClick(id) } }
         },
@@ -208,7 +206,7 @@ fun Team(
         ),
         shape = RoundedCornerShape(30.dp)
     ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
+        Column {
             val students = viewModel.getTeam(index).students
             Column(
                 modifier = Modifier
@@ -225,7 +223,7 @@ fun Team(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = viewModel.students.find { it.id == student.id }?.fullName ?: "",
+                            text = student.fullName ?: "",
                             color = TRPTheme.colors.primaryText,
                             fontSize = 20.sp
                         )

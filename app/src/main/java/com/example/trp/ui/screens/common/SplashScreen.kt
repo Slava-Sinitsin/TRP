@@ -18,12 +18,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.painterResource
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.trp.R
 import com.example.trp.ui.theme.TRPTheme
-import kotlinx.coroutines.delay
+import com.example.trp.ui.viewmodels.common.SplashScreenViewModel
 
 @Composable
-fun SplashScreen(navigate: () -> Unit) {
+fun SplashScreen(navigate: (destination: String) -> Unit) {
+    val viewModel: SplashScreenViewModel = hiltViewModel()
     val infiniteTransition = rememberInfiniteTransition(label = "")
     val scale by infiniteTransition.animateFloat(
         initialValue = 1f,
@@ -33,9 +35,10 @@ fun SplashScreen(navigate: () -> Unit) {
             RepeatMode.Reverse
         ), label = ""
     )
-    LaunchedEffect(true) {
-        delay(350)
-        navigate()
+    LaunchedEffect(viewModel.destination) {
+        if (viewModel.destination != "") {
+            navigate(viewModel.destination)
+        }
     }
     Column(
         modifier = Modifier

@@ -3,11 +3,13 @@ package com.example.trp.ui.viewmodels.student
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.trp.data.mappers.TeamAppointments
+import com.example.trp.data.mappers.TeamAppointment
+import com.example.trp.data.mappers.tasks.CodeReview
 import com.example.trp.data.repository.UserAPIRepositoryImpl
 import com.example.trp.ui.components.TaskStatus
 import com.example.trp.ui.components.tabs.TaskTabs
@@ -27,7 +29,7 @@ class TaskScreenViewModel @AssistedInject constructor(
     @Assisted
     val taskId: Int
 ) : ViewModel() {
-    var teamAppointment by mutableStateOf(TeamAppointments())
+    var teamAppointment by mutableStateOf(TeamAppointment())
         private set
     var solutionTextFieldValue by mutableStateOf(TextFieldValue())
         private set
@@ -40,10 +42,7 @@ class TaskScreenViewModel @AssistedInject constructor(
     private val parser by mutableStateOf(PrettifyParser())
     private var themeState by mutableStateOf(CodeThemeType.Monokai)
     private val theme by mutableStateOf(themeState.theme())
-    val taskScreens = mutableListOf(
-        TaskTabs.Description,
-        TaskTabs.Solution
-    )
+    var taskScreens by mutableStateOf(emptyList<TaskTabs>())
     var selectedTabIndex by mutableStateOf(1)
         private set
     var userScrollEnabled by mutableStateOf(true)
@@ -63,6 +62,12 @@ class TaskScreenViewModel @AssistedInject constructor(
     var isReviewDialogShow by mutableStateOf(false)
         private set
     var isRunButtonEnabled by mutableStateOf(false)
+        private set
+    var codeReviews by mutableStateOf(emptyList<CodeReview>())
+        private set
+    var currentCodeReview by mutableStateOf(CodeReview())
+        private set
+    var codeList by mutableStateOf(emptyList<Pair<AnnotatedString, Boolean>>())
         private set
 
     @AssistedFactory
@@ -88,10 +93,7 @@ class TaskScreenViewModel @AssistedInject constructor(
         viewModelScope.launch {
             try {
                 teamAppointment =
-                    repository.teamAppointments.find { it.task?.id == taskId } ?: TeamAppointments()
-                if (teamAppointment.codeReviewIds?.isNotEmpty() == true) {
-                    taskScreens.add(TaskTabs.Review)
-                }
+                    repository.teamAppointments.find { it.task?.id == taskId } ?: TeamAppointment()
                 solutionTextFieldValue = TextFieldValue(
                     annotatedString = parseCodeAsAnnotatedString(
                         parser = parser,
@@ -109,6 +111,17 @@ class TaskScreenViewModel @AssistedInject constructor(
                         || teamAppointment.status == TaskStatus.OnTesting.status
                         || teamAppointment.status == TaskStatus.Tested.status
                 updateLinesCount()
+                codeReviews = teamAppointment.codeReviewIds?.mapNotNull {
+                    repository.getCodeReview(it)?.body()?.data
+                } ?: emptyList()
+                taskScreens = if (codeReviews.isNotEmpty()) {
+                    listOf(TaskTabs.Description, TaskTabs.Review)
+                } else {
+                    listOf(TaskTabs.Description, TaskTabs.Solution)
+                }
+                currentCodeReview =
+                    codeReviews.maxByOrNull { it.mergeRequestId ?: -1 } ?: CodeReview()
+                codeList = padCodeList(splitCode(currentCodeReview.code ?: ""))
             } catch (e: SocketTimeoutException) {
                 updateErrorMessage("Timeout")
             } catch (e: ConnectException) {
@@ -240,6 +253,29 @@ class TaskScreenViewModel @AssistedInject constructor(
             } catch (e: Exception) {
                 updateErrorMessage("Error")
             }
+        }
+    }
+
+    private fun splitCode(input: String): List<AnnotatedString> {
+        val regex = Regex("(?<!['\"])\\n(?!['\"])")
+        return regex.split(input).map {
+            AnnotatedString(it)
+        }
+    }
+
+    private fun padCodeList(codeList: List<AnnotatedString>): List<Pair<AnnotatedString, Boolean>> {
+        val maxLength = codeList.maxBy { it.text.length }.text.length
+        return codeList.map { code ->
+            val paddingLength = maxLength - code.text.length + 2
+            val padding = " ".repeat(paddingLength)
+            Pair(
+                parseCodeAsAnnotatedString(
+                    parser = parser,
+                    theme = theme,
+                    lang = language,
+                    code = code.text + padding
+                ), false
+            )
         }
     }
 }

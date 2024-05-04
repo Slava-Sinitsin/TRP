@@ -7,9 +7,11 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.trp.data.mappers.tasks.Task
+import com.example.trp.data.mappers.PostRateBody
+import com.example.trp.data.mappers.Rating
+import com.example.trp.data.mappers.TeamAppointment
+import com.example.trp.data.mappers.tasks.CodeReview
 import com.example.trp.data.mappers.tasks.solution.CommentLine
-import com.example.trp.data.mappers.tasks.solution.Solution
 import com.example.trp.data.repository.UserAPIRepositoryImpl
 import com.wakaztahir.codeeditor.highlight.model.CodeLang
 import com.wakaztahir.codeeditor.highlight.prettify.PrettifyParser
@@ -27,76 +29,10 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
     @Assisted
     val taskId: Int
 ) : ViewModel() {
-    var task by mutableStateOf(Task())
+    var teamAppointment by mutableStateOf(TeamAppointment())
         private set
-    private var taskCode by mutableStateOf(
-        "int add (int a, int b) {\n  printf(\"\\n\");\r\n\treturn a + b\r\n}int add (int a, int b) {\n" +
-                "  printf(\"\\n\");\n" +
-                "\treturn a + b\n" +
-                "}int add (int a, int b) {\n" +
-                "int add (int a, int b)int add (int a, int b)int add (int a, int b)intint add (int a, int b)int add (int a, int b)int add (int a, int b)int" +
-                "  printf(\"\\n\");\n" +
-                "\treturn a + b\n" +
-                "}int add (int a, int b) {\nint add (int a, int b)int add (int a, int b)int add (int a, int b)intint add (int a, int b)int add (int a, int b)int add (int a, int b)int" +
-                "  printf(\"\\n\");\n" +
-                "\treturn a + b\n" +
-                "}int add (int a, int b) {\n" +
-                "  printf(\"\\n\");\n" +
-                "\treturn a + b\n" +
-                "}int add (int a, int b) {\nint add (int a, int b)int add (int a, int b)int add (int a, int b)intint add (int a, int b)int add (int a, int b)int add (int a, int b)int" +
-                "  printf(\"\\n\");\n" +
-                "\treturn a + b\n" +
-                "}int add (int a, int b) {\n" +
-                "  printf(\"\\n\");\n" +
-                "\treturn a + b\n" +
-                "}int add (int a, int b) {\n" +
-                "  printf(\"\\n\");\n" +
-                "\treturn a + b\n" +
-                "}int add (int a, int b) {\n" +
-                "  printf(\"\\n\");\n" +
-                "\treturn a + b\n" +
-                "}int add (int a, int b) {\n" +
-                "  printf(\"\\n\");\n" +
-                "\treturn a + b\n" +
-                "}int add (int a, int b) {\n" +
-                "  printf(\"\\n\");\n" +
-                "\treturn a + b\n" +
-                "}int add (int a, int b) {\n" +
-                "  printf(\"\\n\");\n" +
-                "\treturn a + b\n" +
-                "}int add (int a, int b) {\n" +
-                "  printf(\"\\n\");\n" +
-                "\treturn a + b\n" +
-                "}int add (int a, int b) {\n" +
-                "  printf(\"\\n\");\n" +
-                "\treturn a + b\n" +
-                "}int add (int a, int b) {\n" +
-                "  printf(\"\\n\");\n" +
-                "\treturn a + b\n" +
-                "}int add (int a, int b) {\n" +
-                "  printf(\"\\n\");\n" +
-                "\treturn a + b\n" +
-                "}int add (int a, int b) {\n" +
-                "  printf(\"\\n\");\n" +
-                "\treturn a + b\n" +
-                "}int add (int a, int b) {\n" +
-                "  printf(\"\\n\");\n" +
-                "\treturn a + b\n" +
-                "}int add (int a, int b) {\n" +
-                "  printf(\"\\n\");\n" +
-                "\treturn a + b\n" +
-                "}int add (int a, int b) {\n" +
-                "  printf(\"\\n\");\n" +
-                "\treturn a + b\n" +
-                "}int add (int a, int b) {\n" +
-                "  printf(\"\\n\");\n" +
-                "\treturn a + b\n" +
-                "}int add (int a, int b) {\n" +
-                "  printf(\"\\n\");\n" +
-                "\treturn a + b\n" +
-                "}"
-    )
-    private var solution by mutableStateOf(Solution())
+    private var codeReviews by mutableStateOf(emptyList<CodeReview>())
+    private var currentCodeReview by mutableStateOf(CodeReview())
     var codeList by mutableStateOf(emptyList<Pair<AnnotatedString, Boolean>>())
         private set
     var commentList by mutableStateOf(emptyList<CommentLine>())
@@ -112,11 +48,13 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
     var showSubmitDialog by mutableStateOf(false)
         private set
     var reviewMessage by mutableStateOf("")
-    var maxMark by mutableStateOf(0f)
-    var mark by mutableStateOf(0f)
+    var maxRate by mutableStateOf(0f)
+    var rateList by mutableStateOf(emptyList<Rating>())
     var errorMessage by mutableStateOf("")
         private set
     var finishButtonsEnabled by mutableStateOf(true)
+        private set
+    var responseSuccess by mutableStateOf(false)
         private set
 
     @AssistedFactory
@@ -141,11 +79,18 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
     init {
         viewModelScope.launch {
             try {
-                task = repository.getTask(taskId)
-                solution = repository.taskSolution.copy(code = taskCode)
-                codeList = padCodeList(splitCode(solution.code ?: ""))
-                maxMark = 10.toFloat() / 100f
-                mark = 8.toFloat() / 100f
+                teamAppointment =
+                    repository.teamAppointments.find { it.task?.id == taskId } ?: TeamAppointment()
+                codeReviews = teamAppointment.codeReviewIds?.mapNotNull {
+                    repository.getCodeReview(it)?.body()?.data
+                } ?: emptyList()
+                currentCodeReview =
+                    codeReviews.maxByOrNull { it.mergeRequestId ?: -1 } ?: CodeReview()
+                codeList = padCodeList(splitCode(currentCodeReview.code ?: ""))
+                maxRate = 10.toFloat() / 100f
+                rateList = teamAppointment.team?.students?.mapIndexed { _, student ->
+                    Rating(studentId = student.id, 8)
+                } ?: emptyList()
             } catch (e: SocketTimeoutException) {
                 updateErrorMessage("Timeout")
             } catch (e: ConnectException) {
@@ -266,9 +211,13 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
                 }
             }
         }
+        updateFinishButtonsEnabled()
+    }
+
+    private fun updateFinishButtonsEnabled() {
         if (commentList.isNotEmpty()) {
             commentList.forEach {
-                if (it.isMatch == false) {
+                if (it.isMatch == false || it.comment.isNullOrEmpty()) {
                     finishButtonsEnabled = false
                     return@forEach
                 }
@@ -320,6 +269,7 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
                 item
             }
         }
+        updateFinishButtonsEnabled()
     }
 
     fun onDeleteCommentLineClick(index: Int) {
@@ -334,7 +284,19 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
     }
 
     fun rejectConfirmButtonClick() { // TODO
-        showRejectDialog = false
+        viewModelScope.launch {
+            try {
+                currentCodeReview.mergeRequestId?.let { repository.closeCodeReview(it) }
+                showRejectDialog = false
+                responseSuccess = true
+            } catch (e: SocketTimeoutException) {
+                updateErrorMessage("Timeout")
+            } catch (e: ConnectException) {
+                updateErrorMessage("Check internet connection")
+            } catch (e: Exception) {
+                updateErrorMessage("Error")
+            }
+        }
     }
 
     fun rejectDismissButtonClick() {
@@ -347,7 +309,24 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
     }
 
     fun submitConfirmButtonClick() { // TODO
-        showSubmitDialog = false
+        viewModelScope.launch {
+            try {
+                currentCodeReview.mergeRequestId?.let { codeReviewId ->
+                    repository.addNoteToCodeReview(
+                        codeReviewId = codeReviewId,
+                        note = reviewMessage
+                    )
+                }
+                showSubmitDialog = false
+                responseSuccess = true
+            } catch (e: SocketTimeoutException) {
+                updateErrorMessage("Timeout")
+            } catch (e: ConnectException) {
+                updateErrorMessage("Check internet connection")
+            } catch (e: Exception) {
+                updateErrorMessage("Error")
+            }
+        }
     }
 
     fun submitDismissButtonClick() {
@@ -360,12 +339,38 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
     }
 
     fun acceptConfirmButtonClick() { // TODO
-        showAcceptDialog = false
+        viewModelScope.launch {
+            try {
+                currentCodeReview.mergeRequestId?.let { repository.approveCodeReview(it) }
+                teamAppointment.id?.let {
+                    repository.postRate(
+                        teamAppointmentId = it,
+                        postRateBody = PostRateBody(
+                            listOf()
+                        )
+                    )
+                }
+                teamAppointment.id?.let {
+                    repository.postRate(
+                        teamAppointmentId = it,
+                        PostRateBody(rateList)
+                    )
+                }
+                showAcceptDialog = false
+                responseSuccess = true
+            } catch (e: SocketTimeoutException) {
+                updateErrorMessage("Timeout")
+            } catch (e: ConnectException) {
+                updateErrorMessage("Check internet connection")
+            } catch (e: Exception) {
+                updateErrorMessage("Error")
+            }
+        }
     }
 
     fun acceptDismissButtonClick() {
         reviewMessage = ""
-        mark = 80.toFloat() / 100f
+        rateList = rateList.map { it.copy(grade = 8) }
         showAcceptDialog = false
     }
 
@@ -373,7 +378,12 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
         reviewMessage = newReviewMessage
     }
 
-    fun updateMark(newMark: Float) {
-        mark = newMark
+    fun updateMark(newRate: Float, index: Int) {
+        rateList = rateList.mapIndexed { currentIndex, mark ->
+            if (currentIndex == index) {
+                mark.copy(grade = (newRate * 100).toInt())
+            } else
+                mark
+        }
     }
 }

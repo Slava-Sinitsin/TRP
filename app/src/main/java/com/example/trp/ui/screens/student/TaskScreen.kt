@@ -36,6 +36,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabPosition
 import androidx.compose.material3.TabRow
@@ -70,6 +71,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.chihsuanwu.freescroll.freeScroll
+import com.chihsuanwu.freescroll.rememberFreeScrollState
 import com.example.trp.domain.di.ViewModelFactoryProvider
 import com.example.trp.ui.components.TabIndicator
 import com.example.trp.ui.components.TaskStatus
@@ -77,6 +80,7 @@ import com.example.trp.ui.components.clearFocusOnTap
 import com.example.trp.ui.components.keyboardAsState
 import com.example.trp.ui.components.myTabIndicatorOffset
 import com.example.trp.ui.components.tabs.DisabledInteractionSource
+import com.example.trp.ui.components.tabs.TaskTabs
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.student.TaskScreenViewModel
 import dagger.hilt.android.EntryPointAccessors
@@ -98,109 +102,112 @@ fun TaskScreen(
         )
     )
 
-    val pagerState = rememberPagerState(1)
-    LaunchedEffect(viewModel.selectedTabIndex) {
-        pagerState.animateScrollToPage(viewModel.selectedTabIndex)
-    }
-    LaunchedEffect(pagerState.currentPage, pagerState.isScrollInProgress) {
-        if (!pagerState.isScrollInProgress) {
-            viewModel.updateSelectedTabIndex(pagerState.currentPage)
+    if (viewModel.taskScreens.isNotEmpty()) {
+        val pagerState = rememberPagerState(1)
+        LaunchedEffect(viewModel.selectedTabIndex) {
+            pagerState.animateScrollToPage(viewModel.selectedTabIndex)
         }
-    }
-    val indicator = @Composable { tabPositions: List<TabPosition> ->
-        TabIndicator(Modifier.myTabIndicatorOffset(tabPositions[viewModel.selectedTabIndex]))
-    }
+        LaunchedEffect(pagerState.currentPage, pagerState.isScrollInProgress) {
+            if (!pagerState.isScrollInProgress) {
+                viewModel.updateSelectedTabIndex(pagerState.currentPage)
+            }
+        }
+        val indicator = @Composable { tabPositions: List<TabPosition> ->
+            TabIndicator(Modifier.myTabIndicatorOffset(tabPositions[viewModel.selectedTabIndex]))
+        }
 
-    BackHandler(enabled = true, onBack = {
-        if (viewModel.solutionTextFieldValue.text == viewModel.codeBck) {
-            navController.popBackStack()
-        } else {
-            viewModel.showSaveDialog()
-        }
-    })
+        BackHandler(enabled = true, onBack = {
+            if (viewModel.solutionTextFieldValue.text == viewModel.codeBck) {
+                navController.popBackStack()
+            } else {
+                viewModel.showSaveDialog()
+            }
+        })
 
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
-    Scaffold(
-        modifier = Modifier
-            .nestedScroll(scrollBehavior.nestedScrollConnection)
-            .clearFocusOnTap(),
-        containerColor = TRPTheme.colors.primaryBackground,
-        topBar = {
-            TaskScreenTopAppBar(
-                viewModel = viewModel,
-                navController = navController
-            )
-        }
-    ) { scaffoldPadding ->
-        Column(
+        val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+        Scaffold(
             modifier = Modifier
-                .padding(top = scaffoldPadding.calculateTopPadding())
-                .fillMaxSize()
-        ) {
-            TabRow(
+                .nestedScroll(scrollBehavior.nestedScrollConnection)
+                .clearFocusOnTap(),
+            containerColor = TRPTheme.colors.primaryBackground,
+            topBar = {
+                TaskScreenTopAppBar(
+                    viewModel = viewModel,
+                    navController = navController
+                )
+            }
+        ) { scaffoldPadding ->
+            Column(
                 modifier = Modifier
-                    .background(TRPTheme.colors.primaryBackground)
-                    .padding(5.dp)
-                    .clip(
-                        shape = RoundedCornerShape(20.dp)
-                    ),
-                selectedTabIndex = viewModel.selectedTabIndex,
-                containerColor = TRPTheme.colors.secondaryBackground,
-                indicator = indicator,
-                divider = {}
+                    .padding(top = scaffoldPadding.calculateTopPadding())
+                    .fillMaxSize()
             ) {
-                viewModel.taskScreens.forEachIndexed { index, item ->
-                    Tab(
-                        modifier = Modifier
-                            .clip(shape = RoundedCornerShape(20.dp))
-                            .padding(bottom = 3.dp)
-                            .zIndex(2f),
-                        selected = index == viewModel.selectedTabIndex,
-                        interactionSource = DisabledInteractionSource(),
-                        onClick = { viewModel.updateSelectedTabIndex(index) },
-                        text = {
-                            Text(
-                                text = item.title,
-                                color = TRPTheme.colors.secondaryText,
-                                fontWeight = FontWeight.Bold
-                            )
+                TabRow(
+                    modifier = Modifier
+                        .background(TRPTheme.colors.primaryBackground)
+                        .padding(5.dp)
+                        .clip(
+                            shape = RoundedCornerShape(20.dp)
+                        ),
+                    selectedTabIndex = viewModel.selectedTabIndex,
+                    containerColor = TRPTheme.colors.secondaryBackground,
+                    indicator = indicator,
+                    divider = {}
+                ) {
+                    viewModel.taskScreens.forEachIndexed { index, item ->
+                        Tab(
+                            modifier = Modifier
+                                .clip(shape = RoundedCornerShape(20.dp))
+                                .padding(bottom = 3.dp)
+                                .zIndex(2f),
+                            selected = index == viewModel.selectedTabIndex,
+                            interactionSource = DisabledInteractionSource(),
+                            onClick = { viewModel.updateSelectedTabIndex(index) },
+                            text = {
+                                Text(
+                                    text = item.title,
+                                    color = TRPTheme.colors.secondaryText,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        )
+                    }
+                }
+                HorizontalPager(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .background(TRPTheme.colors.primaryBackground),
+                    state = pagerState,
+                    pageCount = viewModel.taskScreens.size,
+                    userScrollEnabled = viewModel.userScrollEnabled
+                ) { index ->
+                    when (viewModel.taskScreens[index]) {
+                        TaskTabs.Description -> {
+                            DescriptionScreen(viewModel = viewModel)
                         }
-                    )
-                }
-            }
-            HorizontalPager(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .background(TRPTheme.colors.primaryBackground),
-                state = pagerState,
-                pageCount = viewModel.taskScreens.size,
-                userScrollEnabled = viewModel.userScrollEnabled
-            ) { index ->
-                when (index) {
-                    0 -> {
-                        DescriptionScreen(viewModel = viewModel)
-                    }
 
-                    1 -> {
-                        TaskScreen(viewModel = viewModel)
-                    }
+                        TaskTabs.Solution -> {
+                            SolutionScreen(viewModel = viewModel)
+                        }
 
-                    2 -> {
-                        ReviewScreen(viewModel = viewModel)
+                        TaskTabs.Review -> {
+                            ReviewScreen(viewModel = viewModel)
+                        }
                     }
                 }
             }
-        }
-        if (viewModel.isSaveDialogShow) {
-            SaveDialog(viewModel = viewModel, navController = navController)
-        }
-        if (viewModel.isReviewDialogShow) {
-            ReviewDialog(viewModel = viewModel)
-        }
-        if (viewModel.errorMessage.isNotEmpty()) {
-            Toast.makeText(LocalContext.current, viewModel.errorMessage, Toast.LENGTH_SHORT).show()
-            viewModel.updateErrorMessage("")
+            if (viewModel.isSaveDialogShow) {
+                SaveDialog(viewModel = viewModel, navController = navController)
+            }
+            if (viewModel.isReviewDialogShow) {
+                ReviewDialog(viewModel = viewModel)
+            }
+            if (viewModel.errorMessage.isNotEmpty()) {
+                Toast.makeText(LocalContext.current, viewModel.errorMessage, Toast.LENGTH_SHORT)
+                    .show()
+                viewModel.updateErrorMessage("")
+            }
         }
     }
 }
@@ -239,7 +246,7 @@ fun TaskScreenTopAppBar(
             }
         },
         actions = {
-            if (viewModel.selectedTabIndex == 1) {
+            if (viewModel.taskScreens[viewModel.selectedTabIndex] == TaskTabs.Solution) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (viewModel.teamAppointment.status == TaskStatus.Tested.status && viewModel.reviewButtonEnabled) {
                         IconButton(onClick = { viewModel.showReviewDialog() }) {
@@ -402,7 +409,7 @@ fun TestsField(viewModel: TaskScreenViewModel) {
 }
 
 @Composable
-fun TaskScreen(viewModel: TaskScreenViewModel) {
+fun SolutionScreen(viewModel: TaskScreenViewModel) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         item { TaskText(viewModel = viewModel) }
         item {
@@ -656,7 +663,6 @@ fun ReviewDialog(viewModel: TaskScreenViewModel) {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReviewScreen( // TODO
     viewModel: TaskScreenViewModel
@@ -666,23 +672,70 @@ fun ReviewScreen( // TODO
             .padding(horizontal = 5.dp)
             .fillMaxSize()
     ) {
-        TextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(100.dp)
-                .horizontalScroll(rememberScrollState()),
-            value = "",
-            onValueChange = { },
-            shape = RoundedCornerShape(8.dp),
-            colors = TextFieldDefaults.textFieldColors(
-                containerColor = TRPTheme.colors.secondaryBackground,
-                textColor = TRPTheme.colors.primaryText,
-                cursorColor = TRPTheme.colors.primaryText,
-                focusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            ),
-            readOnly = true
-        )
+        ReviewField(viewModel = viewModel)
+    }
+}
+
+@Composable
+fun ReviewField(
+    viewModel: TaskScreenViewModel
+) {
+    val freeScrollState = rememberFreeScrollState()
+    val primaryBackground = TRPTheme.colors.primaryBackground.copy(alpha = 0.6f)
+    val secondaryBackground = TRPTheme.colors.secondaryBackground.copy(alpha = 0.6f)
+    val selectedColor = TRPTheme.colors.okColor.copy(alpha = 0.3f)
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = Color.Transparent,
+        shape = RoundedCornerShape(8.dp),
+        shadowElevation = 6.dp
+    ) {
+        Row {
+            Column(
+                modifier = Modifier
+                    .height(400.dp)
+                    .weight(0.25f)
+                    .background(TRPTheme.colors.cardButtonColor)
+                    .verticalScroll(freeScrollState.verticalScrollState)
+            ) {
+                viewModel.codeList.forEachIndexed { index, _ ->
+                    Text(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(end = 5.dp),
+                        text = "${index + 1}",
+                        color = TRPTheme.colors.primaryText,
+                        textAlign = TextAlign.End,
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 15.sp
+                    )
+                }
+            }
+            Column(
+                modifier = Modifier
+                    .height(400.dp)
+                    .weight(2f)
+                    .background(TRPTheme.colors.secondaryBackground)
+                    .freeScroll(freeScrollState)
+            ) {
+                viewModel.codeList.forEachIndexed { index, item ->
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                if (viewModel.codeList[index].second) {
+                                    selectedColor
+                                } else if (index % 2 == 0) {
+                                    primaryBackground
+                                } else {
+                                    secondaryBackground
+                                }
+                            )
+                    ) {
+                        Text(text = item.first, fontFamily = FontFamily.Monospace, fontSize = 15.sp)
+                    }
+                }
+            }
+        }
     }
 }

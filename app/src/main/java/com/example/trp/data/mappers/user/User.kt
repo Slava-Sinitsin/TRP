@@ -21,5 +21,6 @@ data class User(
     @SerializedName("iat") val iat: Long? = null,
     @SerializedName("iss") val iss: String? = null,
     @SerializedName("exp") val exp: Long? = null,
-    @SerializedName("isActive") val isActive: Boolean? = null
+    @SerializedName("isActive") val isActive: Boolean? = null,
+    @SerializedName("isLogin") val isLogged: Boolean? = null
 )

@@ -4,7 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.trp.domain.navigation.common.Graph
+import com.example.trp.domain.navigation.common.RootNavGraph
 import com.example.trp.ui.screens.admin.AddNewDisciplineScreen
 import com.example.trp.ui.screens.admin.AdminBottomBarScreen
 import com.example.trp.ui.screens.admin.AdminDisciplinesScreen
@@ -49,10 +51,13 @@ fun AdminWelcomeNavGraph(navController: NavHostController) {
             CreateTeacherScreen(navController = navController)
         }
         composable(route = AdminBottomBarScreen.Me.route) {
-            MeScreen()
+            MeScreen(navController = navController)
         }
         composable(route = "curriculum_${Graph.ADMIN_DISCIPLINES}/${ADMIN_ADD_DISCIPLINE}") {
             AddNewDisciplineScreen(navController = navController)
+        }
+        composable(route = Graph.LOGIN) {
+            RootNavGraph(navController = rememberNavController(), startDestination = Graph.LOGIN)
         }
         curriculumNavGraph(navController = navController)
         adminGroupsNavGraph(navController = navController)
