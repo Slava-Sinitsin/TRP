@@ -1,25 +1,20 @@
 package com.example.trp.ui.components.tabs
 
-sealed class TaskTabs(
+sealed class ReviewTabs(
     val title: String,
     val route: String,
 ) {
-    object Description : TaskTabs(
+    object Description : ReviewTabs(
         title = "Description",
         route = "description",
     )
 
-    object Solution : TaskTabs(
-        title = "Solution",
-        route = "solution"
-    )
-
-    object Review : TaskTabs(
+    object Review : ReviewTabs(
         title = "Review",
-        route = "review"
+        route = "review",
     )
 
-    object History : TaskTabs(
+    object History : ReviewTabs(
         title = "History",
         route = "history"
     )

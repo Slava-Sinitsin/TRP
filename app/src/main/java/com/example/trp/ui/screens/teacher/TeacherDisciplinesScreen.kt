@@ -95,7 +95,6 @@ fun Discipline(
         onClick = {
             viewModel.getGroup(index = index).let { group ->
                 group.id?.let { id ->
-                    viewModel.beforeDisciplineClick(index)
                     viewModel.setCurrentDiscipline(id) // TODO
                     onDisciplineClick(id)
                 }

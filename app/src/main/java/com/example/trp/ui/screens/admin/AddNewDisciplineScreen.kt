@@ -3,12 +3,12 @@ package com.example.trp.ui.screens.admin
 import android.app.Activity
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowRight
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -32,6 +33,7 @@ import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
@@ -63,6 +65,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.example.trp.data.mappers.teacherappointments.Group
 import com.example.trp.domain.di.ViewModelFactoryProvider
 import com.example.trp.ui.components.HorizontalNumberPicker
 import com.example.trp.ui.components.TabIndicator
@@ -141,17 +144,17 @@ fun MainScreen(
     viewModel: AddNewDisciplineScreenViewModel,
     paddingValues: PaddingValues
 ) {
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .background(TRPTheme.colors.primaryBackground)
     ) {
-        NameField(viewModel = viewModel, paddingValues = paddingValues)
-        YearPicker(viewModel = viewModel)
-        HalfYearToggle(viewModel = viewModel)
-        DeprecatedToggle(viewModel = viewModel)
-        TeacherSelectField(viewModel = viewModel)
-        GroupsSelectField(viewModel = viewModel)
+        item { NameField(viewModel = viewModel, paddingValues = paddingValues) }
+        item { YearPicker(viewModel = viewModel) }
+        item { HalfYearToggle(viewModel = viewModel) }
+        item { DeprecatedToggle(viewModel = viewModel) }
+        item { TeacherSelectField(viewModel = viewModel) }
+        item { GroupsSelectField(viewModel = viewModel) }
     }
 }
 
@@ -506,6 +509,63 @@ fun GroupsSelectField(
             Icon(
                 imageVector = Icons.Filled.ArrowRight,
                 contentDescription = "ArrowRight"
+            )
+        }
+    }
+    viewModel.groups.forEachIndexed { index, group ->
+        Group(
+            group = group,
+            onDeleteGroupClick = { viewModel.onDeleteGroupClick(index) }
+        )
+    }
+}
+
+@Composable
+fun Group(
+    group: Group,
+    onDeleteGroupClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 5.dp, horizontal = 5.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Button(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            onClick = { },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = TRPTheme.colors.cardButtonColor
+            ),
+            shape = RoundedCornerShape(8.dp),
+            contentPadding = PaddingValues(),
+        ) {
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 5.dp),
+                text = group.name ?: "",
+                color = TRPTheme.colors.primaryText,
+                fontSize = 15.sp
+            )
+        }
+        OutlinedButton(
+            modifier = Modifier.padding(start = 5.dp),
+            onClick = { onDeleteGroupClick() },
+            colors = ButtonDefaults.outlinedButtonColors(
+                containerColor = TRPTheme.colors.secondaryBackground,
+                disabledContainerColor = TRPTheme.colors.secondaryBackground
+            ),
+            contentPadding = PaddingValues(),
+            shape = RoundedCornerShape(8.dp),
+            border = BorderStroke(0.dp, Color.Transparent)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.DeleteOutline,
+                contentDescription = "DeleteStudentIconButton",
+                tint = TRPTheme.colors.errorColor
             )
         }
     }

@@ -583,7 +583,6 @@ fun TestsScreen(
             contentColor = TRPTheme.colors.myYellow
         )
     }
-
 }
 
 @Composable
@@ -711,7 +710,6 @@ fun Test(
                             contentDescription = "This test is unlock"
                         )
                     }
-
                 }
                 IconButton(
                     modifier = Modifier.rotate(rotationState),

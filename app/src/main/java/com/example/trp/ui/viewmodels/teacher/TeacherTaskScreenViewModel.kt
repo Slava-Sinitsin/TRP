@@ -12,7 +12,10 @@ import com.example.trp.data.mappers.Rating
 import com.example.trp.data.mappers.TeamAppointment
 import com.example.trp.data.mappers.tasks.CodeReview
 import com.example.trp.data.mappers.tasks.solution.CommentLine
+import com.example.trp.data.mappers.user.User
 import com.example.trp.data.repository.UserAPIRepositoryImpl
+import com.example.trp.ui.components.TaskStatus
+import com.example.trp.ui.components.tabs.ReviewTabs
 import com.wakaztahir.codeeditor.highlight.model.CodeLang
 import com.wakaztahir.codeeditor.highlight.prettify.PrettifyParser
 import com.wakaztahir.codeeditor.highlight.theme.CodeThemeType
@@ -27,12 +30,16 @@ import java.net.SocketTimeoutException
 class TeacherTaskScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
     @Assisted
-    val taskId: Int
+    val teamAppointmentId: Int
 ) : ViewModel() {
+    var user by mutableStateOf(User())
+        private set
     var teamAppointment by mutableStateOf(TeamAppointment())
         private set
-    private var codeReviews by mutableStateOf(emptyList<CodeReview>())
-    private var currentCodeReview by mutableStateOf(CodeReview())
+    var codeReviews by mutableStateOf(emptyList<CodeReview>())
+        private set
+    var currentCodeReview by mutableStateOf(CodeReview())
+        private set
     var codeList by mutableStateOf(emptyList<Pair<AnnotatedString, Boolean>>())
         private set
     var commentList by mutableStateOf(emptyList<CommentLine>())
@@ -56,6 +63,10 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
         private set
     var responseSuccess by mutableStateOf(false)
         private set
+    var selectedTabIndex by mutableStateOf(1)
+    var reviewScreens by mutableStateOf(emptyList<ReviewTabs>())
+    var isRefreshing by mutableStateOf(false)
+        private set
 
     @AssistedFactory
     interface Factory {
@@ -66,38 +77,71 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
     companion object {
         fun provideTeacherTaskScreenViewModel(
             factory: Factory,
-            taskId: Int
+            teamAppointmentId: Int
         ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return factory.create(taskId) as T
+                    return factory.create(teamAppointmentId) as T
                 }
             }
         }
     }
 
     init {
-        viewModelScope.launch {
-            try {
-                teamAppointment =
-                    repository.teamAppointments.find { it.task?.id == taskId } ?: TeamAppointment()
-                codeReviews = teamAppointment.codeReviewIds?.mapNotNull {
-                    repository.getCodeReview(it)?.body()?.data
-                } ?: emptyList()
-                currentCodeReview =
-                    codeReviews.maxByOrNull { it.mergeRequestId ?: -1 } ?: CodeReview()
-                codeList = padCodeList(splitCode(currentCodeReview.code ?: ""))
-                maxRate = 10.toFloat() / 100f
-                rateList = teamAppointment.team?.students?.mapIndexed { _, student ->
-                    Rating(studentId = student.id, 8)
-                } ?: emptyList()
-            } catch (e: SocketTimeoutException) {
-                updateErrorMessage("Timeout")
-            } catch (e: ConnectException) {
-                updateErrorMessage("Check internet connection")
-            } catch (e: Exception) {
-                updateErrorMessage("Error")
+        viewModelScope.launch { init() }
+    }
+
+    private suspend fun init() {
+        try {
+            user = repository.user
+            teamAppointment =
+                repository.getTeamAppointment(teamAppointmentId)?.let { appointment ->
+                    appointment.copy(task = appointment.task?.id?.let { taskId ->
+                        repository.getTask(
+                            taskId = taskId,
+                            withSolution = false,
+                            withAllTests = true
+                        )
+                    })
+                } ?: TeamAppointment()
+            codeReviews = teamAppointment.codeReviewIds?.map { codeReviewId ->
+                repository.getCodeReview(codeReviewId)
+            }?.sortedByDescending { it.id } ?: emptyList()
+            reviewScreens = if (teamAppointment.status == TaskStatus.SentToCodeReview.status
+                || teamAppointment.status == TaskStatus.CodeReview.status
+                || teamAppointment.status == TaskStatus.WaitingForGrade.status
+                || teamAppointment.status == TaskStatus.Rated.status
+            ) {
+                currentCodeReview = codeReviews.maxByOrNull { it.id ?: -1 }?.let { codeReview ->
+                    codeReview.copy(notes = codeReview.notes?.sortedBy { it.id })
+                } ?: CodeReview()
+                codeReviews = codeReviews.filter { it.id != currentCodeReview.id }
+                if (codeReviews.isEmpty()) {
+                    listOf(ReviewTabs.Description, ReviewTabs.Review)
+                } else {
+                    listOf(ReviewTabs.Description, ReviewTabs.Review, ReviewTabs.History)
+                }
+            } else {
+                listOf(ReviewTabs.Description, ReviewTabs.History)
             }
+            codeList = padCodeList(splitCode(currentCodeReview.code ?: ""))
+            maxRate = 10.toFloat() / 100f
+            rateList = teamAppointment.team?.students?.mapIndexed { _, student ->
+                Rating(studentId = student.id, 8)
+            } ?: emptyList()
+        } catch (e: SocketTimeoutException) {
+            updateErrorMessage("Timeout")
+        } catch (e: ConnectException) {
+            updateErrorMessage("Check internet connection")
+        } catch (e: Exception) {
+            updateErrorMessage("Error")
+        }
+    }
+
+    fun onRefresh() {
+        viewModelScope.launch {
+            init()
+            isRefreshing = false
         }
     }
 
@@ -116,7 +160,7 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
         val maxLength = codeList.maxBy { it.text.length }.text.length
         return codeList.map { code ->
             val paddingLength = maxLength - code.text.length + 2
-            val padding = " ".repeat(paddingLength)
+            val padding = " ".repeat(paddingLength + 100)
             Pair(
                 parseCodeAsAnnotatedString(
                     parser = parser,
@@ -284,9 +328,16 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
     }
 
     fun rejectConfirmButtonClick() { // TODO
+        responseSuccess = false
         viewModelScope.launch {
             try {
-                currentCodeReview.mergeRequestId?.let { repository.closeCodeReview(it) }
+                currentCodeReview.id?.let { codeReviewId ->
+                    repository.addNoteToCodeReview(
+                        codeReviewId = codeReviewId,
+                        note = reviewMessage
+                    )
+                    repository.closeCodeReview(codeReviewId = codeReviewId)
+                }
                 showRejectDialog = false
                 responseSuccess = true
             } catch (e: SocketTimeoutException) {
@@ -309,9 +360,10 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
     }
 
     fun submitConfirmButtonClick() { // TODO
+        responseSuccess = false
         viewModelScope.launch {
             try {
-                currentCodeReview.mergeRequestId?.let { codeReviewId ->
+                currentCodeReview.id?.let { codeReviewId ->
                     repository.addNoteToCodeReview(
                         codeReviewId = codeReviewId,
                         note = reviewMessage
@@ -339,9 +391,12 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
     }
 
     fun acceptConfirmButtonClick() { // TODO
+        responseSuccess = false
         viewModelScope.launch {
             try {
-                currentCodeReview.mergeRequestId?.let { repository.approveCodeReview(it) }
+                if (teamAppointment.status != TaskStatus.WaitingForGrade.status) {
+                    currentCodeReview.id?.let { repository.approveCodeReview(it) }
+                }
                 teamAppointment.id?.let {
                     repository.postRate(
                         teamAppointmentId = it,
@@ -385,5 +440,9 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
             } else
                 mark
         }
+    }
+
+    fun updateSelectedTabIndex(index: Int) {
+        selectedTabIndex = index
     }
 }

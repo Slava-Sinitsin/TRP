@@ -51,8 +51,9 @@ import dagger.hilt.android.EntryPointAccessors
 @Composable
 fun TeamInfoScreen(
     teamId: Int,
+    groupId: Int,
     onAddTaskToTeamClick: (teamId: Int, labId: Int) -> Unit,
-    onTaskClick: (taskId: Int) -> Unit,
+    onTaskClick: (teamAppointmentId: Int) -> Unit,
     navController: NavHostController
 ) {
     val factory = EntryPointAccessors.fromActivity(
@@ -62,7 +63,8 @@ fun TeamInfoScreen(
     val viewModel: TeamInfoScreenViewModel = viewModel(
         factory = TeamInfoScreenViewModel.provideTeamInfoScreenViewModel(
             factory,
-            teamId
+            teamId,
+            groupId
         )
     )
     Scaffold(
@@ -122,7 +124,7 @@ fun Tasks(
     viewModel: TeamInfoScreenViewModel,
     paddingValues: PaddingValues,
     onAddTaskToTeamClick: (teamId: Int, labId: Int) -> Unit,
-    onTaskClick: (taskId: Int) -> Unit
+    onTaskClick: (teamAppointmentId: Int) -> Unit
 ) {
     val pullRefreshState = rememberPullRefreshState(
         refreshing = viewModel.isRefreshing,
@@ -136,7 +138,7 @@ fun Tasks(
             .pullRefresh(state = pullRefreshState)
     ) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
-            items(count = viewModel.labs.size) { index ->
+            items(viewModel.labs.size) { index ->
                 Task(
                     viewModel = viewModel,
                     index = index,
@@ -160,15 +162,16 @@ fun Tasks(
 fun Task(
     viewModel: TeamInfoScreenViewModel,
     index: Int,
-    onTaskClick: (taskId: Int) -> Unit,
+    onTaskClick: (teamAppointmentId: Int) -> Unit,
     onAddTaskToTeamClick: (teamId: Int, labId: Int) -> Unit
 ) {
     Button(
         modifier = Modifier.padding(8.dp),
         onClick = {
-            if (index < viewModel.teamAppointments.size) {
-                viewModel.teamAppointments[index].task?.id?.let { onTaskClick(it) }
-            } else {
+            viewModel.teamAppointments.find { it.task?.labWorkId == viewModel.labs[index].id }
+                ?.let { teamAppointment ->
+                    teamAppointment.id?.let { onTaskClick(it) }
+                } ?: run {
                 viewModel.labs[index].id?.let { onAddTaskToTeamClick(viewModel.teamId, it) }
             }
         },
@@ -182,41 +185,45 @@ fun Task(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-            ) {
-                Text(modifier = Modifier.alpha(0.6f), text = "Lab ${index + 1}")
-                if (index < viewModel.teamAppointments.size) {
-                    Text(
-                        text = viewModel.teamAppointments[index].task?.title.toString(),
-                        color = TRPTheme.colors.primaryText,
-                        fontSize = 25.sp
-                    )
-                } else {
-                    Text(
-                        text = "Not appoint",
-                        color = TRPTheme.colors.primaryText,
-                        fontSize = 25.sp
-                    )
-                }
-            }
-            if (index < viewModel.teamAppointments.size) {
-                val status = viewModel.getStatus(index)
-                if (status == TaskStatus.Rated) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+            viewModel.teamAppointments.find { it.task?.labWorkId == viewModel.labs[index].id }
+                ?.let { teamAppointment ->
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                    ) {
+                        Text(
+                            modifier = Modifier.alpha(0.6f),
+                            text = "${viewModel.labs[index].title}"
+                        )
+                        Text(
+                            text = teamAppointment.task?.title.toString(),
+                            color = TRPTheme.colors.primaryText,
+                            fontSize = 25.sp
+                        )
+                    }
+                    val status = teamAppointment.id?.let { viewModel.getStatus(it) }
+                        ?: TaskStatus.New
+                    if (status == TaskStatus.Rated) {
                         Icon(
                             imageVector = Icons.Filled.Done,
                             contentDescription = "Task is graded",
                             tint = TRPTheme.colors.okColor
                         )
-                        Text(text = "${viewModel.teamAppointments[index].grade}")
+                    } else {
+                        CircularProgressIndicator(
+                            progress = status.progress,
+                            color = status.color
+                        )
                     }
-                } else {
-                    CircularProgressIndicator(
-                        progress = status.progress,
-                        color = status.color
+                } ?: run {
+                Column {
+                    Text(modifier = Modifier.alpha(0.6f), text = "${viewModel.labs[index].title}")
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = "Not appoint",
+                        color = TRPTheme.colors.primaryText,
+                        fontSize = 25.sp
                     )
                 }
             }

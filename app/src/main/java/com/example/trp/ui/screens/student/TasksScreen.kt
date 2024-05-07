@@ -103,7 +103,7 @@ fun Task(
         onClick = {
             if (index < viewModel.teamAppointments.size) {
                 viewModel.teamAppointments[index].let { teamAppointment ->
-                    teamAppointment.task?.id?.let { id -> onTaskClick(id) }
+                    teamAppointment.id?.let { id -> onTaskClick(id) }
                 }
             }
         },
@@ -124,7 +124,7 @@ fun Task(
                     .fillMaxWidth()
                     .weight(1f)
             ) {
-                Text(modifier = Modifier.alpha(0.6f), text = "Lab ${index + 1}")
+                Text(modifier = Modifier.alpha(0.6f), text = "${viewModel.labs[index].title}")
                 if (index < viewModel.teamAppointments.size) {
                     Text(
                         text = viewModel.teamAppointments[index].task?.title.toString(),
@@ -142,14 +142,11 @@ fun Task(
             if (index < viewModel.teamAppointments.size) {
                 val status = viewModel.getStatus(index)
                 if (status == TaskStatus.Rated) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Filled.Done,
-                            contentDescription = "Task is graded",
-                            tint = TRPTheme.colors.okColor
-                        )
-                        Text(text = "${viewModel.teamAppointments[index].grade}")
-                    }
+                    Icon(
+                        imageVector = Icons.Filled.Done,
+                        contentDescription = "Task is graded",
+                        tint = TRPTheme.colors.okColor
+                    )
                 } else {
                     CircularProgressIndicator(
                         progress = status.progress,

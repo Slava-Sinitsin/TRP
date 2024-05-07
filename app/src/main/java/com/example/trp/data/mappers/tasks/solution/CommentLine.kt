@@ -1,6 +1,7 @@
 package com.example.trp.data.mappers.tasks.solution
 
 import com.google.gson.annotations.SerializedName
+import kotlin.String
 
 data class CommentLine(
     @SerializedName("lines") val lines: String? = null,

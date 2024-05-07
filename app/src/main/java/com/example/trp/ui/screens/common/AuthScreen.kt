@@ -51,25 +51,25 @@ import com.example.trp.ui.viewmodels.common.AuthScreenViewModel
 @Composable
 fun LoginScreen(onLogin: (destination: String) -> Unit) {
     val viewModel: AuthScreenViewModel = hiltViewModel()
+
     LaunchedEffect(viewModel.destination) {
         if (viewModel.destination != "") {
             onLogin(viewModel.destination)
         }
     }
-    if (!viewModel.isLoading && !viewModel.isLogged) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(TRPTheme.colors.primaryBackground),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Message(viewModel = viewModel)
-            MailField(viewModel = viewModel)
-            PassField(viewModel = viewModel)
-            ConfirmButton(viewModel = viewModel)
-            Spacer(modifier = Modifier.size(70.dp))
-        }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(TRPTheme.colors.primaryBackground),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Message(viewModel = viewModel)
+        MailField(viewModel = viewModel)
+        PassField(viewModel = viewModel)
+        ConfirmButton(viewModel = viewModel)
+        Spacer(modifier = Modifier.size(70.dp))
     }
 }
 

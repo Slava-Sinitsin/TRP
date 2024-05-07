@@ -1,10 +1,10 @@
-package com.example.trp.data.mappers.tasks
+package com.example.trp.data.mappers
 
 import com.google.gson.annotations.SerializedName
 
-data class PostCodeReviewResponse(
+data class TeamAppointmentResponse(
     @SerializedName("status") val status: Int? = null,
     @SerializedName("message") val message: String? = null,
     @SerializedName("error") val error: String? = null,
-    @SerializedName("data") val data: CodeReviewId? = null
+    @SerializedName("data") val data: TeamAppointment? = null
 )

@@ -28,24 +28,22 @@ class AuthScreenViewModel @Inject constructor(val repository: UserAPIRepositoryI
         private set
     var passwordVisibility by mutableStateOf(false)
         private set
-    var isLogged by mutableStateOf(false)
-        private set
     var destination by mutableStateOf("")
-        private set
-    var isLoading by mutableStateOf(false)
         private set
 
     init {
         viewModelScope.launch {
-            user = repository.getActiveUser()
-            isLogged = user.isLogged ?: false
-            if (isLogged) {
-                loggedChange()
-            } else {
-                logValue = user.login ?: "android_student"
-                passValue = user.password ?: "rebustubus"
+            try {
+                user = repository.getActiveUser()
+                logValue = user.login ?: ""
+                passValue = user.password ?: ""
+            } catch (e: SocketTimeoutException) {
+                updateErrorMessage("Timeout")
+            } catch (e: ConnectException) {
+                updateErrorMessage("Check internet connection")
+            } catch (e: Exception) {
+                updateErrorMessage("Error")
             }
-            isLoading = false
         }
     }
 
@@ -67,6 +65,7 @@ class AuthScreenViewModel @Inject constructor(val repository: UserAPIRepositoryI
         when (user.role) {
             "ROLE_STUDENT" -> destination = Graph.STUDENT_WELCOME
             "ROLE_LECTURE_TEACHER" -> destination = Graph.TEACHER_WELCOME
+            "ROLE_LAB_WORK_TEACHER" -> destination = Graph.TEACHER_WELCOME
             "ROLE_ADMIN" -> destination = Graph.ADMIN_WELCOME
         }
     }
@@ -83,7 +82,7 @@ class AuthScreenViewModel @Inject constructor(val repository: UserAPIRepositoryI
                 user = repository.login(logValue, passValue)
                 user.let { user ->
                     if (user.message == "OK") {
-                        repository.getDisciplines()
+                        repository.getDisciplines(update = true)
                         loggedChange()
                     } else {
                         user.message?.let { updateErrorMessage(it) }

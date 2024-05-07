@@ -1,8 +1,6 @@
 package com.example.trp.domain.navigation.common
 
-import android.util.Log
 import androidx.compose.runtime.Composable
-import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -19,10 +17,6 @@ fun RootNavGraph(startDestination: String = Graph.SPLASH, navController: NavHost
         route = Graph.ROOT,
         startDestination = startDestination
     ) {
-        navController.currentDestination?.hierarchy?.forEach {
-            Log.e("AuthNavGraph it.route", it.route.toString())
-        }
-        Log.e("AuthNavGraph it.route", "\n")
         composable(route = Graph.SPLASH) {
             SplashScreen(navigate = { destination ->
                 navController.popBackStack()

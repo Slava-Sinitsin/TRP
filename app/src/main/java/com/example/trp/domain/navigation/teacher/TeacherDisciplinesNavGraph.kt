@@ -10,6 +10,7 @@ import com.example.trp.domain.navigation.common.Graph
 import com.example.trp.ui.screens.common.CreateNewTestScreen
 import com.example.trp.ui.screens.common.CreateTaskScreen
 import com.example.trp.ui.screens.common.TaskInfoTestsScreen
+import com.example.trp.ui.screens.student.OldCodeReviewScreen
 import com.example.trp.ui.screens.teacher.AddTaskToTeamScreen
 import com.example.trp.ui.screens.teacher.CreateLabScreen
 import com.example.trp.ui.screens.teacher.CreateTeamScreen
@@ -25,6 +26,8 @@ private const val STUDENT_ID = "student_id"
 private const val TEAM_ID = "team_id"
 private const val LAB_ID = "lab_id"
 private const val TEACHER_TASK_ID = "teacher_task_id"
+private const val TEAM_APPOINTMENT_ID = "team_appointment_id"
+private const val CODE_REVIEW_ID = "code_review_id"
 
 fun NavGraphBuilder.teacherGroupsNavGraph(navController: NavHostController) {
     navigation(
@@ -58,7 +61,7 @@ fun NavGraphBuilder.teacherGroupsNavGraph(navController: NavHostController) {
                 TeamsScreen(
                     groupId = id,
                     onTeamClick = { teamId ->
-                        navController.navigate("${TeacherGroupsTasksScreen.TeamInfo.route}/$teamId")
+                        navController.navigate("${TeacherGroupsTasksScreen.TeamInfo.route}/$teamId/$id")
                     },
                     onCreateTeamClick = { groupId ->
                         navController.navigate("${TeacherGroupsTasksScreen.CreateTeam.route}/$groupId")
@@ -68,21 +71,27 @@ fun NavGraphBuilder.teacherGroupsNavGraph(navController: NavHostController) {
             }
         }
         composable(
-            route = "${TeacherGroupsTasksScreen.TeamInfo.route}/{$TEAM_ID}",
-            arguments = listOf(navArgument(TEAM_ID) { type = NavType.IntType })
+            route = "${TeacherGroupsTasksScreen.TeamInfo.route}/{$TEAM_ID}/{$GROUP_ID}",
+            arguments = listOf(
+                navArgument(TEAM_ID) { type = NavType.IntType },
+                navArgument(GROUP_ID) { type = NavType.IntType })
         ) {
             val teamId = it.arguments?.getInt(TEAM_ID)
-            teamId?.let { id ->
-                TeamInfoScreen(
-                    teamId = id,
-                    onAddTaskToTeamClick = { teamId, labId ->
-                        navController.navigate("${TeacherGroupsTasksScreen.AddTaskToTeam.route}/$teamId/$labId")
-                    },
-                    onTaskClick = { taskId ->
-                        navController.navigate("${TeacherGroupsTasksScreen.StudentTaskInfo.route}/$taskId")
-                    },
-                    navController = navController
-                )
+            val groupId = it.arguments?.getInt(GROUP_ID)
+            teamId?.let { nonNullTeamId ->
+                groupId?.let { nonNullGroupId ->
+                    TeamInfoScreen(
+                        teamId = nonNullTeamId,
+                        groupId = nonNullGroupId,
+                        onAddTaskToTeamClick = { teamId, labId ->
+                            navController.navigate("${TeacherGroupsTasksScreen.AddTaskToTeam.route}/$teamId/$labId")
+                        },
+                        onTaskClick = { taskId ->
+                            navController.navigate("${TeacherGroupsTasksScreen.StudentTaskInfo.route}/$taskId")
+                        },
+                        navController = navController
+                    )
+                }
             }
         }
         composable(
@@ -98,15 +107,25 @@ fun NavGraphBuilder.teacherGroupsNavGraph(navController: NavHostController) {
             }
         }
         composable(
-            route = "${TeacherGroupsTasksScreen.StudentTaskInfo.route}/{$TEACHER_TASK_ID}",
-            arguments = listOf(navArgument(TEACHER_TASK_ID) { type = NavType.IntType })
+            route = "${TeacherGroupsTasksScreen.StudentTaskInfo.route}/{$TEAM_APPOINTMENT_ID}",
+            arguments = listOf(navArgument(TEAM_APPOINTMENT_ID) { type = NavType.IntType })
         ) {
-            val taskId = it.arguments?.getInt(TEACHER_TASK_ID)
+            val taskId = it.arguments?.getInt(TEAM_APPOINTMENT_ID)
             taskId?.let { id ->
                 TeacherTaskScreen(
-                    taskId = id,
+                    teamAppointmentId = id,
+                    onOldCodeReviewClick = { codeReviewId -> navController.navigate("${TeacherGroupsTasksScreen.CodeReview.route}/$codeReviewId") },
                     navController = navController
                 )
+            }
+        }
+        composable(
+            route = "${TeacherGroupsTasksScreen.CodeReview.route}/{$CODE_REVIEW_ID}",
+            arguments = listOf(navArgument(CODE_REVIEW_ID) { type = NavType.IntType })
+        ) {
+            it.arguments?.run {
+                val codeReviewId = getInt(CODE_REVIEW_ID)
+                OldCodeReviewScreen(codeReviewId = codeReviewId)
             }
         }
         composable(
@@ -205,4 +224,5 @@ sealed class TeacherGroupsTasksScreen(val route: String) {
     object StudentTaskInfo : TeacherGroupsTasksScreen(route = "checklist_STUDENT_TASK_INFO")
     object AddTaskToTeam : TeacherGroupsTasksScreen(route = "checklist_ADD_TASK_TO_TEAM")
     object AddNewTest : TeacherGroupsTasksScreen(route = "checklist_ADD_NEW_TEST")
+    object CodeReview : TeacherGroupsTasksScreen(route = "checklist_CODE_REVIEW")
 }

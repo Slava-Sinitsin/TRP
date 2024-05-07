@@ -20,8 +20,10 @@ import java.net.SocketTimeoutException
 
 class TeamInfoScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
-    @Assisted
-    val teamId: Int
+    @Assisted("teamId")
+    val teamId: Int,
+    @Assisted("groupId")
+    val groupId: Int
 ) : ViewModel() {
     var team by mutableStateOf(Team())
         private set
@@ -36,18 +38,22 @@ class TeamInfoScreenViewModel @AssistedInject constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(studentId: Int): TeamInfoScreenViewModel
+        fun create(
+            @Assisted("teamId") teamId: Int,
+            @Assisted("groupId") groupId: Int
+        ): TeamInfoScreenViewModel
     }
 
     @Suppress("UNCHECKED_CAST")
     companion object {
         fun provideTeamInfoScreenViewModel(
             factory: Factory,
-            studentId: Int
+            teamId: Int,
+            groupId: Int
         ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return factory.create(studentId) as T
+                    return factory.create(teamId, groupId) as T
                 }
             }
         }
@@ -59,9 +65,13 @@ class TeamInfoScreenViewModel @AssistedInject constructor(
 
     private suspend fun init() {
         try {
-            teamAppointments = repository.teamAppointments.filter { it.team?.id == teamId } // TODO
             team = repository.teams.find { it.id == teamId } ?: Team()
             labs = repository.getLabs(disciplineId = repository.currentDiscipline) // TODO
+                .sortedBy { it.id }
+            teamAppointments = repository.getAllTeamAppointments(
+                disciplineId = repository.currentDiscipline, // TODO
+                groupId = groupId
+            ).filter { it.team?.id == teamId }.sortedBy { it.task?.labWorkId }
         } catch (e: SocketTimeoutException) {
             updateErrorMessage("Timeout")
         } catch (e: ConnectException) {
@@ -83,8 +93,8 @@ class TeamInfoScreenViewModel @AssistedInject constructor(
         errorMessage = newMessage
     }
 
-    fun getStatus(index: Int): TaskStatus {
-        return when (teamAppointments[index].status) {
+    fun getStatus(id: Int): TaskStatus {
+        return when (teamAppointments.find { it.id == id }?.status) {
             TaskStatus.New.status -> TaskStatus.New
             TaskStatus.InProgress.status -> TaskStatus.InProgress
             TaskStatus.OnTesting.status -> TaskStatus.OnTesting

@@ -7,11 +7,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
 import com.example.trp.domain.navigation.common.Graph
+import com.example.trp.ui.screens.student.OldCodeReviewScreen
 import com.example.trp.ui.screens.student.TaskScreen
 import com.example.trp.ui.screens.student.TasksScreen
 
 private const val STUDENT_DISCIPLINE_ID = "student_discipline_id"
-private const val TASK_ID = "task_id"
+private const val TEAM_APPOINTMENT_ID = "team_appointment_id"
+private const val CODE_REVIEW_ID = "code_review_id"
 
 fun NavGraphBuilder.tasksNavGraph(navController: NavHostController) {
     navigation(
@@ -31,15 +33,25 @@ fun NavGraphBuilder.tasksNavGraph(navController: NavHostController) {
             }
         }
         composable(
-            route = "${TasksScreen.TaskInfo.route}/{$TASK_ID}",
-            arguments = listOf(navArgument(TASK_ID) { type = NavType.IntType })
+            route = "${TasksScreen.TaskInfo.route}/{$TEAM_APPOINTMENT_ID}",
+            arguments = listOf(navArgument(TEAM_APPOINTMENT_ID) { type = NavType.IntType })
         ) {
-            val taskId = it.arguments?.getInt(TASK_ID)
-            taskId?.let { id ->
+            val teamAppointmentId = it.arguments?.getInt(TEAM_APPOINTMENT_ID)
+            teamAppointmentId?.let { id ->
                 TaskScreen(
-                    taskId = id,
-                    navController = navController
+                    teamAppointmentId = id,
+                    navController = navController,
+                    onOldCodeReviewClick = { codeReviewId -> navController.navigate("${TasksScreen.CodeReview.route}/$codeReviewId") }
                 )
+            }
+        }
+        composable(
+            route = "${TasksScreen.CodeReview.route}/{$CODE_REVIEW_ID}",
+            arguments = listOf(navArgument(CODE_REVIEW_ID) { type = NavType.IntType })
+        ) {
+            val codeReviewId = it.arguments?.getInt(CODE_REVIEW_ID)
+            codeReviewId?.let { id ->
+                OldCodeReviewScreen(codeReviewId = id)
             }
         }
     }
@@ -48,4 +60,5 @@ fun NavGraphBuilder.tasksNavGraph(navController: NavHostController) {
 sealed class TasksScreen(val route: String) {
     object Tasks : TasksScreen(route = "disciplines_TASKS")
     object TaskInfo : TasksScreen(route = "disciplines_TASK_INFO")
+    object CodeReview : TasksScreen(route = "disciplines_CODE_REVIEW")
 }

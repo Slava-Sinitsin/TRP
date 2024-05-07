@@ -8,6 +8,7 @@ import com.example.trp.data.mappers.PostRateBody
 import com.example.trp.data.mappers.PostStudentAppointmentsResponse
 import com.example.trp.data.mappers.PostTeamAppointmentsBody
 import com.example.trp.data.mappers.TeamAppointment
+import com.example.trp.data.mappers.TeamAppointmentResponse
 import com.example.trp.data.mappers.TeamAppointmentsResponse
 import com.example.trp.data.mappers.disciplines.DisciplineData
 import com.example.trp.data.mappers.disciplines.DisciplineResponse
@@ -15,10 +16,12 @@ import com.example.trp.data.mappers.disciplines.Disciplines
 import com.example.trp.data.mappers.disciplines.PostNewDisciplineBody
 import com.example.trp.data.mappers.disciplines.PostNewDisciplineResponse
 import com.example.trp.data.mappers.tasks.CloseCodeReviewResponse
+import com.example.trp.data.mappers.tasks.CodeReview
 import com.example.trp.data.mappers.tasks.CodeReviewResponse
 import com.example.trp.data.mappers.tasks.Lab
 import com.example.trp.data.mappers.tasks.LabsResponse
-import com.example.trp.data.mappers.tasks.Output
+import com.example.trp.data.mappers.tasks.OutputResponse
+import com.example.trp.data.mappers.tasks.PostCodeReviewResponse
 import com.example.trp.data.mappers.tasks.PostLabResponse
 import com.example.trp.data.mappers.tasks.PostNewStudentBody
 import com.example.trp.data.mappers.tasks.PostNewTeacherBody
@@ -36,6 +39,7 @@ import com.example.trp.data.mappers.tasks.Team
 import com.example.trp.data.mappers.tasks.TeamResponse
 import com.example.trp.data.mappers.tasks.Test
 import com.example.trp.data.mappers.tasks.TestsResponse
+import com.example.trp.data.mappers.tasks.solution.PostSolutionResponse
 import com.example.trp.data.mappers.tasks.solution.Solution
 import com.example.trp.data.mappers.tasks.solution.SolutionResponse
 import com.example.trp.data.mappers.teacherappointments.DeleteGroupResponse
@@ -62,7 +66,6 @@ class UserAPIRepositoryImpl(
     val mainDB: MainDB
 ) : UserAPI {
     var user by mutableStateOf(User())
-    private var userChanged by mutableStateOf(true)
 
     var disciplines by mutableStateOf(emptyList<DisciplineData>())
     var currentDiscipline by mutableStateOf(0) // TODO
@@ -73,9 +76,7 @@ class UserAPIRepositoryImpl(
 
     var task by mutableStateOf(Task()) // TODO
 
-    var taskDisciplineData by mutableStateOf(DisciplineData())
-
-    var taskSolution by mutableStateOf(Solution())
+    var taskSolution by mutableStateOf(String())
 
     var teacherAppointments by mutableStateOf(emptyList<TeacherAppointmentsData>())
 
@@ -121,7 +122,7 @@ class UserAPIRepositoryImpl(
         token: String,
         taskId: Int,
         code: String
-    ): Response<SolutionResponse> {
+    ): Response<PostSolutionResponse> {
         return ApiService.userAPI.postTaskSolution("Bearer $token", taskId, code)
     }
 
@@ -139,7 +140,7 @@ class UserAPIRepositoryImpl(
     override suspend fun runCode(
         token: String,
         taskId: Int,
-    ): Response<Output> {
+    ): Response<OutputResponse> {
         return ApiService.userAPI.runCode("Bearer $token", taskId)
     }
 
@@ -271,7 +272,7 @@ class UserAPIRepositoryImpl(
     override suspend fun postCodeReview(
         token: String,
         teamAppointmentId: Int
-    ): Response<PostTeacherResponse> {
+    ): Response<PostCodeReviewResponse> {
         return ApiService.userAPI.postCodeReview("Bearer $token", teamAppointmentId)
     }
 
@@ -310,6 +311,13 @@ class UserAPIRepositoryImpl(
         postRateBody: PostRateBody
     ): Response<PostRateResponse> {
         return ApiService.userAPI.postRate("Bearer $token", teamAppointmentId, postRateBody)
+    }
+
+    override suspend fun getTeamAppointment(
+        token: String,
+        teamAppointmentId: Int
+    ): Response<TeamAppointmentResponse> {
+        return ApiService.userAPI.getTeamAppointment("Bearer $token", teamAppointmentId)
     }
 
     suspend fun getActiveUser(): User {
@@ -375,14 +383,8 @@ class UserAPIRepositoryImpl(
         )
     }
 
-    private var updateDiscipline by mutableStateOf(true) // TODO
-
-    fun newUpdateDiscipline(newUpdateDisciplineValue: Boolean) {
-        updateDiscipline = newUpdateDisciplineValue
-    }
-
-    suspend fun getDisciplines(): List<DisciplineData> {
-        if (updateDiscipline) {
+    suspend fun getDisciplines(update: Boolean = false): List<DisciplineData> {
+        if (update) {
             mainDB.disciplinesDAO.deleteAllDisciplines()
             val response = user.token?.let { getDisciplinesResponse(it) }
             response?.body()?.let {
@@ -392,9 +394,8 @@ class UserAPIRepositoryImpl(
             } ?: response?.errorBody()?.let {
                 return emptyList()
             }
-            disciplines = mainDB.disciplinesDAO.getDisciplines() ?: emptyList()
         }
-        newUpdateDiscipline(false)
+        disciplines = mainDB.disciplinesDAO.getDisciplines() ?: emptyList()
         return disciplines
     }
 
@@ -411,14 +412,20 @@ class UserAPIRepositoryImpl(
         return tasks
     }
 
-    suspend fun getTask(taskId: Int): Task {
+    suspend fun getTask(
+        taskId: Int,
+        withSolution: Boolean = true,
+        withAllTests: Boolean = false
+    ): Task {
         val taskResponse =
             user.token?.let { getTaskDescriptionResponse(it, taskId) }
         taskResponse?.body()?.let {
             task = it.task ?: Task()
-            if (task != Task()) {
-                taskDisciplineData = getTaskDisciplineData()
-                taskSolution = getTaskSolution()
+            if (withAllTests) {
+                task = task.copy(tests = getTests(taskId))
+            }
+            if (task != Task() && withSolution) {
+                task = task.copy(solution = getTaskSolution(taskId))
             }
         } ?: taskResponse?.errorBody()?.let {
             task = Task()
@@ -426,23 +433,10 @@ class UserAPIRepositoryImpl(
         return task
     }
 
-    private suspend fun getTaskDisciplineData(): DisciplineData {
-        val disciplineDataResponse = user.token?.let { token ->
-            task.labWorkId?.let { disciplineId -> getDisciplineByID(token, disciplineId) }
-        }
-        return disciplineDataResponse?.body()?.disciplineData ?: DisciplineData()
-    }
-
-    private suspend fun getTaskSolution(): Solution {
-        return user.token?.let { token ->
-            task.id?.let { taskId -> getTaskSolution(token, taskId) }
-        }?.body()?.data ?: Solution()
-    }
-
-    suspend fun getTaskSolution(taskId: Int): Solution {
+    private suspend fun getTaskSolution(taskId: Int): Solution {
         return user.token?.let { token ->
             getTaskSolution(token, taskId)
-        }?.body()?.data ?: Solution()
+        }?.body()?.solution ?: Solution()
     }
 
     suspend fun postTaskSolution(taskId: Int, solutionText: String) {
@@ -451,17 +445,17 @@ class UserAPIRepositoryImpl(
         }
     }
 
-    suspend fun runCode(taskId: Int): Output {
+    suspend fun runCode(taskId: Int): OutputResponse {
         val response =
             user.token?.let { token -> runCode(token, taskId) }
         return response?.body() ?: response?.errorBody()?.let {
             val errorBody = it.string()
-            Output().copy(
+            OutputResponse().copy(
                 status = JSONObject(errorBody).getInt("status"),
                 message = JSONObject(errorBody).getString("message"),
                 error = JSONObject(errorBody).getString("error")
             )
-        } ?: Output()
+        } ?: OutputResponse()
     }
 
     suspend fun getTeacherAppointments(): List<TeacherAppointmentsData> {
@@ -520,7 +514,7 @@ class UserAPIRepositoryImpl(
         user.token?.let { token ->
             postNewDiscipline(token, postNewDisciplineBody)
         }
-        disciplines = getDisciplines()
+        disciplines = getDisciplines(update = true)
     }
 
     suspend fun getGroups(): List<Group> {
@@ -611,12 +605,13 @@ class UserAPIRepositoryImpl(
         return user.token?.let { token -> postNewLabWorkTeacher(token, teacher) }
     }
 
-    suspend fun postCodeReview(teamAppointmentId: Int): Response<PostTeacherResponse>? {
+    suspend fun postCodeReview(teamAppointmentId: Int): Response<PostCodeReviewResponse>? {
         return user.token?.let { token -> postCodeReview(token, teamAppointmentId) }
     }
 
-    suspend fun getCodeReview(codeReviewId: Int): Response<CodeReviewResponse>? {
-        return user.token?.let { token -> getCodeReview(token, codeReviewId) }
+    suspend fun getCodeReview(codeReviewId: Int): CodeReview {
+        return user.token?.let { token -> getCodeReview(token, codeReviewId) }?.body()?.data
+            ?: CodeReview()
     }
 
     suspend fun closeCodeReview(codeReviewId: Int): Response<CloseCodeReviewResponse>? {
@@ -639,5 +634,12 @@ class UserAPIRepositoryImpl(
         postRateBody: PostRateBody
     ): Response<PostRateResponse>? {
         return user.token?.let { token -> postRate(token, teamAppointmentId, postRateBody) }
+    }
+
+    suspend fun getTeamAppointment(
+        teamAppointmentId: Int,
+    ): TeamAppointment? {
+        return user.token?.let { token -> getTeamAppointment(token, teamAppointmentId) }
+            ?.body()?.data
     }
 }

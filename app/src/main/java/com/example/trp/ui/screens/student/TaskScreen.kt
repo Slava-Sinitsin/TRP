@@ -24,10 +24,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.PlayCircleOutline
+import androidx.compose.material.icons.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.Reviews
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -73,9 +78,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.chihsuanwu.freescroll.freeScroll
 import com.chihsuanwu.freescroll.rememberFreeScrollState
+import com.example.trp.data.mappers.tasks.Note
 import com.example.trp.domain.di.ViewModelFactoryProvider
 import com.example.trp.ui.components.TabIndicator
-import com.example.trp.ui.components.TaskStatus
 import com.example.trp.ui.components.clearFocusOnTap
 import com.example.trp.ui.components.keyboardAsState
 import com.example.trp.ui.components.myTabIndicatorOffset
@@ -88,8 +93,9 @@ import dagger.hilt.android.EntryPointAccessors
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun TaskScreen(
-    taskId: Int,
-    navController: NavHostController
+    teamAppointmentId: Int,
+    navController: NavHostController,
+    onOldCodeReviewClick: (codeReviewId: Int) -> Unit
 ) {
     val factory = EntryPointAccessors.fromActivity(
         LocalContext.current as Activity,
@@ -98,12 +104,12 @@ fun TaskScreen(
     val viewModel: TaskScreenViewModel = viewModel(
         factory = TaskScreenViewModel.provideTaskScreenViewModel(
             factory,
-            taskId
+            teamAppointmentId
         )
     )
 
     if (viewModel.taskScreens.isNotEmpty()) {
-        val pagerState = rememberPagerState(1)
+        val pagerState = rememberPagerState(viewModel.selectedTabIndex)
         LaunchedEffect(viewModel.selectedTabIndex) {
             pagerState.animateScrollToPage(viewModel.selectedTabIndex)
         }
@@ -145,10 +151,8 @@ fun TaskScreen(
                 TabRow(
                     modifier = Modifier
                         .background(TRPTheme.colors.primaryBackground)
-                        .padding(5.dp)
-                        .clip(
-                            shape = RoundedCornerShape(20.dp)
-                        ),
+                        .padding(start = 5.dp, end = 5.dp, top = 5.dp)
+                        .clip(shape = RoundedCornerShape(20.dp)),
                     selectedTabIndex = viewModel.selectedTabIndex,
                     containerColor = TRPTheme.colors.secondaryBackground,
                     indicator = indicator,
@@ -194,6 +198,13 @@ fun TaskScreen(
                         TaskTabs.Review -> {
                             ReviewScreen(viewModel = viewModel)
                         }
+
+                        TaskTabs.History -> {
+                            HistoryScreen(
+                                viewModel = viewModel,
+                                onOldCodeReviewClick = onOldCodeReviewClick
+                            )
+                        }
                     }
                 }
             }
@@ -201,7 +212,10 @@ fun TaskScreen(
                 SaveDialog(viewModel = viewModel, navController = navController)
             }
             if (viewModel.isReviewDialogShow) {
-                ReviewDialog(viewModel = viewModel)
+                ReviewDialog(viewModel = viewModel, navController = navController)
+            }
+            if (viewModel.isAddMessageDialogShow) {
+                AddMessageDialog(viewModel = viewModel)
             }
             if (viewModel.errorMessage.isNotEmpty()) {
                 Toast.makeText(LocalContext.current, viewModel.errorMessage, Toast.LENGTH_SHORT)
@@ -248,7 +262,7 @@ fun TaskScreenTopAppBar(
         actions = {
             if (viewModel.taskScreens[viewModel.selectedTabIndex] == TaskTabs.Solution) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (viewModel.teamAppointment.status == TaskStatus.Tested.status && viewModel.reviewButtonEnabled) {
+                    if (viewModel.reviewButtonEnabled) {
                         IconButton(onClick = { viewModel.showReviewDialog() }) {
                             Icon(
                                 imageVector = Icons.Filled.Reviews,
@@ -268,6 +282,13 @@ fun TaskScreenTopAppBar(
                         }
                     }
                 }
+            } else if (viewModel.taskScreens[viewModel.selectedTabIndex] == TaskTabs.Review) {
+                IconButton(onClick = { viewModel.onAddMessageButtonClick() }) {
+                    Icon(
+                        imageVector = Icons.Filled.PlaylistAdd,
+                        contentDescription = "Add message to code review"
+                    )
+                }
             }
         },
     )
@@ -276,6 +297,7 @@ fun TaskScreenTopAppBar(
 @Composable
 fun DescriptionScreen(viewModel: TaskScreenViewModel) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
+        item { Spacer(modifier = Modifier.size(5.dp)) }
         item { TitleField(viewModel = viewModel) }
         item { DescriptionField(viewModel = viewModel) }
         item { TestsField(viewModel = viewModel) }
@@ -411,6 +433,7 @@ fun TestsField(viewModel: TaskScreenViewModel) {
 @Composable
 fun SolutionScreen(viewModel: TaskScreenViewModel) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
+        item { Spacer(modifier = Modifier.size(5.dp)) }
         item { TaskText(viewModel = viewModel) }
         item {
             Text(
@@ -572,7 +595,10 @@ fun OutputText(
 }
 
 @Composable
-fun SaveDialog(viewModel: TaskScreenViewModel, navController: NavHostController) {
+fun SaveDialog(
+    viewModel: TaskScreenViewModel,
+    navController: NavHostController
+) {
     LaunchedEffect(viewModel.responseSuccess) {
         if (viewModel.responseSuccess) {
             navController.popBackStack()
@@ -622,9 +648,17 @@ fun SaveDialog(viewModel: TaskScreenViewModel, navController: NavHostController)
 }
 
 @Composable
-fun ReviewDialog(viewModel: TaskScreenViewModel) {
+fun ReviewDialog(
+    viewModel: TaskScreenViewModel,
+    navController: NavHostController
+) {
+    LaunchedEffect(viewModel.responseSuccess) {
+        if (viewModel.responseSuccess) {
+            navController.popBackStack()
+        }
+    }
     AlertDialog(
-        onDismissRequest = { viewModel.onDoNotSaveCodeButtonClick() },
+        onDismissRequest = { viewModel.onDismissReviewButtonClick() },
         title = {
             Text(
                 text = "Send to review?",
@@ -664,22 +698,77 @@ fun ReviewDialog(viewModel: TaskScreenViewModel) {
 }
 
 @Composable
-fun ReviewScreen( // TODO
-    viewModel: TaskScreenViewModel
-) {
-    Column(
+fun ReviewScreen(viewModel: TaskScreenViewModel) {
+    LazyColumn(
         modifier = Modifier
             .padding(horizontal = 5.dp)
             .fillMaxSize()
     ) {
-        ReviewField(viewModel = viewModel)
+        item { Spacer(modifier = Modifier.size(5.dp)) }
+        item { ReviewField(viewModel = viewModel) }
+        item { Spacer(modifier = Modifier.size(10.dp)) }
+        item { CommentsField(viewModel = viewModel) }
+        item { Spacer(modifier = Modifier.size(100.dp)) }
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun HistoryScreen(
+    viewModel: TaskScreenViewModel,
+    onOldCodeReviewClick: (codeReviewId: Int) -> Unit
+) {
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = viewModel.isRefreshing,
+        onRefresh = { viewModel.onRefresh() }
+    )
+    Box(
+        modifier = Modifier
+            .padding(horizontal = 5.dp)
+            .fillMaxSize()
+            .pullRefresh(state = pullRefreshState)
+    ) {
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            items(viewModel.codeReviews.size) { index ->
+                Button(
+                    modifier = Modifier
+                        .padding(vertical = 8.dp)
+                        .fillMaxSize(),
+                    onClick = { viewModel.codeReviews[index].id?.let { onOldCodeReviewClick(it) } },
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = 10.dp
+                    ),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = TRPTheme.colors.cardButtonColor
+                    ),
+                    shape = RoundedCornerShape(30.dp)
+                ) {
+                    Text(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(top = 16.dp, bottom = 16.dp)
+                            .align(Alignment.CenterVertically),
+                        textAlign = TextAlign.Start,
+                        text = "Review ${viewModel.codeReviews[index].id}",
+                        color = TRPTheme.colors.primaryText,
+                        fontSize = 25.sp
+                    )
+                }
+            }
+            item { Spacer(modifier = Modifier.size(100.dp)) }
+        }
+        PullRefreshIndicator(
+            modifier = Modifier.align(Alignment.TopCenter),
+            refreshing = viewModel.isRefreshing,
+            state = pullRefreshState,
+            backgroundColor = TRPTheme.colors.primaryBackground,
+            contentColor = TRPTheme.colors.myYellow
+        )
     }
 }
 
 @Composable
-fun ReviewField(
-    viewModel: TaskScreenViewModel
-) {
+fun ReviewField(viewModel: TaskScreenViewModel) {
     val freeScrollState = rememberFreeScrollState()
     val primaryBackground = TRPTheme.colors.primaryBackground.copy(alpha = 0.6f)
     val secondaryBackground = TRPTheme.colors.secondaryBackground.copy(alpha = 0.6f)
@@ -739,3 +828,158 @@ fun ReviewField(
         }
     }
 }
+
+@Composable
+fun CommentsField(viewModel: TaskScreenViewModel) {
+    Column {
+        Text(
+            text = "Comments",
+            color = TRPTheme.colors.primaryText,
+            fontSize = 15.sp
+        )
+        Spacer(modifier = Modifier.size(10.dp))
+        viewModel.currentCodeReview.notes?.forEach { note ->
+            Comment(
+                viewModel = viewModel,
+                note = note
+            )
+            Spacer(modifier = Modifier.size(10.dp))
+        }
+    }
+}
+
+@Composable
+fun Comment(
+    viewModel: TaskScreenViewModel,
+    note: Note
+) {
+    Surface(
+        color = TRPTheme.colors.secondaryBackground,
+        shape = RoundedCornerShape(8.dp),
+        shadowElevation = 6.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(5.dp)
+        ) {
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = note.author?.fullName ?: "",
+                color = TRPTheme.colors.primaryText.copy(alpha = 0.6f),
+                textAlign = if (note.author?.fullName == viewModel.user.username) {
+                    TextAlign.End
+                } else {
+                    TextAlign.Start
+                }
+            )
+            Spacer(modifier = Modifier.size(5.dp))
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = note.message ?: "",
+                color = TRPTheme.colors.primaryText,
+                textAlign = if (note.author?.fullName == viewModel.user.username) {
+                    TextAlign.End
+                } else {
+                    TextAlign.Start
+                }
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddMessageDialog(viewModel: TaskScreenViewModel) {
+    AlertDialog(
+        onDismissRequest = { viewModel.onDismissAddMessageButtonClick() },
+        title = {
+            Text(
+                text = "Add comment",
+                color = TRPTheme.colors.primaryText
+            )
+        },
+        containerColor = TRPTheme.colors.primaryBackground,
+        text = {
+            OutlinedTextField(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp),
+                textStyle = TextStyle.Default.copy(fontSize = 15.sp),
+                value = viewModel.reviewMessage,
+                onValueChange = { viewModel.updateReviewMessage(it) },
+                placeholder = {
+                    Text(
+                        "Comment",
+                        color = TRPTheme.colors.primaryText,
+                        modifier = Modifier.alpha(0.6f),
+                        fontSize = 15.sp
+                    )
+                },
+                shape = RoundedCornerShape(8.dp),
+                colors = TextFieldDefaults.textFieldColors(
+                    containerColor = TRPTheme.colors.secondaryBackground,
+                    textColor = TRPTheme.colors.primaryText,
+                    cursorColor = TRPTheme.colors.primaryText,
+                    focusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    errorIndicatorColor = TRPTheme.colors.errorColor,
+                    errorCursorColor = TRPTheme.colors.primaryText
+                ),
+                isError = viewModel.reviewMessage.isEmpty()
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = { viewModel.onConfirmAddMessageButtonClick() },
+                colors = ButtonDefaults.buttonColors(TRPTheme.colors.myYellow)
+            ) {
+                Text(
+                    text = "Send",
+                    color = TRPTheme.colors.secondaryText
+                )
+            }
+        },
+        dismissButton = {
+            Button(
+                onClick = { viewModel.onDismissAddMessageButtonClick() },
+                colors = ButtonDefaults.buttonColors(TRPTheme.colors.errorColor)
+            ) {
+                Text(
+                    text = "Don't send",
+                    color = TRPTheme.colors.secondaryText
+                )
+            }
+        }
+    )
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

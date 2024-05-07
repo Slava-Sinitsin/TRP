@@ -3,6 +3,7 @@ package com.example.trp.data.network
 import com.example.trp.data.mappers.PostRateBody
 import com.example.trp.data.mappers.PostStudentAppointmentsResponse
 import com.example.trp.data.mappers.PostTeamAppointmentsBody
+import com.example.trp.data.mappers.TeamAppointmentResponse
 import com.example.trp.data.mappers.TeamAppointmentsResponse
 import com.example.trp.data.mappers.disciplines.DisciplineResponse
 import com.example.trp.data.mappers.disciplines.Disciplines
@@ -12,7 +13,8 @@ import com.example.trp.data.mappers.tasks.CloseCodeReviewResponse
 import com.example.trp.data.mappers.tasks.CodeReviewResponse
 import com.example.trp.data.mappers.tasks.Lab
 import com.example.trp.data.mappers.tasks.LabsResponse
-import com.example.trp.data.mappers.tasks.Output
+import com.example.trp.data.mappers.tasks.OutputResponse
+import com.example.trp.data.mappers.tasks.PostCodeReviewResponse
 import com.example.trp.data.mappers.tasks.PostLabResponse
 import com.example.trp.data.mappers.tasks.PostNewStudentBody
 import com.example.trp.data.mappers.tasks.PostNewTeacherBody
@@ -28,6 +30,7 @@ import com.example.trp.data.mappers.tasks.Tasks
 import com.example.trp.data.mappers.tasks.TeamResponse
 import com.example.trp.data.mappers.tasks.Test
 import com.example.trp.data.mappers.tasks.TestsResponse
+import com.example.trp.data.mappers.tasks.solution.PostSolutionResponse
 import com.example.trp.data.mappers.tasks.solution.SolutionResponse
 import com.example.trp.data.mappers.teacherappointments.DeleteGroupResponse
 import com.example.trp.data.mappers.teacherappointments.GroupsResponse
@@ -73,7 +76,7 @@ interface UserAPI {
         @Path("id") id: Int
     ): Response<DisciplineResponse>
 
-    @GET("api/v2/lab-work-variants/{id}/solution")
+    @GET("/api/v2/lab-work-variants/{id}/new-solution")
     suspend fun getTaskSolution(
         @Header("Authorization") token: String,
         @Path("id") taskId: Int
@@ -84,7 +87,7 @@ interface UserAPI {
         @Header("Authorization") token: String,
         @Path("id") taskId: Int,
         @Body code: String
-    ): Response<SolutionResponse>
+    ): Response<PostSolutionResponse>
 
     @GET("api/v2/teacher-appointments/all")
     suspend fun teacherAppointments(
@@ -97,11 +100,11 @@ interface UserAPI {
         @Path("id") id: Int
     ): Response<Students>
 
-    @POST("api/v2/lab-work-variants/{id}/solution/execute")
+    @POST("api/v2/lab-work-variants/{id}/solution/new-execute")
     suspend fun runCode(
         @Header("Authorization") token: String,
         @Path("id") taskId: Int
-    ): Response<Output>
+    ): Response<OutputResponse>
 
     @PUT("api/v2/tasks/{id}")
     suspend fun putTask(
@@ -239,7 +242,7 @@ interface UserAPI {
     suspend fun postCodeReview(
         @Header("Authorization") token: String,
         @Path("id") teamAppointmentId: Int
-    ): Response<PostTeacherResponse>
+    ): Response<PostCodeReviewResponse>
 
     @GET("api/v2/code-reviews/{codeReviewId}")
     suspend fun getCodeReview(
@@ -269,7 +272,13 @@ interface UserAPI {
     @POST("api/v2/team-appointments/{teamAppointmentId}/rate")
     suspend fun postRate(
         @Header("Authorization") token: String,
-        @Path("teamAppointmentId ") teamAppointmentId: Int,
+        @Path("teamAppointmentId") teamAppointmentId: Int,
         @Body postRateBody: PostRateBody
     ): Response<PostRateResponse>
+
+    @GET("api/v2/team-appointments/{id}")
+    suspend fun getTeamAppointment(
+        @Header("Authorization") token: String,
+        @Path("id") teamAppointmentId: Int,
+    ): Response<TeamAppointmentResponse>
 }

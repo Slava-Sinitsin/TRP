@@ -56,7 +56,7 @@ class TasksScreenViewModel @AssistedInject constructor(
 
     private suspend fun init() {
         try {
-            labs = repository.getLabs(disciplineId = disciplineId)
+            labs = repository.getLabs(disciplineId = disciplineId).sortedBy { it.id }
             teamAppointments = repository.getTeamAppointments(disciplineId = disciplineId)
                 .sortedBy { it.task?.labWorkId }
         } catch (e: SocketTimeoutException) {

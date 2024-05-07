@@ -171,4 +171,10 @@ class AddNewDisciplineScreenViewModel @AssistedInject constructor(
         selectedTeacher = teachers[index]
         selectedTabIndex = 0
     }
+
+    fun onDeleteGroupClick(index: Int) {
+        groups = groups.filterIndexed { currentIndex, _ ->
+            currentIndex != index
+        }
+    }
 }

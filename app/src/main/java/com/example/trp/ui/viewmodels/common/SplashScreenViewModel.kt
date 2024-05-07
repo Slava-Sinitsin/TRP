@@ -5,10 +5,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.trp.data.mappers.user.User
 import com.example.trp.data.repository.UserAPIRepositoryImpl
 import com.example.trp.domain.navigation.common.Graph
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import java.net.ConnectException
+import java.net.SocketTimeoutException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -17,26 +20,33 @@ class SplashScreenViewModel @Inject constructor(
 ) : ViewModel() {
     var destination by mutableStateOf("")
         private set
+    private var user by mutableStateOf(User())
 
     init {
         viewModelScope.launch {
-            val user = repository.getActiveUser()
-            if (user.isLogged == true) {
-                user.login?.let { login ->
-                    user.password?.let { password ->
-                        repository.login(
-                            login = login,
-                            password = password
-                        )
-                    }
+            try {
+                user = repository.getActiveUser().copy(role = null)
+                if (user.isLogged == true) {
+                    user = user.login?.let { login ->
+                        user.password?.let { password ->
+                            repository.login(
+                                login = login,
+                                password = password
+                            )
+                        }
+                    } ?: User()
+                    repository.getDisciplines(update = true)
                 }
-                when (user.role) {
-                    "ROLE_STUDENT" -> destination = Graph.STUDENT_WELCOME
-                    "ROLE_LECTURE_TEACHER" -> destination = Graph.TEACHER_WELCOME
-                    "ROLE_ADMIN" -> destination = Graph.ADMIN_WELCOME
-                }
-            } else {
-                destination = Graph.LOGIN
+            } catch (_: SocketTimeoutException) {
+            } catch (_: ConnectException) {
+            } catch (_: Exception) {
+            }
+            destination = when (user.role) {
+                "ROLE_STUDENT" -> Graph.STUDENT_WELCOME
+                "ROLE_LECTURE_TEACHER" -> Graph.TEACHER_WELCOME
+                "ROLE_LAB_WORK_TEACHER" -> Graph.TEACHER_WELCOME
+                "ROLE_ADMIN" -> Graph.ADMIN_WELCOME
+                else -> Graph.LOGIN
             }
         }
     }

@@ -13,6 +13,7 @@ import com.example.trp.ui.viewmodels.admin.GroupsTeachersScreenViewModel
 import com.example.trp.ui.viewmodels.common.CreateNewTestScreenViewModel
 import com.example.trp.ui.viewmodels.common.CreateTaskScreenViewModel
 import com.example.trp.ui.viewmodels.common.TaskInfoTestsScreenViewModel
+import com.example.trp.ui.viewmodels.student.OldCodeReviewScreenViewModel
 import com.example.trp.ui.viewmodels.student.StudentDisciplinesScreenViewModel
 import com.example.trp.ui.viewmodels.student.StudentWelcomeScreenViewModel
 import com.example.trp.ui.viewmodels.student.TaskScreenViewModel
@@ -39,6 +40,7 @@ interface ViewModelFactoryProvider {
     fun studentDisciplinesScreenViewModelFactory(): StudentDisciplinesScreenViewModel.Factory
     fun tasksScreenViewModelFactory(): TasksScreenViewModel.Factory
     fun taskScreenViewModelFactory(): TaskScreenViewModel.Factory
+    fun oldCodeReviewScreenViewModelFactory(): OldCodeReviewScreenViewModel.Factory
 
     fun teacherWelcomeScreenViewModelFactory(): TeacherWelcomeScreenViewModel.Factory
     fun teacherDisciplinesScreenViewModelFactory(): TeacherDisciplinesScreenViewModel.Factory

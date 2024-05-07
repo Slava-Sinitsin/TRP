@@ -64,7 +64,10 @@ fun TeacherNavigationBar(
     navController: NavHostController
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    if (viewModel.screens.any { it.route == navBackStackEntry?.destination?.route }) {
+    if (viewModel.screens.any {
+            navBackStackEntry?.destination?.route == it.route
+                    || navBackStackEntry?.destination?.route?.startsWith(it.route) == true
+        }) {
         Surface(
             modifier = Modifier
                 .wrapContentSize()

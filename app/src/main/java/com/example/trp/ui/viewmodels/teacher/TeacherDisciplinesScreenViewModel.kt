@@ -46,9 +46,9 @@ class TeacherDisciplinesScreenViewModel @AssistedInject constructor(
         viewModelScope.launch { init() }
     }
 
-    private suspend fun init() {
+    private suspend fun init(update: Boolean = false) {
         try {
-            disciplines = repository.getDisciplines().sortedBy { it.name }
+            disciplines = repository.getDisciplines(update = update).sortedBy { it.name }
         } catch (e: SocketTimeoutException) {
             updateErrorMessage("Timeout")
         } catch (e: ConnectException) {
@@ -61,8 +61,7 @@ class TeacherDisciplinesScreenViewModel @AssistedInject constructor(
     fun onRefresh() {
         viewModelScope.launch {
             isRefreshing = true
-            repository.newUpdateDiscipline(true)
-            init()
+            init(update = true)
             isRefreshing = false
         }
     }
@@ -77,10 +76,5 @@ class TeacherDisciplinesScreenViewModel @AssistedInject constructor(
 
     fun setCurrentDiscipline(id: Int) { // TODO
         repository.setCurrentDisciplineId(id)
-    }
-
-    fun beforeDisciplineClick(index: Int) {
-        repository.taskDisciplineData =
-            disciplines.find { it == disciplines[index] } ?: DisciplineData()
     }
 }

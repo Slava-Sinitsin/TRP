@@ -3,6 +3,7 @@ package com.example.trp.ui.screens.teacher
 import android.app.Activity
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,12 +19,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.LockOpen
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -36,40 +45,56 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabPosition
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.chihsuanwu.freescroll.freeScroll
 import com.chihsuanwu.freescroll.rememberFreeScrollState
+import com.example.trp.data.mappers.tasks.Note
 import com.example.trp.domain.di.ViewModelFactoryProvider
+import com.example.trp.ui.components.TabIndicator
+import com.example.trp.ui.components.TaskStatus
 import com.example.trp.ui.components.clearFocusOnTap
 import com.example.trp.ui.components.clickableWithoutRipple
+import com.example.trp.ui.components.myTabIndicatorOffset
+import com.example.trp.ui.components.tabs.DisabledInteractionSource
+import com.example.trp.ui.components.tabs.ReviewTabs
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.teacher.TeacherTaskScreenViewModel
 import dagger.hilt.android.EntryPointAccessors
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun TeacherTaskScreen(
-    taskId: Int,
+    teamAppointmentId: Int,
+    onOldCodeReviewClick: (codeReviewId: Int) -> Unit,
     navController: NavHostController
 ) {
     val factory = EntryPointAccessors.fromActivity(
@@ -79,47 +104,114 @@ fun TeacherTaskScreen(
     val viewModel: TeacherTaskScreenViewModel = viewModel(
         factory = TeacherTaskScreenViewModel.provideTeacherTaskScreenViewModel(
             factory,
-            taskId
+            teamAppointmentId
         )
     )
-
-    Scaffold(
-        modifier = Modifier.clearFocusOnTap(),
-        containerColor = TRPTheme.colors.primaryBackground,
-        topBar = {
-            TeacherTaskScreenTopBar(
-                viewModel = viewModel,
-                navController = navController
-            )
+    if (viewModel.reviewScreens.isNotEmpty()) {
+        val pagerState = rememberPagerState(viewModel.selectedTabIndex)
+        LaunchedEffect(viewModel.selectedTabIndex) {
+            pagerState.animateScrollToPage(viewModel.selectedTabIndex)
         }
-    ) { scaffoldPadding ->
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
-            item {
-                ReviewField(
+        LaunchedEffect(pagerState.currentPage, pagerState.isScrollInProgress) {
+            if (!pagerState.isScrollInProgress) {
+                viewModel.selectedTabIndex = pagerState.currentPage
+            }
+        }
+        val indicator = @Composable { tabPositions: List<TabPosition> ->
+            TabIndicator(Modifier.myTabIndicatorOffset(tabPositions[viewModel.selectedTabIndex]))
+        }
+        val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+
+        Scaffold(
+            modifier = Modifier
+                .nestedScroll(scrollBehavior.nestedScrollConnection)
+                .clearFocusOnTap(),
+            containerColor = TRPTheme.colors.primaryBackground,
+            topBar = {
+                TeacherTaskScreenTopBar(
                     viewModel = viewModel,
-                    paddingValues = scaffoldPadding
+                    navController = navController
                 )
             }
-            item { Comments(viewModel = viewModel) }
-            item { AcceptSubmitRejectButtons(viewModel = viewModel) }
-            item { Spacer(modifier = Modifier.size(100.dp)) }
-        }
-        if (viewModel.showRejectDialog) {
-            RejectDialog(viewModel = viewModel)
-        }
-        if (viewModel.showSubmitDialog) {
-            SubmitDialog(viewModel = viewModel)
-        }
-        if (viewModel.showAcceptDialog) {
-            AcceptDialog(viewModel = viewModel)
-        }
-        if (viewModel.errorMessage.isNotEmpty()) {
-            Toast.makeText(LocalContext.current, viewModel.errorMessage, Toast.LENGTH_SHORT).show()
-            viewModel.updateErrorMessage("")
-        }
-        LaunchedEffect(viewModel.responseSuccess) {
-            if (viewModel.responseSuccess) {
-                navController.popBackStack()
+        ) { scaffoldPadding ->
+            Column(
+                modifier = Modifier
+                    .padding(top = scaffoldPadding.calculateTopPadding())
+                    .fillMaxSize()
+            ) {
+                TabRow(
+                    modifier = Modifier
+                        .background(TRPTheme.colors.primaryBackground)
+                        .padding(start = 5.dp, end = 5.dp, top = 5.dp)
+                        .clip(shape = RoundedCornerShape(20.dp)),
+                    selectedTabIndex = viewModel.selectedTabIndex,
+                    containerColor = TRPTheme.colors.secondaryBackground,
+                    indicator = indicator,
+                    divider = {}
+                ) {
+                    viewModel.reviewScreens.forEachIndexed { index, item ->
+                        Tab(
+                            modifier = Modifier
+                                .clip(shape = RoundedCornerShape(20.dp))
+                                .padding(bottom = 3.dp)
+                                .zIndex(2f),
+                            selected = index == viewModel.selectedTabIndex,
+                            interactionSource = DisabledInteractionSource(),
+                            onClick = { viewModel.updateSelectedTabIndex(index) },
+                            text = {
+                                Text(
+                                    text = item.title,
+                                    color = TRPTheme.colors.secondaryText,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        )
+                    }
+                }
+                HorizontalPager(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .background(TRPTheme.colors.primaryBackground),
+                    state = pagerState,
+                    pageCount = viewModel.reviewScreens.size
+                ) { index ->
+                    when (viewModel.reviewScreens[index]) {
+                        ReviewTabs.Description -> {
+                            DescriptionScreen(viewModel = viewModel)
+                        }
+
+                        ReviewTabs.Review -> {
+                            ReviewScreen(viewModel = viewModel)
+                        }
+
+                        ReviewTabs.History -> {
+                            HistoryScreen(
+                                viewModel = viewModel,
+                                onOldCodeReviewClick = onOldCodeReviewClick
+                            )
+                        }
+                    }
+                }
+            }
+            if (viewModel.showRejectDialog) {
+                RejectDialog(viewModel = viewModel)
+            }
+            if (viewModel.showSubmitDialog) {
+                SubmitDialog(viewModel = viewModel)
+            }
+            if (viewModel.showAcceptDialog) {
+                AcceptDialog(viewModel = viewModel)
+            }
+            if (viewModel.errorMessage.isNotEmpty()) {
+                Toast.makeText(LocalContext.current, viewModel.errorMessage, Toast.LENGTH_SHORT)
+                    .show()
+                viewModel.updateErrorMessage("")
+            }
+            LaunchedEffect(viewModel.responseSuccess) {
+                if (viewModel.responseSuccess) {
+                    navController.popBackStack()
+                }
             }
         }
     }
@@ -157,23 +249,185 @@ fun TeacherTaskScreenTopBar(
 }
 
 @Composable
-fun ReviewField(
-    viewModel: TeacherTaskScreenViewModel,
-    paddingValues: PaddingValues
-) {
+fun DescriptionScreen(viewModel: TeacherTaskScreenViewModel) {
+    LazyColumn(modifier = Modifier.fillMaxSize()) {
+        item { Spacer(modifier = Modifier.size(5.dp)) }
+        item { TitleField(viewModel = viewModel) }
+        item { DescriptionField(viewModel = viewModel) }
+        item { TestsField(viewModel = viewModel) }
+        item { Spacer(modifier = Modifier.size(100.dp)) }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TitleField(viewModel: TeacherTaskScreenViewModel) {
+    Text(
+        text = "Title",
+        color = TRPTheme.colors.primaryText,
+        fontSize = 15.sp,
+        modifier = Modifier
+            .alpha(0.6f)
+            .padding(start = 5.dp)
+    )
+    OutlinedTextField(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 5.dp, horizontal = 5.dp)
+            .shadow(
+                elevation = 10.dp,
+                shape = RoundedCornerShape(8.dp)
+            ),
+        textStyle = TextStyle.Default.copy(fontSize = 15.sp),
+        value = viewModel.teamAppointment.task?.title ?: "",
+        onValueChange = { },
+        placeholder = {
+            Text(
+                "Title",
+                color = TRPTheme.colors.primaryText,
+                modifier = Modifier.alpha(0.6f)
+            )
+        },
+        shape = RoundedCornerShape(8.dp),
+        colors = TextFieldDefaults.textFieldColors(
+            containerColor = TRPTheme.colors.secondaryBackground,
+            textColor = TRPTheme.colors.primaryText,
+            cursorColor = TRPTheme.colors.primaryText,
+            focusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            errorIndicatorColor = TRPTheme.colors.errorColor,
+            errorCursorColor = TRPTheme.colors.primaryText
+        ),
+        readOnly = true,
+        singleLine = true
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DescriptionField(viewModel: TeacherTaskScreenViewModel) {
+    Text(
+        text = "Description",
+        color = TRPTheme.colors.primaryText,
+        fontSize = 15.sp,
+        modifier = Modifier
+            .alpha(0.6f)
+            .padding(start = 5.dp, top = 10.dp)
+    )
+    OutlinedTextField(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp)
+            .padding(vertical = 5.dp, horizontal = 5.dp)
+            .shadow(
+                elevation = 10.dp,
+                shape = RoundedCornerShape(8.dp)
+            ),
+        textStyle = TextStyle.Default.copy(fontSize = 15.sp),
+        value = viewModel.teamAppointment.task?.description ?: "",
+        onValueChange = { },
+        placeholder = {
+            Text(
+                "Description",
+                color = TRPTheme.colors.primaryText,
+                modifier = Modifier.alpha(0.6f)
+            )
+        },
+        shape = RoundedCornerShape(8.dp),
+        colors = TextFieldDefaults.textFieldColors(
+            containerColor = TRPTheme.colors.secondaryBackground,
+            textColor = TRPTheme.colors.primaryText,
+            cursorColor = TRPTheme.colors.primaryText,
+            focusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            errorIndicatorColor = TRPTheme.colors.errorColor,
+            errorCursorColor = TRPTheme.colors.primaryText
+        ),
+        readOnly = true
+    )
+}
+
+@Composable
+fun TestsField(viewModel: TeacherTaskScreenViewModel) {
+    if (viewModel.teamAppointment.task?.tests?.isNotEmpty() == true) {
+        Text(
+            text = "Tests",
+            color = TRPTheme.colors.primaryText,
+            fontSize = 15.sp,
+            modifier = Modifier
+                .alpha(0.6f)
+                .padding(start = 5.dp, top = 10.dp)
+        )
+        Column(
+            modifier = Modifier
+                .padding(horizontal = 5.dp)
+                .fillMaxWidth()
+        ) {
+            viewModel.teamAppointment.task?.tests?.forEach { test ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (test.isOpen == true) {
+                        Icon(
+                            imageVector = Icons.Filled.LockOpen,
+                            tint = TRPTheme.colors.primaryText.copy(alpha = 0.6f),
+                            contentDescription = "This test is lock"
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Filled.Lock,
+                            tint = TRPTheme.colors.primaryText.copy(alpha = 0.6f),
+                            contentDescription = "This test is unlock"
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .padding(vertical = 5.dp)
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(TRPTheme.colors.secondaryBackground)
+                    ) {
+                        Text(
+                            modifier = Modifier.padding(start = 5.dp, top = 5.dp, bottom = 5.dp),
+                            text = "${test.input} -> ${test.output}",
+                            color = TRPTheme.colors.primaryText
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ReviewScreen(viewModel: TeacherTaskScreenViewModel) {
+    LazyColumn(
+        modifier = Modifier
+            .padding(horizontal = 5.dp)
+            .fillMaxSize()
+    ) {
+        item { Spacer(modifier = Modifier.size(5.dp)) }
+        item { ReviewField(viewModel = viewModel) }
+        item { Spacer(modifier = Modifier.size(5.dp)) }
+        item { Messages(viewModel = viewModel) }
+        item { Spacer(modifier = Modifier.size(5.dp)) }
+        if (viewModel.teamAppointment.status != TaskStatus.Rated.status) {
+            item { Comments(viewModel = viewModel) }
+            item { AcceptSubmitRejectButtons(viewModel = viewModel) }
+        }
+        item { Spacer(modifier = Modifier.size(100.dp)) }
+    }
+}
+
+@Composable
+fun ReviewField(viewModel: TeacherTaskScreenViewModel) {
     val freeScrollState = rememberFreeScrollState()
     val primaryBackground = TRPTheme.colors.primaryBackground.copy(alpha = 0.6f)
     val secondaryBackground = TRPTheme.colors.secondaryBackground.copy(alpha = 0.6f)
     val selectedColor = TRPTheme.colors.okColor.copy(alpha = 0.3f)
 
     Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                top = paddingValues.calculateTopPadding() + 10.dp,
-                start = 5.dp,
-                end = 5.dp
-            ),
+        modifier = Modifier.fillMaxWidth(),
         color = Color.Transparent,
         shape = RoundedCornerShape(8.dp),
         shadowElevation = 6.dp
@@ -233,10 +487,69 @@ fun ReviewField(
 }
 
 @Composable
+fun Messages(viewModel: TeacherTaskScreenViewModel) {
+    if (viewModel.currentCodeReview.notes?.isNotEmpty() == true) {
+        Column {
+            Text(
+                text = "Comments",
+                color = TRPTheme.colors.primaryText,
+                fontSize = 15.sp
+            )
+            Spacer(modifier = Modifier.size(10.dp))
+            viewModel.currentCodeReview.notes?.forEach { note ->
+                Message(
+                    viewModel = viewModel,
+                    note = note
+                )
+                Spacer(modifier = Modifier.size(10.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun Message(
+    viewModel: TeacherTaskScreenViewModel,
+    note: Note
+) {
+    Surface(
+        color = TRPTheme.colors.secondaryBackground,
+        shape = RoundedCornerShape(8.dp),
+        shadowElevation = 6.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(5.dp)
+        ) {
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = note.author?.fullName ?: "",
+                color = TRPTheme.colors.primaryText.copy(alpha = 0.6f),
+                textAlign = if (note.author?.fullName == viewModel.user.username) {
+                    TextAlign.End
+                } else {
+                    TextAlign.Start
+                }
+            )
+            Spacer(modifier = Modifier.size(5.dp))
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = note.message ?: "",
+                color = TRPTheme.colors.primaryText,
+                textAlign = if (note.author?.fullName == viewModel.user.username) {
+                    TextAlign.End
+                } else {
+                    TextAlign.Start
+                }
+            )
+        }
+    }
+}
+
+@Composable
 fun Comments(
     viewModel: TeacherTaskScreenViewModel
 ) {
-    Column(modifier = Modifier.padding(top = 10.dp)) {
+    Column {
         viewModel.commentList.forEachIndexed { index, _ ->
             Comment(viewModel = viewModel, index = index)
         }
@@ -244,7 +557,6 @@ fun Comments(
     Button(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 5.dp)
             .height(55.dp),
         onClick = { viewModel.addComment() },
         colors = ButtonDefaults.buttonColors(
@@ -379,7 +691,7 @@ fun AcceptSubmitRejectButtons(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 10.dp, horizontal = 5.dp),
+            .padding(vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceAround
     ) {
@@ -584,7 +896,6 @@ fun SubmitDialog(viewModel: TeacherTaskScreenViewModel) {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AcceptDialog(viewModel: TeacherTaskScreenViewModel) {
     AlertDialog(
@@ -598,68 +909,32 @@ fun AcceptDialog(viewModel: TeacherTaskScreenViewModel) {
         containerColor = TRPTheme.colors.primaryBackground,
         text = {
             Column {
-                OutlinedTextField(
-                    modifier = Modifier
-                        .padding(bottom = 10.dp)
-                        .fillMaxWidth()
-                        .height(100.dp),
-                    textStyle = TextStyle.Default.copy(fontSize = 15.sp),
-                    value = viewModel.reviewMessage,
-                    onValueChange = { viewModel.updateReviewMessage(it) },
-                    placeholder = {
-                        Text(
-                            "Message",
-                            color = TRPTheme.colors.primaryText,
-                            modifier = Modifier.alpha(0.6f),
-                            fontSize = 15.sp
-                        )
-                    },
-                    shape = RoundedCornerShape(8.dp),
-                    colors = TextFieldDefaults.textFieldColors(
-                        containerColor = TRPTheme.colors.secondaryBackground,
-                        textColor = TRPTheme.colors.primaryText,
-                        cursorColor = TRPTheme.colors.primaryText,
-                        focusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        errorIndicatorColor = TRPTheme.colors.errorColor,
-                        errorCursorColor = TRPTheme.colors.primaryText
-                    ),
-                    isError = viewModel.reviewMessage.isEmpty()
-                )
-                Column {
-                    viewModel.teamAppointment.team?.students?.forEachIndexed { index, student ->
-                        Text(
-                            text = "${student.fullName}: ${(viewModel.rateList[index].grade)}",
-                            color = TRPTheme.colors.primaryText
-                        )
-                        Slider(
-                            value = viewModel.rateList[index].grade?.toFloat()?.div(100f) ?: 0f,
-                            onValueChange = {
-                                viewModel.updateMark(it, index)
-                            },
-                            colors = SliderDefaults.colors(
-                                thumbColor = TRPTheme.colors.myYellow,
-                                activeTrackColor = TRPTheme.colors.myYellow,
-                                activeTickColor = Color.Transparent,
-                                inactiveTickColor = Color.Transparent
-                            ),
-                            valueRange = 0f..viewModel.maxRate,
-                            steps = (viewModel.maxRate * 100).toInt()
-                        )
-                    }
+                viewModel.teamAppointment.team?.students?.forEachIndexed { index, student ->
+                    Text(
+                        text = "${student.fullName}: ${(viewModel.rateList[index].grade)}",
+                        color = TRPTheme.colors.primaryText
+                    )
+                    Slider(
+                        value = viewModel.rateList[index].grade?.toFloat()?.div(100f) ?: 0f,
+                        onValueChange = {
+                            viewModel.updateMark(it, index)
+                        },
+                        colors = SliderDefaults.colors(
+                            thumbColor = TRPTheme.colors.myYellow,
+                            activeTrackColor = TRPTheme.colors.myYellow,
+                            activeTickColor = Color.Transparent,
+                            inactiveTickColor = Color.Transparent
+                        ),
+                        valueRange = 0f..viewModel.maxRate,
+                        steps = (viewModel.maxRate * 100).toInt()
+                    )
                 }
             }
         },
         confirmButton = {
             Button(
-                modifier = Modifier.alpha(if (viewModel.reviewMessage.isEmpty()) 0.6f else 1.0f),
                 onClick = { viewModel.acceptConfirmButtonClick() },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = TRPTheme.colors.myYellow,
-                    disabledContainerColor = TRPTheme.colors.myYellow
-                ),
-                enabled = viewModel.reviewMessage.isNotEmpty()
+                colors = ButtonDefaults.buttonColors(containerColor = TRPTheme.colors.myYellow)
             ) {
                 Text(
                     text = "Confirm",
@@ -680,4 +955,62 @@ fun AcceptDialog(viewModel: TeacherTaskScreenViewModel) {
         },
         properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = true)
     )
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun HistoryScreen(
+    viewModel: TeacherTaskScreenViewModel,
+    onOldCodeReviewClick: (codeReviewId: Int) -> Unit
+) {
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = viewModel.isRefreshing,
+        onRefresh = { viewModel.onRefresh() }
+    )
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pullRefresh(state = pullRefreshState)
+    ) {
+        LazyColumn(
+            modifier = Modifier
+                .padding(horizontal = 5.dp)
+                .fillMaxSize()
+        ) {
+            items(viewModel.codeReviews.size) { index ->
+                Button(
+                    modifier = Modifier
+                        .padding(vertical = 8.dp)
+                        .fillMaxSize(),
+                    onClick = { viewModel.codeReviews[index].id?.let { onOldCodeReviewClick(it) } },
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = 10.dp
+                    ),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = TRPTheme.colors.cardButtonColor
+                    ),
+                    shape = RoundedCornerShape(30.dp)
+                ) {
+                    Text(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(top = 16.dp, bottom = 16.dp)
+                            .align(Alignment.CenterVertically),
+                        textAlign = TextAlign.Start,
+                        text = "Review ${viewModel.codeReviews[index].id}",
+                        color = TRPTheme.colors.primaryText,
+                        fontSize = 25.sp
+                    )
+                }
+            }
+            item { Spacer(modifier = Modifier.size(100.dp)) }
+        }
+        PullRefreshIndicator(
+            modifier = Modifier.align(Alignment.TopCenter),
+            refreshing = viewModel.isRefreshing,
+            state = pullRefreshState,
+            backgroundColor = TRPTheme.colors.primaryBackground,
+            contentColor = TRPTheme.colors.myYellow
+        )
+    }
 }
