@@ -112,7 +112,21 @@ class TaskScreenViewModel @AssistedInject constructor(
             user = repository.user
             teamAppointment =
                 repository.getTeamAppointment(teamAppointmentId)?.let { appointment ->
-                    appointment.copy(task = appointment.task?.id?.let { repository.getTask(it) })
+                    if (appointment.task?.testable == true) {
+                        appointment.copy(task = appointment.task.id?.let { taskId ->
+                            repository.getTask(
+                                taskId = taskId,
+                                testable = true
+                            )
+                        })
+                    } else {
+                        appointment.copy(task = appointment.task?.id?.let { taskId ->
+                            repository.getTask(
+                                taskId = taskId,
+                                testable = false
+                            )
+                        })
+                    }
                 } ?: TeamAppointment()
             solutionTextFieldValue = TextFieldValue(
                 annotatedString = parseCodeAsAnnotatedString(
@@ -231,32 +245,51 @@ class TaskScreenViewModel @AssistedInject constructor(
                     }
                 }
                 val output = teamAppointment.task?.id?.let { repository.runCode(it) }
-                if (output?.data?.testPassed != null && output.data.totalTests != null) {
-                    if (output.data.testPassed == output.data.totalTests) {
-                        outputText =
-                            "Test passed: ${output.data.testPassed} / ${output.data.totalTests}"
-                        reviewButtonEnabled =
-                            repository.user.id == teamAppointment.team?.leaderStudentId
-                    } else {
-                        outputText = if (output.data.testsInfo?.isNotEmpty() == true) {
-                            "Test passed: ${output.data.testPassed} / ${output.data.totalTests}\n" +
-                                    "--------------------------------------------\n" +
-                                    output.data.testsInfo.joinToString(separator = "\n") { test ->
-                                        "input: " + test.input +
-                                                "\noutput: " + test.output +
-                                                "\nexpected: " + test.expected +
-                                                "\n--------------------------------------------\n"
-                                    }
+                if (teamAppointment.task?.testable == true) {
+                    if (output?.data?.testPassed != null && output.data.totalTests != null) {
+                        if (output.data.testPassed == output.data.totalTests) {
+                            outputText =
+                                "Test passed: ${output.data.testPassed} / ${output.data.totalTests}"
+                            reviewButtonEnabled =
+                                repository.user.id == teamAppointment.team?.leaderStudentId
                         } else {
-                            "Test passed: ${output.data.testPassed} / ${output.data.totalTests}"
+                            outputText = if (output.data.testsInfo?.isNotEmpty() == true) {
+                                "Test passed: ${output.data.testPassed} / ${output.data.totalTests}\n" +
+                                        "--------------------------------------------\n" +
+                                        output.data.testsInfo.joinToString(separator = "\n") { test ->
+                                            "Input: " + test.input +
+                                                    "\nOutput: " + test.output +
+                                                    "\nExpected: " + test.expected +
+                                                    "\n--------------------------------------------\n"
+                                        }
+                            } else {
+                                "Test passed: ${output.data.testPassed} / ${output.data.totalTests}"
+                            }
+                            reviewButtonEnabled = false
                         }
-                        reviewButtonEnabled = false
+                    } else {
+                        outputText = when (output?.error) {
+                            "ERROR WHILE COMPILATION CODE" -> "Compilation error"
+                            "ERROR WHILE EXECUTE CODE" -> "Execute error"
+                            "TIMEOUT ERROR" -> "Timeout error"
+                            else -> "Error"
+                        }
                     }
-
                 } else {
-                    outputText = when (output?.error) {
-                        "ERROR WHILE COMPILATION CODE" -> "Compilation error"
-                        else -> "Error"
+                    if (output?.error != null) {
+                        outputText = when (output.error) {
+                            "ERROR WHILE COMPILATION CODE" -> "Compilation error"
+                            "ERROR WHILE EXECUTE CODE" -> "Execute error"
+                            "TIMEOUT ERROR" -> "Timeout error"
+                            else -> "Error"
+                        }
+                    } else {
+                        if (output?.data?.executeInfo?.stdout != null) {
+                            outputText = "Stdout: " + output.data.executeInfo.stdout + "\n"
+                        }
+                        if (output?.data?.executeInfo?.stderr != null) {
+                            outputText += "Stderr: " + output.data.executeInfo.stderr
+                        }
                     }
                 }
                 codeBck = solutionTextFieldValue.text
@@ -393,7 +426,21 @@ class TaskScreenViewModel @AssistedInject constructor(
                 }
                 teamAppointment =
                     repository.getTeamAppointment(teamAppointmentId)?.let { appointment ->
-                        appointment.copy(task = appointment.task?.id?.let { repository.getTask(it) })
+                        if (appointment.task?.testable == true) {
+                            appointment.copy(task = appointment.task.id?.let { taskId ->
+                                repository.getTask(
+                                    taskId = taskId,
+                                    testable = true
+                                )
+                            })
+                        } else {
+                            appointment.copy(task = appointment.task?.id?.let { taskId ->
+                                repository.getTask(
+                                    taskId = taskId,
+                                    testable = false
+                                )
+                            })
+                        }
                     } ?: TeamAppointment()
                 currentCodeReview =
                     currentCodeReview.id?.let { repository.getCodeReview(it) }?.let { codeReview ->

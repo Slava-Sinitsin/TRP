@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.trp.data.mappers.TeamAppointment
 import com.example.trp.data.mappers.tasks.Lab
+import com.example.trp.data.mappers.user.User
 import com.example.trp.data.repository.UserAPIRepositoryImpl
 import com.example.trp.ui.components.TaskStatus
 import dagger.assisted.Assisted
@@ -22,6 +23,8 @@ class TasksScreenViewModel @AssistedInject constructor(
     @Assisted
     val disciplineId: Int
 ) : ViewModel() {
+    var user by mutableStateOf(User())
+        private set
     var teamAppointments by mutableStateOf(emptyList<TeamAppointment>())
         private set
     var errorMessage by mutableStateOf("")
@@ -56,6 +59,7 @@ class TasksScreenViewModel @AssistedInject constructor(
 
     private suspend fun init() {
         try {
+            user = repository.user
             labs = repository.getLabs(disciplineId = disciplineId).sortedBy { it.id }
             teamAppointments = repository.getTeamAppointments(disciplineId = disciplineId)
                 .sortedBy { it.task?.labWorkId }

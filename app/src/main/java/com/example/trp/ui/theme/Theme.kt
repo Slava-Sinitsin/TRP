@@ -7,9 +7,9 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @Composable
 fun TRPTheme(
-    TRPThemeSettings: TRPThemeSettings = TRPThemeDefaultSettings,
+    trpThemeSettings: TRPThemeSettings = TRPThemeDefaultSettings,
     content: @Composable () -> Unit
-) = with(TRPThemeSettings) {
+) = with(trpThemeSettings) {
     val colors = when (isDarkMode) {
         true -> darkScheme
         false -> lightScheme

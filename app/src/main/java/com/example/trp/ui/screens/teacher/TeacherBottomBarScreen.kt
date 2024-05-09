@@ -2,7 +2,6 @@ package com.example.trp.ui.screens.teacher
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Checklist
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.ui.graphics.vector.ImageVector
 
@@ -11,17 +10,17 @@ sealed class TeacherBottomBarScreen(
     val icon: ImageVector,
     val route: String,
 ) {
-    object TeacherDisciplines : TeacherBottomBarScreen(
+    object Checklist : TeacherBottomBarScreen(
         title = "Checklist",
         icon = Icons.Filled.Checklist,
         route = "checklist",
     )
 
-    object Home : TeacherBottomBarScreen(
+/*    object Home : TeacherBottomBarScreen(
         title = "Home",
         icon = Icons.Filled.Home,
         route = "home"
-    )
+    )*/ // TODO
 
     object Me : TeacherBottomBarScreen(
         title = "Me",

@@ -101,11 +101,15 @@ class UserAPIRepositoryImpl(
         return ApiService.userAPI.getTasks("Bearer $token", labId)
     }
 
-    override suspend fun getTaskDescriptionResponse(
+    override suspend fun getTask(token: String, id: Int): Response<TaskResponse> {
+        return ApiService.userAPI.getTask("Bearer $token", id)
+    }
+
+    override suspend fun getTaskWithOpenTests(
         token: String,
         id: Int
     ): Response<TaskResponse> {
-        return ApiService.userAPI.getTaskDescriptionResponse("Bearer $token", id)
+        return ApiService.userAPI.getTaskWithOpenTests("Bearer $token", id)
     }
 
     override suspend fun getDisciplineByID(token: String, id: Int): Response<DisciplineResponse> {
@@ -427,23 +431,22 @@ class UserAPIRepositoryImpl(
 
     suspend fun getTask(
         taskId: Int,
-        withSolution: Boolean = true,
-        withAllTests: Boolean = false
+        testable: Boolean = false,
+        isTeacher: Boolean = false
     ): Task {
-        val taskResponse =
-            user.token?.let { getTaskDescriptionResponse(it, taskId) }
-        taskResponse?.body()?.let {
-            task = it.task ?: Task()
-            if (withAllTests) {
-                task = task.copy(tests = getTests(taskId))
+        return if (testable) {
+            if (isTeacher) {
+                getTask(taskId).copy(tests = getTests(taskId))
+            } else {
+                getTaskWithOpenTests(taskId)?.copy(solution = getTaskSolution(taskId)) ?: Task()
             }
-            if (task != Task() && withSolution) {
-                task = task.copy(solution = getTaskSolution(taskId))
+        } else {
+            if (isTeacher) {
+                getTask(taskId)
+            } else {
+                getTask(taskId).copy(solution = getTaskSolution(taskId))
             }
-        } ?: taskResponse?.errorBody()?.let {
-            task = Task()
         }
-        return task
     }
 
     private suspend fun getTaskSolution(taskId: Int): Solution {
@@ -667,5 +670,17 @@ class UserAPIRepositoryImpl(
                 postMultilineNoteBody
             )
         }?.body()
+    }
+
+    private suspend fun getTask(
+        taskId: Int,
+    ): Task {
+        return user.token?.let { token -> getTask(token, taskId) }?.body()?.task ?: Task()
+    }
+
+    private suspend fun getTaskWithOpenTests(
+        taskId: Int,
+    ): Task? {
+        return user.token?.let { token -> getTaskWithOpenTests(token, taskId) }?.body()?.task
     }
 }

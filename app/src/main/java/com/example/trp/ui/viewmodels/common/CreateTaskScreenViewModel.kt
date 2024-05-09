@@ -22,7 +22,7 @@ class CreateTaskScreenViewModel @AssistedInject constructor(
     val labId: Int
 ) : ViewModel() {
     val languageList =
-        listOf("c", "c++")
+        listOf("c"/*, "c++"*/)
     private val cTypeList =
         listOf(
             "int",
@@ -43,7 +43,7 @@ class CreateTaskScreenViewModel @AssistedInject constructor(
         private set
     var description by mutableStateOf("")
         private set
-    var language by mutableStateOf("")
+    var language by mutableStateOf(languageList[0])
         private set
     var testableList by mutableStateOf(listOf("Yes", "No"))
         private set

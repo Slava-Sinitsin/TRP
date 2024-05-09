@@ -65,8 +65,14 @@ interface UserAPI {
         @Path("id") labId: Int
     ): Response<Tasks>
 
+    @GET("api/v2/lab-work-variants/{id}")
+    suspend fun getTask(
+        @Header("Authorization") token: String,
+        @Path("id") id: Int
+    ): Response<TaskResponse>
+
     @GET("api/v2/lab-work-variants/{id}/openTests")
-    suspend fun getTaskDescriptionResponse(
+    suspend fun getTaskWithOpenTests(
         @Header("Authorization") token: String,
         @Path("id") id: Int
     ): Response<TaskResponse>

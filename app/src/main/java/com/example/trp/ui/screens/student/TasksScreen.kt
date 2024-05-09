@@ -142,11 +142,21 @@ fun Task(
             if (index < viewModel.teamAppointments.size) {
                 val status = viewModel.getStatus(index)
                 if (status == TaskStatus.Rated) {
-                    Icon(
-                        imageVector = Icons.Filled.Done,
-                        contentDescription = "Task is graded",
-                        tint = TRPTheme.colors.okColor
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Filled.Done,
+                            contentDescription = "Task is graded",
+                            tint = TRPTheme.colors.okColor
+                        )
+                        Spacer(modifier = Modifier.size(5.dp))
+                        Text(
+                            text =
+                            viewModel.teamAppointments[index].ratings?.find { rating ->
+                                rating.studentId == viewModel.user.id
+                            }?.let { rating -> rating.grade.toString() } ?: "",
+                            fontSize = 15.sp
+                        )
+                    }
                 } else {
                     CircularProgressIndicator(
                         progress = status.progress,

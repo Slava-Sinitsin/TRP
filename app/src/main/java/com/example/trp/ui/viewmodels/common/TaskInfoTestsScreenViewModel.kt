@@ -160,7 +160,7 @@ class TaskInfoTestsScreenViewModel @AssistedInject constructor(
                         language = taskLanguage
                     )
                 )
-                task = repository.getTask(taskId)
+                task = repository.getTask(taskId = taskId, isTeacher = true)
                 taskReadOnlyMode = taskReadOnlyMode.copy(first = true, second = 0.6f)
                 responseSuccess = true
             } catch (e: SocketTimeoutException) {

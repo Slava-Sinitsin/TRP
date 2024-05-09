@@ -10,23 +10,22 @@ import com.example.trp.domain.navigation.common.RootNavGraph
 import com.example.trp.ui.screens.common.MeScreen
 import com.example.trp.ui.screens.teacher.TeacherBottomBarScreen
 import com.example.trp.ui.screens.teacher.TeacherDisciplinesScreen
-import com.example.trp.ui.screens.teacher.TeacherHomeScreen
 
 @Composable
 fun TeacherWelcomeNavGraph(navController: NavHostController) {
     NavHost(
         navController = navController,
         route = Graph.TEACHER_WELCOME,
-        startDestination = TeacherBottomBarScreen.Home.route
+        startDestination = TeacherBottomBarScreen.Checklist.route // TODO
     ) {
-        composable(route = TeacherBottomBarScreen.TeacherDisciplines.route) {
+        composable(route = TeacherBottomBarScreen.Checklist.route) {
             TeacherDisciplinesScreen(onDisciplineClick = { disciplineId ->
                 navController.navigate("${Graph.TEACHER_DISCIPLINES}/${disciplineId}")
             })
         }
-        composable(route = TeacherBottomBarScreen.Home.route) {
+/*        composable(route = TeacherBottomBarScreen.Home.route) {
             TeacherHomeScreen(onEventClick = { taskId -> })
-        }
+        }*/ // TODO
         composable(route = TeacherBottomBarScreen.Me.route) {
             MeScreen(navController = navController)
         }

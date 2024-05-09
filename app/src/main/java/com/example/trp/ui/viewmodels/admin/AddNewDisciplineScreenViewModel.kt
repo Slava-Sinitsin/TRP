@@ -48,6 +48,8 @@ class AddNewDisciplineScreenViewModel @AssistedInject constructor(
         private set
     var groups by mutableStateOf(emptyList<Group>())
         private set
+    var selectableGroups by mutableStateOf(emptyList<Pair<Group, Boolean>>())
+        private set
     var selectedTeacher by mutableStateOf(Teacher())
         private set
     var errorMessage by mutableStateOf("")
@@ -81,6 +83,7 @@ class AddNewDisciplineScreenViewModel @AssistedInject constructor(
         try {
             teachers = repository.getTeachers().sortedBy { it.fullName }
             groups = repository.getGroups().sortedBy { it.name }
+            selectableGroups = groups.map { it to false }
         } catch (e: SocketTimeoutException) {
             updateErrorMessage("Timeout")
         } catch (e: ConnectException) {
@@ -95,8 +98,8 @@ class AddNewDisciplineScreenViewModel @AssistedInject constructor(
     }
 
     fun updateNameValue(newNameValue: String) {
-        applyButtonEnabled = newNameValue.isNotEmpty()
         disciplineName = newNameValue
+        checkFields()
     }
 
     fun updateYearValue(newYearValue: String) {
@@ -169,12 +172,35 @@ class AddNewDisciplineScreenViewModel @AssistedInject constructor(
 
     fun onTeacherClick(index: Int) {
         selectedTeacher = teachers[index]
+        checkFields()
         selectedTabIndex = 0
     }
 
     fun onDeleteGroupClick(index: Int) {
-        groups = groups.filterIndexed { currentIndex, _ ->
-            currentIndex != index
+        selectableGroups = selectableGroups.mapIndexed { currentIndex, item ->
+            if (currentIndex == index) {
+                item.copy(second = false)
+            } else {
+                item
+            }
         }
+        checkFields()
+    }
+
+    fun onGroupClick(index: Int) {
+        selectableGroups = selectableGroups.mapIndexed { currentIndex, item ->
+            if (currentIndex == index) {
+                item.copy(second = !item.second)
+            } else {
+                item
+            }
+        }
+        checkFields()
+    }
+
+    private fun checkFields() {
+        applyButtonEnabled = disciplineName.isNotBlank()
+                && selectedTeacher != Teacher()
+                && selectableGroups.any { it.second }
     }
 }

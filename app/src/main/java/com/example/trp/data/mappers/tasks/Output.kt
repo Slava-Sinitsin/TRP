@@ -8,5 +8,6 @@ data class Output(
     @SerializedName("errorStatus") val errorStatus: Int? = null,
     @SerializedName("errorMessage") val errorMessage: String? = null,
     @SerializedName("failedTestIds") val failedTestIds: List<Int>? = null,
-    @SerializedName("testsInfo") val testsInfo: List<TestsInfo>? = null
+    @SerializedName("testsInfo") val testsInfo: List<TestsInfo>? = null,
+    @SerializedName("executeInfo") val executeInfo: ExecuteInfo? = null
 )

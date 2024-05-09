@@ -486,7 +486,7 @@ fun GroupsSelectField(
     Button(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 5.dp, start = 5.dp, end = 5.dp),
+            .padding(horizontal = 5.dp),
         onClick = { viewModel.setPagerState(2) },
         colors = ButtonDefaults.buttonColors(
             containerColor = TRPTheme.colors.cardButtonColor
@@ -512,23 +512,27 @@ fun GroupsSelectField(
             )
         }
     }
-    viewModel.groups.forEachIndexed { index, group ->
-        Group(
-            group = group,
-            onDeleteGroupClick = { viewModel.onDeleteGroupClick(index) }
-        )
+    Spacer(modifier = Modifier.size(10.dp))
+    viewModel.selectableGroups.forEachIndexed { index, group ->
+        if (group.second) {
+            Group(
+                group = group,
+                onDeleteGroupClick = { viewModel.onDeleteGroupClick(index) }
+            )
+            Spacer(modifier = Modifier.size(5.dp))
+        }
     }
 }
 
 @Composable
 fun Group(
-    group: Group,
+    group: Pair<Group, Boolean>,
     onDeleteGroupClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 5.dp, horizontal = 5.dp),
+            .padding(horizontal = 5.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Button(
@@ -546,7 +550,7 @@ fun Group(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 5.dp),
-                text = group.name ?: "",
+                text = group.first.name ?: "",
                 color = TRPTheme.colors.primaryText,
                 fontSize = 15.sp
             )
@@ -639,13 +643,12 @@ fun GroupsSelectScreen(
             .background(TRPTheme.colors.primaryBackground)
             .padding(top = paddingValues.calculateTopPadding()),
     ) {
-        items(count = viewModel.groups.size) { index ->
-            var checked by remember { mutableStateOf(false) }
+        items(count = viewModel.selectableGroups.size) { index ->
             Button(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(8.dp),
-                onClick = { checked = !checked },
+                onClick = { viewModel.onGroupClick(index) },
                 elevation = ButtonDefaults.buttonElevation(defaultElevation = 10.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = TRPTheme.colors.cardButtonColor),
                 shape = RoundedCornerShape(8.dp),
@@ -664,8 +667,8 @@ fun GroupsSelectScreen(
                         fontSize = 15.sp
                     )
                     Checkbox(
-                        checked = checked,
-                        onCheckedChange = { checked = !checked },
+                        checked = viewModel.selectableGroups[index].second,
+                        onCheckedChange = { viewModel.onGroupClick(index) },
                         colors = CheckboxDefaults.colors(
                             checkedColor = TRPTheme.colors.myYellow
                         )

@@ -9,6 +9,6 @@ data class TeamAppointment(
     @SerializedName("team") val team: Team? = null,
     @SerializedName("labWorkVariant") val task: Task? = null,
     @SerializedName("status") val status: String? = null,
-    @SerializedName("grade") val grade: Int? = null,
-    @SerializedName("codeReviewIds") val codeReviewIds: List<Int>? = null
+    @SerializedName("codeReviewIds") val codeReviewIds: List<Int>? = null,
+    @SerializedName("ratings") val ratings: List<Rating>? = null
 )

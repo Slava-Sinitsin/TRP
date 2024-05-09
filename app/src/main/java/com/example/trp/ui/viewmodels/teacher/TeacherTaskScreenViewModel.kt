@@ -102,13 +102,23 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
             user = repository.user
             teamAppointment =
                 repository.getTeamAppointment(teamAppointmentId)?.let { appointment ->
-                    appointment.copy(task = appointment.task?.id?.let { taskId ->
-                        repository.getTask(
-                            taskId = taskId,
-                            withSolution = false,
-                            withAllTests = true
-                        )
-                    })
+                    if (appointment.task?.testable == true) {
+                        appointment.copy(task = appointment.task.id?.let { taskId ->
+                            repository.getTask(
+                                taskId = taskId,
+                                testable = true,
+                                isTeacher = true
+                            )
+                        })
+                    } else {
+                        appointment.copy(task = appointment.task?.id?.let { taskId ->
+                            repository.getTask(
+                                taskId = taskId,
+                                testable = false,
+                                isTeacher = true
+                            )
+                        })
+                    }
                 } ?: TeamAppointment()
             codeReviews = teamAppointment.codeReviewIds?.map { codeReviewId ->
                 repository.getCodeReview(codeReviewId)
