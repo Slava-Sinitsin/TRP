@@ -16,6 +16,7 @@ import com.example.trp.data.mappers.tasks.LabsResponse
 import com.example.trp.data.mappers.tasks.OutputResponse
 import com.example.trp.data.mappers.tasks.PostCodeReviewResponse
 import com.example.trp.data.mappers.tasks.PostLabResponse
+import com.example.trp.data.mappers.tasks.PostMultilineNoteBody
 import com.example.trp.data.mappers.tasks.PostNewStudentBody
 import com.example.trp.data.mappers.tasks.PostNewTeacherBody
 import com.example.trp.data.mappers.tasks.PostRateResponse
@@ -281,4 +282,11 @@ interface UserAPI {
         @Header("Authorization") token: String,
         @Path("id") teamAppointmentId: Int,
     ): Response<TeamAppointmentResponse>
+
+    @POST("api/v2/code-reviews/{codeReviewId}/multiline-note")
+    suspend fun postMultilineNote(
+        @Header("Authorization") token: String,
+        @Path("codeReviewId") codeReviewId: Int,
+        @Body postMultilineNoteBody: PostMultilineNoteBody
+    ): Response<CodeReviewResponse>
 }

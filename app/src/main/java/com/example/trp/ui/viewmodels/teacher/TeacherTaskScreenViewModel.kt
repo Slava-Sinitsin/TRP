@@ -11,6 +11,7 @@ import com.example.trp.data.mappers.PostRateBody
 import com.example.trp.data.mappers.Rating
 import com.example.trp.data.mappers.TeamAppointment
 import com.example.trp.data.mappers.tasks.CodeReview
+import com.example.trp.data.mappers.tasks.PostMultilineNoteBody
 import com.example.trp.data.mappers.tasks.solution.CommentLine
 import com.example.trp.data.mappers.user.User
 import com.example.trp.data.repository.UserAPIRepositoryImpl
@@ -26,6 +27,8 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
 import java.net.ConnectException
 import java.net.SocketTimeoutException
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 class TeacherTaskScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
@@ -40,7 +43,8 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
         private set
     var currentCodeReview by mutableStateOf(CodeReview())
         private set
-    var codeList by mutableStateOf(emptyList<Pair<AnnotatedString, Boolean>>())
+    private var codeList by mutableStateOf(emptyList<AnnotatedString>())
+    var padCodeList by mutableStateOf(emptyList<Pair<AnnotatedString, Boolean>>())
         private set
     var commentList by mutableStateOf(emptyList<CommentLine>())
         private set
@@ -66,6 +70,8 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
     var selectedTabIndex by mutableStateOf(1)
     var reviewScreens by mutableStateOf(emptyList<ReviewTabs>())
     var isRefreshing by mutableStateOf(false)
+        private set
+    var codeThreadCommentList by mutableStateOf(emptyList<String>())
         private set
 
     @AssistedFactory
@@ -113,7 +119,18 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
                 || teamAppointment.status == TaskStatus.Rated.status
             ) {
                 currentCodeReview = codeReviews.maxByOrNull { it.id ?: -1 }?.let { codeReview ->
-                    codeReview.copy(notes = codeReview.notes?.sortedBy { it.id })
+                    codeReview.copy(
+                        taskMessages = codeReview.taskMessages?.sortedBy {
+                            ZonedDateTime.parse(it.createdAt).toInstant()
+                        },
+                        codeThreads = codeReview.codeThreads?.map {
+                            it.copy(
+                                messages = it.messages?.sortedBy { message ->
+                                    ZonedDateTime.parse(message.createdAt).toInstant()
+                                }
+                            )
+                        }
+                    )
                 } ?: CodeReview()
                 codeReviews = codeReviews.filter { it.id != currentCodeReview.id }
                 if (codeReviews.isEmpty()) {
@@ -124,11 +141,21 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
             } else {
                 listOf(ReviewTabs.Description, ReviewTabs.History)
             }
-            codeList = padCodeList(splitCode(currentCodeReview.code ?: ""))
+            codeList = splitCode(currentCodeReview.code ?: "").map { code ->
+                parseCodeAsAnnotatedString(
+                    parser = parser,
+                    theme = theme,
+                    lang = language,
+                    code = code.text
+                )
+            }
+            padCodeList = padCodeList(splitCode(currentCodeReview.code ?: ""))
             maxRate = 10.toFloat() / 100f
             rateList = teamAppointment.team?.students?.mapIndexed { _, student ->
                 Rating(studentId = student.id, 8)
             } ?: emptyList()
+            codeThreadCommentList =
+                currentCodeReview.codeThreads?.size?.let { List(it) { "" } } ?: emptyList()
         } catch (e: SocketTimeoutException) {
             updateErrorMessage("Timeout")
         } catch (e: ConnectException) {
@@ -147,6 +174,12 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
 
     fun updateErrorMessage(newMessage: String) {
         errorMessage = newMessage
+    }
+
+    fun getCodeInRange(range: IntRange): List<Pair<Int, AnnotatedString>> {
+        return codeList
+            .filterIndexed { index, _ -> index + 1 in range }
+            .mapIndexed { index, annotatedString -> index + range.first to annotatedString }
     }
 
     private fun splitCode(input: String): List<AnnotatedString> {
@@ -181,7 +214,7 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
         if (numbers.size == 2 && numbers[0] >= numbers[1]) {
             return false
         }
-        return !numbers.any { it < 1 || it > codeList.size }
+        return !numbers.any { it < 1 || it > padCodeList.size }
     }
 
     fun addComment(lines: String = "") {
@@ -194,7 +227,7 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
     }
 
     fun onCodeLineClick(lineNumber: Int) {
-        if (!codeList[lineNumber - 1].second) {
+        if (!padCodeList[lineNumber - 1].second) {
             addComment(lines = lineNumber.toString())
             updateCodeListSelectedLines()
         }
@@ -229,7 +262,7 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
             commentList.forEach { comment ->
                 if (comment.isMatch == false && comment.lines?.let { isValidLines(it) } == true) {
                     parseLineIndexes(comment.lines).forEach { commentLine ->
-                        codeList = codeList.mapIndexed { currentIndex, item ->
+                        padCodeList = padCodeList.mapIndexed { currentIndex, item ->
                             if (currentIndex == commentLine) {
                                 item.copy(second = false)
                             } else {
@@ -240,12 +273,12 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
                 }
             }
         }
-        codeList = codeList.map { it.copy(second = false) }
+        padCodeList = padCodeList.map { it.copy(second = false) }
         commentList.forEach { comment ->
             if (comment.isMatch == true) {
                 val commentLines = comment.lines?.let { parseLineIndexes(it) }
                 commentLines?.forEach { commentLine ->
-                    codeList = codeList.mapIndexed { currentIndex, item ->
+                    padCodeList = padCodeList.mapIndexed { currentIndex, item ->
                         if (currentIndex == commentLine) {
                             item.copy(second = true)
                         } else {
@@ -364,10 +397,38 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
         viewModelScope.launch {
             try {
                 currentCodeReview.id?.let { codeReviewId ->
-                    repository.addNoteToCodeReview(
-                        codeReviewId = codeReviewId,
-                        note = reviewMessage
-                    )
+                    if (reviewMessage.isNotBlank()) {
+                        repository.addNoteToCodeReview(
+                            codeReviewId = codeReviewId,
+                            note = reviewMessage
+                        )
+                    }
+                }
+                commentList.forEach { comment ->
+                    currentCodeReview.id?.let { currentCodeReviewId ->
+                        repository.postMultilineNote(
+                            codeReviewId = currentCodeReviewId,
+                            PostMultilineNoteBody(
+                                note = comment.comment,
+                                beginLineNumber = comment.lines?.let { parseLineIndexes(it).first + 1 },
+                                endLineNumber = comment.lines?.let { parseLineIndexes(it).last + 1 }
+                            )
+                        )
+                    }
+                }
+                codeThreadCommentList.forEachIndexed { index, comment ->
+                    currentCodeReview.id?.let { currentCodeReviewId ->
+                        if (comment.isNotBlank()) {
+                            repository.postMultilineNote(
+                                codeReviewId = currentCodeReviewId,
+                                PostMultilineNoteBody(
+                                    note = comment,
+                                    beginLineNumber = currentCodeReview.codeThreads?.get(index)?.beginLineNumber,
+                                    endLineNumber = currentCodeReview.codeThreads?.get(index)?.endLineNumber
+                                )
+                            )
+                        }
+                    }
                 }
                 showSubmitDialog = false
                 responseSuccess = true
@@ -444,5 +505,21 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
 
     fun updateSelectedTabIndex(index: Int) {
         selectedTabIndex = index
+    }
+
+    fun updateCodeThreadComment(index: Int, comment: String) {
+        codeThreadCommentList = codeThreadCommentList.mapIndexed { currentIndex, item ->
+            if (currentIndex == index) {
+                comment
+            } else {
+                item
+            }
+        }
+    }
+
+    fun formatDate(isoDate: String): String {
+        val dateTime = ZonedDateTime.parse(isoDate)
+        val formatter = DateTimeFormatter.ofPattern("dd.MM HH:mm")
+        return dateTime.format(formatter)
     }
 }

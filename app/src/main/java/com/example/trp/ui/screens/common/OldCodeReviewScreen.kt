@@ -1,8 +1,9 @@
-package com.example.trp.ui.screens.student
+package com.example.trp.ui.screens.common
 
 import android.app.Activity
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -30,10 +32,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.chihsuanwu.freescroll.freeScroll
 import com.chihsuanwu.freescroll.rememberFreeScrollState
-import com.example.trp.data.mappers.tasks.Note
+import com.example.trp.data.mappers.tasks.CodeThread
+import com.example.trp.data.mappers.tasks.TaskMessage
 import com.example.trp.domain.di.ViewModelFactoryProvider
 import com.example.trp.ui.theme.TRPTheme
-import com.example.trp.ui.viewmodels.student.OldCodeReviewScreenViewModel
+import com.example.trp.ui.viewmodels.common.OldCodeReviewScreenViewModel
 import dagger.hilt.android.EntryPointAccessors
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -95,7 +98,7 @@ fun ReviewField(viewModel: OldCodeReviewScreenViewModel) {
                     .background(TRPTheme.colors.cardButtonColor)
                     .verticalScroll(freeScrollState.verticalScrollState)
             ) {
-                viewModel.codeList.forEachIndexed { index, _ ->
+                viewModel.padCodeList.forEachIndexed { index, _ ->
                     Text(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -115,11 +118,11 @@ fun ReviewField(viewModel: OldCodeReviewScreenViewModel) {
                     .background(TRPTheme.colors.secondaryBackground)
                     .freeScroll(freeScrollState)
             ) {
-                viewModel.codeList.forEachIndexed { index, item ->
+                viewModel.padCodeList.forEachIndexed { index, item ->
                     Box(
                         modifier = Modifier
                             .background(
-                                if (viewModel.codeList[index].second) {
+                                if (viewModel.padCodeList[index].second) {
                                     selectedColor
                                 } else if (index % 2 == 0) {
                                     primaryBackground
@@ -139,18 +142,30 @@ fun ReviewField(viewModel: OldCodeReviewScreenViewModel) {
 @Composable
 fun CommentsField(viewModel: OldCodeReviewScreenViewModel) {
     Column {
-        Text(
-            text = "Comments",
-            color = TRPTheme.colors.primaryText,
-            fontSize = 15.sp
-        )
-        Spacer(modifier = Modifier.size(10.dp))
-        viewModel.codeReview.notes?.forEach { note ->
-            Comment(
-                viewModel = viewModel,
-                note = note
+        if (viewModel.codeReview.taskMessages?.isNotEmpty() == true
+            || viewModel.codeReview.codeThreads?.isNotEmpty() == true
+        ) {
+            Text(
+                text = "Comments",
+                color = TRPTheme.colors.primaryText,
+                fontSize = 15.sp
             )
             Spacer(modifier = Modifier.size(10.dp))
+            viewModel.codeReview.taskMessages?.forEach { note ->
+                Comment(
+                    viewModel = viewModel,
+                    taskMessage = note
+                )
+                Spacer(modifier = Modifier.size(10.dp))
+            }
+            Spacer(modifier = Modifier.size(10.dp))
+            viewModel.codeReview.codeThreads?.forEach { codeThread ->
+                CodeThreadField(
+                    viewModel = viewModel,
+                    codeThread = codeThread
+                )
+                Spacer(modifier = Modifier.size(10.dp))
+            }
         }
     }
 }
@@ -158,7 +173,7 @@ fun CommentsField(viewModel: OldCodeReviewScreenViewModel) {
 @Composable
 fun Comment(
     viewModel: OldCodeReviewScreenViewModel,
-    note: Note
+    taskMessage: TaskMessage
 ) {
     Surface(
         color = TRPTheme.colors.secondaryBackground,
@@ -170,9 +185,11 @@ fun Comment(
         ) {
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = note.author?.fullName ?: "",
+                text = "${taskMessage.author?.fullName} ${
+                    taskMessage.createdAt?.let { viewModel.formatDate(it) }
+                }",
                 color = TRPTheme.colors.primaryText.copy(alpha = 0.6f),
-                textAlign = if (note.author?.fullName == viewModel.user.username) {
+                textAlign = if (taskMessage.author?.username == viewModel.user.username) {
                     TextAlign.End
                 } else {
                     TextAlign.Start
@@ -181,14 +198,91 @@ fun Comment(
             Spacer(modifier = Modifier.size(5.dp))
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = note.message ?: "",
+                text = taskMessage.message ?: "",
                 color = TRPTheme.colors.primaryText,
-                textAlign = if (note.author?.fullName == viewModel.user.username) {
+                textAlign = if (taskMessage.author?.username == viewModel.user.username) {
                     TextAlign.End
                 } else {
                     TextAlign.Start
                 }
             )
+        }
+    }
+}
+
+@Composable
+fun CodeThreadField(
+    viewModel: OldCodeReviewScreenViewModel,
+    codeThread: CodeThread
+) {
+    Surface(
+        color = TRPTheme.colors.secondaryBackground,
+        shape = RoundedCornerShape(8.dp),
+        shadowElevation = 6.dp
+    ) {
+        val code = codeThread.beginLineNumber?.let { beginLineNumber ->
+            codeThread.endLineNumber?.let { endLineNumber ->
+                IntRange(beginLineNumber, endLineNumber)
+            }
+        }?.let { range -> viewModel.getCodeInRange(range) }
+        Column {
+            Row {
+                Column(modifier = Modifier.background(TRPTheme.colors.cardButtonColor)) {
+                    code?.forEach { codeLine ->
+                        Text(
+                            modifier = Modifier.padding(horizontal = 5.dp),
+                            text = "${codeLine.first}",
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 15.sp,
+                            color = TRPTheme.colors.primaryText
+                        )
+                    }
+                }
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(TRPTheme.colors.okColor.copy(alpha = 0.3f))
+                        .horizontalScroll(rememberScrollState())
+                ) {
+                    code?.forEach { codeLine ->
+                        Text(
+                            text = codeLine.second,
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 15.sp
+                        )
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.size(10.dp))
+            codeThread.messages?.forEach { message ->
+                Text(
+                    modifier = Modifier
+                        .padding(horizontal = 5.dp)
+                        .fillMaxWidth(),
+                    text = "${message.author?.fullName} ${
+                        message.createdAt?.let { viewModel.formatDate(it) }
+                    }",
+                    color = TRPTheme.colors.primaryText.copy(alpha = 0.6f),
+                    textAlign = if (message.author?.username == viewModel.user.username) {
+                        TextAlign.End
+                    } else {
+                        TextAlign.Start
+                    }
+                )
+                Spacer(modifier = Modifier.size(5.dp))
+                Text(
+                    modifier = Modifier
+                        .padding(horizontal = 5.dp)
+                        .fillMaxWidth(),
+                    text = message.message ?: "",
+                    color = TRPTheme.colors.primaryText,
+                    textAlign = if (message.author?.username == viewModel.user.username) {
+                        TextAlign.End
+                    } else {
+                        TextAlign.Start
+                    }
+                )
+            }
         }
     }
 }

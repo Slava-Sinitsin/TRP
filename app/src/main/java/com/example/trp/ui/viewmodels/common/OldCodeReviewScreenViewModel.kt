@@ -1,4 +1,4 @@
-package com.example.trp.ui.viewmodels.student
+package com.example.trp.ui.viewmodels.common
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -20,6 +20,8 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
 import java.net.ConnectException
 import java.net.SocketTimeoutException
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 class OldCodeReviewScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
@@ -30,7 +32,8 @@ class OldCodeReviewScreenViewModel @AssistedInject constructor(
         private set
     var errorMessage by mutableStateOf("")
         private set
-    var codeList by mutableStateOf(emptyList<Pair<AnnotatedString, Boolean>>())
+    private var codeList by mutableStateOf(emptyList<AnnotatedString>())
+    var padCodeList by mutableStateOf(emptyList<Pair<AnnotatedString, Boolean>>())
         private set
     private val language = CodeLang.C
     private val parser by mutableStateOf(PrettifyParser())
@@ -62,9 +65,28 @@ class OldCodeReviewScreenViewModel @AssistedInject constructor(
         viewModelScope.launch {
             try {
                 codeReview = repository.getCodeReview(codeReviewId).let { codeReview ->
-                    codeReview.copy(notes = codeReview.notes?.sortedBy { it.id })
+                    codeReview.copy(
+                        taskMessages = codeReview.taskMessages?.sortedBy {
+                            ZonedDateTime.parse(it.createdAt).toInstant()
+                        },
+                        codeThreads = codeReview.codeThreads?.map {
+                            it.copy(
+                                messages = it.messages?.sortedBy { message ->
+                                    ZonedDateTime.parse(message.createdAt).toInstant()
+                                }
+                            )
+                        }
+                    )
                 }
-                codeList = padCodeList(splitCode(codeReview.code ?: ""))
+                codeList = splitCode(codeReview.code ?: "").map { code ->
+                    parseCodeAsAnnotatedString(
+                        parser = parser,
+                        theme = theme,
+                        lang = language,
+                        code = code.text
+                    )
+                }
+                padCodeList = padCodeList(splitCode(codeReview.code ?: ""))
                 user = repository.user
             } catch (e: SocketTimeoutException) {
                 updateErrorMessage("Timeout")
@@ -101,5 +123,17 @@ class OldCodeReviewScreenViewModel @AssistedInject constructor(
                 ), false
             )
         }
+    }
+
+    fun getCodeInRange(range: IntRange): List<Pair<Int, AnnotatedString>> {
+        return codeList
+            .filterIndexed { index, _ -> index + 1 in range }
+            .mapIndexed { index, annotatedString -> index + range.first to annotatedString }
+    }
+
+    fun formatDate(isoDate: String): String {
+        val dateTime = ZonedDateTime.parse(isoDate)
+        val formatter = DateTimeFormatter.ofPattern("dd.MM HH:mm")
+        return dateTime.format(formatter)
     }
 }

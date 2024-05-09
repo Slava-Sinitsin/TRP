@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.trp.data.mappers.TeamAppointment
 import com.example.trp.data.mappers.tasks.CodeReview
+import com.example.trp.data.mappers.tasks.PostMultilineNoteBody
 import com.example.trp.data.mappers.user.User
 import com.example.trp.data.repository.UserAPIRepositoryImpl
 import com.example.trp.ui.components.TaskStatus
@@ -24,6 +25,8 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
 import java.net.ConnectException
 import java.net.SocketTimeoutException
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 class TaskScreenViewModel @AssistedInject constructor(
     val repository: UserAPIRepositoryImpl,
@@ -70,12 +73,15 @@ class TaskScreenViewModel @AssistedInject constructor(
         private set
     var currentCodeReview by mutableStateOf(CodeReview())
         private set
-    var codeList by mutableStateOf(emptyList<Pair<AnnotatedString, Boolean>>())
+    private var codeList by mutableStateOf(emptyList<AnnotatedString>())
+    var padCodeList by mutableStateOf(emptyList<Pair<AnnotatedString, Boolean>>())
         private set
     var isAddMessageDialogShow by mutableStateOf(false)
         private set
     var reviewMessage by mutableStateOf("")
     var isRefreshing by mutableStateOf(false)
+        private set
+    var codeThreadCommentList by mutableStateOf(emptyList<String>())
         private set
 
     @AssistedFactory
@@ -123,9 +129,28 @@ class TaskScreenViewModel @AssistedInject constructor(
                 repository.getCodeReview(it)
             }?.sortedByDescending { it.id } ?: emptyList()
             currentCodeReview = codeReviews.maxByOrNull { it.id ?: -1 }?.let { codeReview ->
-                codeReview.copy(notes = codeReview.notes?.sortedBy { it.id })
+                codeReview.copy(
+                    taskMessages = codeReview.taskMessages?.sortedBy {
+                        ZonedDateTime.parse(it.createdAt).toInstant()
+                    },
+                    codeThreads = codeReview.codeThreads?.map {
+                        it.copy(
+                            messages = it.messages?.sortedBy { message ->
+                                ZonedDateTime.parse(message.createdAt).toInstant()
+                            }
+                        )
+                    }
+                )
             } ?: CodeReview()
-            codeList = padCodeList(splitCode(currentCodeReview.code ?: ""))
+            codeList = splitCode(currentCodeReview.code ?: "").map { code ->
+                parseCodeAsAnnotatedString(
+                    parser = parser,
+                    theme = theme,
+                    lang = language,
+                    code = code.text
+                )
+            }
+            padCodeList = padCodeList(splitCode(currentCodeReview.code ?: ""))
             reviewButtonEnabled = teamAppointment.status == TaskStatus.Tested.status
             taskScreens =
                 if (teamAppointment.status == TaskStatus.New.status
@@ -148,6 +173,8 @@ class TaskScreenViewModel @AssistedInject constructor(
                         listOf(TaskTabs.Description, TaskTabs.Review, TaskTabs.History)
                     }
                 }
+            codeThreadCommentList =
+                currentCodeReview.codeThreads?.size?.let { List(it) { "" } } ?: emptyList()
         } catch (e: SocketTimeoutException) {
             updateErrorMessage("Timeout")
         } catch (e: ConnectException) {
@@ -195,20 +222,37 @@ class TaskScreenViewModel @AssistedInject constructor(
             runCodeButtonEnabled = false
             reviewButtonEnabled = false
             try {
-                solutionTextFieldValue.text.let { text ->
+                solutionTextFieldValue.text.let { solutionText ->
                     teamAppointment.task?.id?.let { taskId ->
                         repository.postTaskSolution(
                             taskId = taskId,
-                            solutionText = text
+                            solutionText = solutionText
                         )
                     }
                 }
                 val output = teamAppointment.task?.id?.let { repository.runCode(it) }
                 if (output?.data?.testPassed != null && output.data.totalTests != null) {
-                    outputText =
-                        "Test passed: ${output.data.testPassed} / ${output.data.totalTests}"
-                    reviewButtonEnabled =
-                        repository.user.id == teamAppointment.team?.leaderStudentId && output.data.testPassed == output.data.totalTests
+                    if (output.data.testPassed == output.data.totalTests) {
+                        outputText =
+                            "Test passed: ${output.data.testPassed} / ${output.data.totalTests}"
+                        reviewButtonEnabled =
+                            repository.user.id == teamAppointment.team?.leaderStudentId
+                    } else {
+                        outputText = if (output.data.testsInfo?.isNotEmpty() == true) {
+                            "Test passed: ${output.data.testPassed} / ${output.data.totalTests}\n" +
+                                    "--------------------------------------------\n" +
+                                    output.data.testsInfo.joinToString(separator = "\n") { test ->
+                                        "input: " + test.input +
+                                                "\noutput: " + test.output +
+                                                "\nexpected: " + test.expected +
+                                                "\n--------------------------------------------\n"
+                                    }
+                        } else {
+                            "Test passed: ${output.data.testPassed} / ${output.data.totalTests}"
+                        }
+                        reviewButtonEnabled = false
+                    }
+
                 } else {
                     outputText = when (output?.error) {
                         "ERROR WHILE COMPILATION CODE" -> "Compilation error"
@@ -248,11 +292,13 @@ class TaskScreenViewModel @AssistedInject constructor(
         responseSuccess = false
         viewModelScope.launch {
             try {
-                solutionTextFieldValue.text.let {
-                    repository.postTaskSolution(
-                        taskId = teamAppointmentId,
-                        solutionText = it
-                    )
+                solutionTextFieldValue.text.let { solutionText ->
+                    teamAppointment.task?.id?.let { taskId ->
+                        repository.postTaskSolution(
+                            taskId = taskId,
+                            solutionText = solutionText
+                        )
+                    }
                 }
                 responseSuccess = true
             } catch (e: SocketTimeoutException) {
@@ -281,7 +327,7 @@ class TaskScreenViewModel @AssistedInject constructor(
         responseSuccess = false
         viewModelScope.launch {
             try {
-                teamAppointment.id?.let { repository.postCodeReview(it) }
+                repository.postCodeReview(teamAppointmentId)
                 responseSuccess = true
             } catch (e: SocketTimeoutException) {
                 updateErrorMessage("Timeout")
@@ -324,17 +370,48 @@ class TaskScreenViewModel @AssistedInject constructor(
         viewModelScope.launch {
             try {
                 currentCodeReview.id?.let {
-                    repository.addNoteToCodeReview(
-                        codeReviewId = it,
-                        note = reviewMessage
-                    )
+                    if (reviewMessage.isNotBlank()) {
+                        repository.addNoteToCodeReview(
+                            codeReviewId = it,
+                            note = reviewMessage
+                        )
+                    }
+                }
+                codeThreadCommentList.forEachIndexed { index, comment ->
+                    currentCodeReview.id?.let { currentCodeReviewId ->
+                        if (comment.isNotBlank()) {
+                            repository.postMultilineNote(
+                                codeReviewId = currentCodeReviewId,
+                                PostMultilineNoteBody(
+                                    note = comment,
+                                    beginLineNumber = currentCodeReview.codeThreads?.get(index)?.beginLineNumber,
+                                    endLineNumber = currentCodeReview.codeThreads?.get(index)?.endLineNumber
+                                )
+                            )
+                        }
+                    }
                 }
                 teamAppointment =
                     repository.getTeamAppointment(teamAppointmentId)?.let { appointment ->
                         appointment.copy(task = appointment.task?.id?.let { repository.getTask(it) })
                     } ?: TeamAppointment()
                 currentCodeReview =
-                    currentCodeReview.id?.let { repository.getCodeReview(it) } ?: CodeReview()
+                    currentCodeReview.id?.let { repository.getCodeReview(it) }?.let { codeReview ->
+                        codeReview.copy(
+                            taskMessages = codeReview.taskMessages?.sortedBy {
+                                ZonedDateTime.parse(it.createdAt).toInstant()
+                            },
+                            codeThreads = codeReview.codeThreads?.map {
+                                it.copy(
+                                    messages = it.messages?.sortedBy { message ->
+                                        ZonedDateTime.parse(message.createdAt).toInstant()
+                                    }
+                                )
+                            }
+                        )
+                    } ?: CodeReview()
+                codeThreadCommentList =
+                    currentCodeReview.codeThreads?.size?.let { List(it) { "" } } ?: emptyList()
                 isAddMessageDialogShow = false
             } catch (e: SocketTimeoutException) {
                 updateErrorMessage("Timeout")
@@ -353,5 +430,27 @@ class TaskScreenViewModel @AssistedInject constructor(
 
     fun updateReviewMessage(newReviewMessage: String) {
         reviewMessage = newReviewMessage
+    }
+
+    fun getCodeInRange(range: IntRange): List<Pair<Int, AnnotatedString>> {
+        return codeList
+            .filterIndexed { index, _ -> index + 1 in range }
+            .mapIndexed { index, annotatedString -> index + range.first to annotatedString }
+    }
+
+    fun formatDate(isoDate: String): String {
+        val dateTime = ZonedDateTime.parse(isoDate)
+        val formatter = DateTimeFormatter.ofPattern("dd.MM HH:mm")
+        return dateTime.format(formatter)
+    }
+
+    fun updateCodeThreadComment(index: Int, comment: String) {
+        codeThreadCommentList = codeThreadCommentList.mapIndexed { currentIndex, item ->
+            if (currentIndex == index) {
+                comment
+            } else {
+                item
+            }
+        }
     }
 }

@@ -10,7 +10,7 @@ import com.example.trp.domain.navigation.common.Graph
 import com.example.trp.ui.screens.common.CreateNewTestScreen
 import com.example.trp.ui.screens.common.CreateTaskScreen
 import com.example.trp.ui.screens.common.TaskInfoTestsScreen
-import com.example.trp.ui.screens.student.OldCodeReviewScreen
+import com.example.trp.ui.screens.common.OldCodeReviewScreen
 import com.example.trp.ui.screens.teacher.AddTaskToTeamScreen
 import com.example.trp.ui.screens.teacher.CreateLabScreen
 import com.example.trp.ui.screens.teacher.CreateTeamScreen

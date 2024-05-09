@@ -23,6 +23,7 @@ import com.example.trp.data.mappers.tasks.LabsResponse
 import com.example.trp.data.mappers.tasks.OutputResponse
 import com.example.trp.data.mappers.tasks.PostCodeReviewResponse
 import com.example.trp.data.mappers.tasks.PostLabResponse
+import com.example.trp.data.mappers.tasks.PostMultilineNoteBody
 import com.example.trp.data.mappers.tasks.PostNewStudentBody
 import com.example.trp.data.mappers.tasks.PostNewTeacherBody
 import com.example.trp.data.mappers.tasks.PostRateResponse
@@ -318,6 +319,18 @@ class UserAPIRepositoryImpl(
         teamAppointmentId: Int
     ): Response<TeamAppointmentResponse> {
         return ApiService.userAPI.getTeamAppointment("Bearer $token", teamAppointmentId)
+    }
+
+    override suspend fun postMultilineNote(
+        token: String,
+        codeReviewId: Int,
+        postMultilineNoteBody: PostMultilineNoteBody
+    ): Response<CodeReviewResponse> {
+        return ApiService.userAPI.postMultilineNote(
+            "Bearer $token",
+            codeReviewId,
+            postMultilineNoteBody
+        )
     }
 
     suspend fun getActiveUser(): User {
@@ -641,5 +654,18 @@ class UserAPIRepositoryImpl(
     ): TeamAppointment? {
         return user.token?.let { token -> getTeamAppointment(token, teamAppointmentId) }
             ?.body()?.data
+    }
+
+    suspend fun postMultilineNote(
+        codeReviewId: Int,
+        postMultilineNoteBody: PostMultilineNoteBody
+    ): CodeReviewResponse? {
+        return user.token?.let { token ->
+            postMultilineNote(
+                token,
+                codeReviewId,
+                postMultilineNoteBody
+            )
+        }?.body()
     }
 }

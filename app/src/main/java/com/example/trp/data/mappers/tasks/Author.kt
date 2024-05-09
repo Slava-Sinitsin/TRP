@@ -3,8 +3,8 @@ package com.example.trp.data.mappers.tasks
 import com.google.gson.annotations.SerializedName
 
 data class Author(
-    @SerializedName("id") var id: Int? = null,
-    @SerializedName("username") var username: String? = null,
-    @SerializedName("fullName") var fullName: String? = null,
-    @SerializedName("role") var role: String? = null
+    @SerializedName("id") val id: Int? = null,
+    @SerializedName("username") val username: String? = null,
+    @SerializedName("fullName") val fullName: String? = null,
+    @SerializedName("role") val role: String? = null
 )

@@ -78,7 +78,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.chihsuanwu.freescroll.freeScroll
 import com.chihsuanwu.freescroll.rememberFreeScrollState
-import com.example.trp.data.mappers.tasks.Note
+import com.example.trp.data.mappers.tasks.CodeThread
+import com.example.trp.data.mappers.tasks.TaskMessage
 import com.example.trp.domain.di.ViewModelFactoryProvider
 import com.example.trp.ui.components.TabIndicator
 import com.example.trp.ui.components.clearFocusOnTap
@@ -788,7 +789,7 @@ fun ReviewField(viewModel: TaskScreenViewModel) {
                     .background(TRPTheme.colors.cardButtonColor)
                     .verticalScroll(freeScrollState.verticalScrollState)
             ) {
-                viewModel.codeList.forEachIndexed { index, _ ->
+                viewModel.padCodeList.forEachIndexed { index, _ ->
                     Text(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -808,11 +809,11 @@ fun ReviewField(viewModel: TaskScreenViewModel) {
                     .background(TRPTheme.colors.secondaryBackground)
                     .freeScroll(freeScrollState)
             ) {
-                viewModel.codeList.forEachIndexed { index, item ->
+                viewModel.padCodeList.forEachIndexed { index, item ->
                     Box(
                         modifier = Modifier
                             .background(
-                                if (viewModel.codeList[index].second) {
+                                if (viewModel.padCodeList[index].second) {
                                     selectedColor
                                 } else if (index % 2 == 0) {
                                     primaryBackground
@@ -831,19 +832,32 @@ fun ReviewField(viewModel: TaskScreenViewModel) {
 
 @Composable
 fun CommentsField(viewModel: TaskScreenViewModel) {
-    Column {
-        Text(
-            text = "Comments",
-            color = TRPTheme.colors.primaryText,
-            fontSize = 15.sp
-        )
-        Spacer(modifier = Modifier.size(10.dp))
-        viewModel.currentCodeReview.notes?.forEach { note ->
-            Comment(
-                viewModel = viewModel,
-                note = note
+    if (viewModel.currentCodeReview.taskMessages?.isNotEmpty() == true
+        || viewModel.currentCodeReview.codeThreads?.isNotEmpty() == true
+    ) {
+        Column {
+            Text(
+                text = "Comments",
+                color = TRPTheme.colors.primaryText,
+                fontSize = 15.sp
             )
             Spacer(modifier = Modifier.size(10.dp))
+            viewModel.currentCodeReview.taskMessages?.forEach { note ->
+                Comment(
+                    viewModel = viewModel,
+                    taskMessage = note
+                )
+                Spacer(modifier = Modifier.size(10.dp))
+            }
+            Spacer(modifier = Modifier.size(10.dp))
+            viewModel.currentCodeReview.codeThreads?.forEachIndexed { index, codeThread ->
+                CodeThreadField(
+                    viewModel = viewModel,
+                    codeThread = codeThread,
+                    index = index
+                )
+                Spacer(modifier = Modifier.size(10.dp))
+            }
         }
     }
 }
@@ -851,7 +865,7 @@ fun CommentsField(viewModel: TaskScreenViewModel) {
 @Composable
 fun Comment(
     viewModel: TaskScreenViewModel,
-    note: Note
+    taskMessage: TaskMessage
 ) {
     Surface(
         color = TRPTheme.colors.secondaryBackground,
@@ -863,9 +877,11 @@ fun Comment(
         ) {
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = note.author?.fullName ?: "",
+                text = "${taskMessage.author?.fullName} ${
+                    taskMessage.createdAt?.let { viewModel.formatDate(it) }
+                }",
                 color = TRPTheme.colors.primaryText.copy(alpha = 0.6f),
-                textAlign = if (note.author?.fullName == viewModel.user.username) {
+                textAlign = if (taskMessage.author?.username == viewModel.user.username) {
                     TextAlign.End
                 } else {
                     TextAlign.Start
@@ -874,13 +890,120 @@ fun Comment(
             Spacer(modifier = Modifier.size(5.dp))
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = note.message ?: "",
+                text = taskMessage.message ?: "",
                 color = TRPTheme.colors.primaryText,
-                textAlign = if (note.author?.fullName == viewModel.user.username) {
+                textAlign = if (taskMessage.author?.username == viewModel.user.username) {
                     TextAlign.End
                 } else {
                     TextAlign.Start
                 }
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CodeThreadField(
+    viewModel: TaskScreenViewModel,
+    codeThread: CodeThread,
+    index: Int
+) {
+    Surface(
+        color = TRPTheme.colors.secondaryBackground,
+        shape = RoundedCornerShape(8.dp),
+        shadowElevation = 6.dp
+    ) {
+        val code = codeThread.beginLineNumber?.let { beginLineNumber ->
+            codeThread.endLineNumber?.let { endLineNumber ->
+                IntRange(beginLineNumber, endLineNumber)
+            }
+        }?.let { range -> viewModel.getCodeInRange(range) }
+        Column {
+            Row {
+                Column(modifier = Modifier.background(TRPTheme.colors.cardButtonColor)) {
+                    code?.forEach { codeLine ->
+                        Text(
+                            modifier = Modifier.padding(horizontal = 5.dp),
+                            text = "${codeLine.first}",
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 15.sp,
+                            color = TRPTheme.colors.primaryText
+                        )
+                    }
+                }
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(TRPTheme.colors.okColor.copy(alpha = 0.3f))
+                        .horizontalScroll(rememberScrollState())
+                ) {
+                    code?.forEach { codeLine ->
+                        Text(
+                            text = codeLine.second,
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 15.sp
+                        )
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.size(10.dp))
+            codeThread.messages?.forEach { message ->
+                Text(
+                    modifier = Modifier
+                        .padding(horizontal = 5.dp)
+                        .fillMaxWidth(),
+                    text = "${message.author?.fullName} ${
+                        message.createdAt?.let { viewModel.formatDate(it) }
+                    }",
+                    color = TRPTheme.colors.primaryText.copy(alpha = 0.6f),
+                    textAlign = if (message.author?.username == viewModel.user.username) {
+                        TextAlign.End
+                    } else {
+                        TextAlign.Start
+                    }
+                )
+                Spacer(modifier = Modifier.size(5.dp))
+                Text(
+                    modifier = Modifier
+                        .padding(horizontal = 5.dp)
+                        .fillMaxWidth(),
+                    text = message.message ?: "",
+                    color = TRPTheme.colors.primaryText,
+                    textAlign = if (message.author?.username == viewModel.user.username) {
+                        TextAlign.End
+                    } else {
+                        TextAlign.Start
+                    }
+                )
+                Spacer(modifier = Modifier.size(5.dp))
+            }
+            OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
+                textStyle = TextStyle.Default.copy(fontSize = 15.sp),
+                value = viewModel.codeThreadCommentList[index],
+                onValueChange = { viewModel.updateCodeThreadComment(index, it) },
+                placeholder = {
+                    Text(
+                        "Comment",
+                        color = TRPTheme.colors.primaryText,
+                        modifier = Modifier.alpha(0.6f),
+                        fontSize = 15.sp
+                    )
+                },
+                shape = RoundedCornerShape(8.dp),
+                colors = TextFieldDefaults.textFieldColors(
+                    containerColor = TRPTheme.colors.primaryBackground,
+                    textColor = TRPTheme.colors.primaryText,
+                    cursorColor = TRPTheme.colors.primaryText,
+                    focusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    errorIndicatorColor = TRPTheme.colors.errorColor,
+                    errorCursorColor = TRPTheme.colors.primaryText
+                ),
+                singleLine = true,
+                isError = false
             )
         }
     }
@@ -893,7 +1016,7 @@ fun AddMessageDialog(viewModel: TaskScreenViewModel) {
         onDismissRequest = { viewModel.onDismissAddMessageButtonClick() },
         title = {
             Text(
-                text = "Add comment",
+                text = "General comment",
                 color = TRPTheme.colors.primaryText
             )
         },
@@ -924,8 +1047,7 @@ fun AddMessageDialog(viewModel: TaskScreenViewModel) {
                     unfocusedIndicatorColor = Color.Transparent,
                     errorIndicatorColor = TRPTheme.colors.errorColor,
                     errorCursorColor = TRPTheme.colors.primaryText
-                ),
-                isError = viewModel.reviewMessage.isEmpty()
+                )
             )
         },
         confirmButton = {

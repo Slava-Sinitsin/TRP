@@ -7,7 +7,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
 import com.example.trp.domain.navigation.common.Graph
-import com.example.trp.ui.screens.student.OldCodeReviewScreen
+import com.example.trp.ui.screens.common.OldCodeReviewScreen
 import com.example.trp.ui.screens.student.TaskScreen
 import com.example.trp.ui.screens.student.TasksScreen
 

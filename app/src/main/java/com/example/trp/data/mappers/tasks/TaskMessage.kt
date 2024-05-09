@@ -2,8 +2,8 @@ package com.example.trp.data.mappers.tasks
 
 import com.google.gson.annotations.SerializedName
 
-data class CloseCodeReviewResponse(
-    @SerializedName("status") val status: Int? = null,
+data class TaskMessage(
     @SerializedName("message") val message: String? = null,
-    @SerializedName("error") val error: String? = null
+    @SerializedName("createdAt") val createdAt: String? = null,
+    @SerializedName("author") val author: Author? = null
 )
