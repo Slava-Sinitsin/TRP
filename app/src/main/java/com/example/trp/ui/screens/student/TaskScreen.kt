@@ -68,7 +68,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -533,15 +532,15 @@ fun TaskText(
                         state = rememberScrollState(),
                         enabled = !viewModel.userScrollEnabled
                     ),
-                value = TextFieldValue(
+                value = viewModel.solutionTextFieldValue.copy(
                     annotatedString = parseCodeAsAnnotatedString(
                         parser = viewModel.parser,
                         theme = theme,
                         lang = viewModel.language,
-                        code = viewModel.teamAppointment.task?.solution?.code ?: ""
+                        code = viewModel.solutionTextFieldValue.text
                     )
                 ),
-                onValueChange = { viewModel.updateTaskText(it) },
+                onValueChange = { viewModel.updateTaskText(newTaskText = it) },
                 interactionSource = interactionSource,
                 textStyle = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 15.sp),
                 cursorBrush = SolidColor(TRPTheme.colors.primaryText),
