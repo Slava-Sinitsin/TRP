@@ -3,6 +3,7 @@ package com.example.trp.ui.theme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import com.wakaztahir.codeeditor.highlight.theme.CodeTheme
 
 data class TRPColors(
     val primaryText: Color,
@@ -16,7 +17,8 @@ data class TRPColors(
     val icon: Color,
     val iconBackground: Color,
     val cardButtonColor: Color,
-    val okColor: Color
+    val okColor: Color,
+    val codeTheme: CodeTheme
 )
 
 object TRPTheme {

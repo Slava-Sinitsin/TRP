@@ -21,7 +21,7 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
@@ -45,6 +45,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.trp.ui.components.clearFocusOnTap
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.common.AuthScreenViewModel
 
@@ -61,7 +62,8 @@ fun LoginScreen(onLogin: (destination: String) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(TRPTheme.colors.primaryBackground),
+            .background(TRPTheme.colors.primaryBackground)
+            .clearFocusOnTap(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -138,7 +140,7 @@ fun MailField(viewModel: AuthScreenViewModel) {
         onValueChange = { viewModel.updateLogValue(it) },
         placeholder = {
             Text(
-                "Email",
+                "Username",
                 color = TRPTheme.colors.primaryText,
                 modifier = Modifier.alpha(0.6f)
             )
@@ -155,7 +157,7 @@ fun MailField(viewModel: AuthScreenViewModel) {
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
         trailingIcon = {
-            Icon(imageVector = Icons.Filled.Email, contentDescription = "Email Icon")
+            Icon(imageVector = Icons.Filled.Person, contentDescription = "Username field")
         }
     )
 }
@@ -202,7 +204,7 @@ fun PassField(viewModel: AuthScreenViewModel) {
                 }
                 Icon(
                     icon,
-                    contentDescription = if (viewModel.passwordVisibility) "Pass Vis ON"
+                    contentDescription = if (viewModel.passwordVisibility) "Pass vis ON"
                     else "Pass Vis OFF"
                 )
             }

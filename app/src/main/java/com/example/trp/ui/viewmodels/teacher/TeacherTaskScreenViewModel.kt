@@ -19,8 +19,6 @@ import com.example.trp.ui.components.TaskStatus
 import com.example.trp.ui.components.tabs.ReviewTabs
 import com.wakaztahir.codeeditor.highlight.model.CodeLang
 import com.wakaztahir.codeeditor.highlight.prettify.PrettifyParser
-import com.wakaztahir.codeeditor.highlight.theme.CodeThemeType
-import com.wakaztahir.codeeditor.highlight.utils.parseCodeAsAnnotatedString
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -48,10 +46,8 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
         private set
     var commentList by mutableStateOf(emptyList<CommentLine>())
         private set
-    private val language = CodeLang.C
-    private val parser by mutableStateOf(PrettifyParser())
-    private var themeState by mutableStateOf(CodeThemeType.Monokai)
-    private val theme by mutableStateOf(themeState.theme())
+    val language = CodeLang.C
+    val parser by mutableStateOf(PrettifyParser())
     var showAcceptDialog by mutableStateOf(false)
         private set
     var showRejectDialog by mutableStateOf(false)
@@ -151,14 +147,7 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
             } else {
                 listOf(ReviewTabs.Description, ReviewTabs.History)
             }
-            codeList = splitCode(currentCodeReview.code ?: "").map { code ->
-                parseCodeAsAnnotatedString(
-                    parser = parser,
-                    theme = theme,
-                    lang = language,
-                    code = code.text
-                )
-            }
+            codeList = splitCode(currentCodeReview.code ?: "")
             padCodeList = padCodeList(splitCode(currentCodeReview.code ?: ""))
             maxRate = 10.toFloat() / 100f
             rateList = teamAppointment.team?.students?.mapIndexed { _, student ->
@@ -204,14 +193,7 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
         return codeList.map { code ->
             val paddingLength = maxLength - code.text.length + 2
             val padding = " ".repeat(paddingLength + 100)
-            Pair(
-                parseCodeAsAnnotatedString(
-                    parser = parser,
-                    theme = theme,
-                    lang = language,
-                    code = code.text + padding
-                ), false
-            )
+            Pair(AnnotatedString(code.text + padding), false)
         }
     }
 
@@ -374,6 +356,32 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
         responseSuccess = false
         viewModelScope.launch {
             try {
+                commentList.forEach { comment ->
+                    currentCodeReview.id?.let { currentCodeReviewId ->
+                        repository.postMultilineNote(
+                            codeReviewId = currentCodeReviewId,
+                            PostMultilineNoteBody(
+                                note = comment.comment,
+                                beginLineNumber = comment.lines?.let { parseLineIndexes(it).first + 1 },
+                                endLineNumber = comment.lines?.let { parseLineIndexes(it).last + 1 }
+                            )
+                        )
+                    }
+                }
+                codeThreadCommentList.forEachIndexed { index, comment ->
+                    currentCodeReview.id?.let { currentCodeReviewId ->
+                        if (comment.isNotBlank()) {
+                            repository.postMultilineNote(
+                                codeReviewId = currentCodeReviewId,
+                                PostMultilineNoteBody(
+                                    note = comment,
+                                    beginLineNumber = currentCodeReview.codeThreads?.get(index)?.beginLineNumber,
+                                    endLineNumber = currentCodeReview.codeThreads?.get(index)?.endLineNumber
+                                )
+                            )
+                        }
+                    }
+                }
                 currentCodeReview.id?.let { codeReviewId ->
                     repository.addNoteToCodeReview(
                         codeReviewId = codeReviewId,
@@ -465,16 +473,42 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
         responseSuccess = false
         viewModelScope.launch {
             try {
+                currentCodeReview.id?.let { codeReviewId ->
+                    if (reviewMessage.isNotBlank()) {
+                        repository.addNoteToCodeReview(
+                            codeReviewId = codeReviewId,
+                            note = reviewMessage
+                        )
+                    }
+                }
+                commentList.forEach { comment ->
+                    currentCodeReview.id?.let { currentCodeReviewId ->
+                        repository.postMultilineNote(
+                            codeReviewId = currentCodeReviewId,
+                            PostMultilineNoteBody(
+                                note = comment.comment,
+                                beginLineNumber = comment.lines?.let { parseLineIndexes(it).first + 1 },
+                                endLineNumber = comment.lines?.let { parseLineIndexes(it).last + 1 }
+                            )
+                        )
+                    }
+                }
+                codeThreadCommentList.forEachIndexed { index, comment ->
+                    currentCodeReview.id?.let { currentCodeReviewId ->
+                        if (comment.isNotBlank()) {
+                            repository.postMultilineNote(
+                                codeReviewId = currentCodeReviewId,
+                                PostMultilineNoteBody(
+                                    note = comment,
+                                    beginLineNumber = currentCodeReview.codeThreads?.get(index)?.beginLineNumber,
+                                    endLineNumber = currentCodeReview.codeThreads?.get(index)?.endLineNumber
+                                )
+                            )
+                        }
+                    }
+                }
                 if (teamAppointment.status != TaskStatus.WaitingForGrade.status) {
                     currentCodeReview.id?.let { repository.approveCodeReview(it) }
-                }
-                teamAppointment.id?.let {
-                    repository.postRate(
-                        teamAppointmentId = it,
-                        postRateBody = PostRateBody(
-                            listOf()
-                        )
-                    )
                 }
                 teamAppointment.id?.let {
                     repository.postRate(

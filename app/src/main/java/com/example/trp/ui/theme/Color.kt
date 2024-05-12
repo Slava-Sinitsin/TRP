@@ -1,6 +1,7 @@
 package com.example.trp.ui.theme
 
 import androidx.compose.ui.graphics.Color
+import com.wakaztahir.codeeditor.highlight.theme.CodeThemeType
 
 val darkScheme = TRPColors(
     primaryBackground = Color(0xFF242424),
@@ -14,7 +15,8 @@ val darkScheme = TRPColors(
     icon = Color(0xFF7A8A99),
     iconBackground = Color(0xFF5F6B77),
     cardButtonColor = Color(0xFF2C2C2C),
-    okColor = Color(0xFF00CE7C)
+    okColor = Color(0xFF00CE7C),
+    codeTheme = CodeThemeType.Monokai.theme()
 )
 
 val lightScheme = TRPColors(
@@ -29,5 +31,6 @@ val lightScheme = TRPColors(
     icon = Color(0xFF7A8A99),
     iconBackground = Color(0xFF5F6B77),
     cardButtonColor = Color(0xFFEEEEEE),
-    okColor = Color(0xFF00CE7C)
+    okColor = Color(0xFF00CE7C),
+    codeTheme = CodeThemeType.Default.theme()
 )

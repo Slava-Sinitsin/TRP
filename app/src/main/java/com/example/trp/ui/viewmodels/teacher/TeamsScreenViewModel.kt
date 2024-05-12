@@ -24,19 +24,13 @@ class TeamsScreenViewModel @AssistedInject constructor(
 ) : ViewModel() {
     var students by mutableStateOf(emptyList<Student>())
         private set
-
     var teams by mutableStateOf(emptyList<Team>())
-
     var group by mutableStateOf(Group())
         private set
-
     var isMenuShow by mutableStateOf(false)
         private set
-
     var isRefreshing by mutableStateOf(false)
         private set
-
-    var disciplineId by mutableStateOf(repository.currentDiscipline)
     var errorMessage by mutableStateOf("")
         private set
 
@@ -75,15 +69,16 @@ class TeamsScreenViewModel @AssistedInject constructor(
 
     private suspend fun init() {
         try {
-            repository.getAllTeamAppointments(
-                disciplineId = repository.currentDiscipline,
-                groupId = groupId
-            )
             students = repository.getStudents(groupId = groupId).sortedBy { it.fullName }
             group =
-                repository.teacherAppointments.find { it.group?.id == groupId }?.group
-                    ?: Group()
-            teams = repository.getTeams(disciplineId)
+                repository.teacherAppointments.find { it.group?.id == groupId }?.group ?: Group()
+            teams = repository.getTeams(repository.currentDiscipline) // TODO
+                .filter { team ->
+                    repository.getAllTeamAppointments(
+                        disciplineId = repository.currentDiscipline,
+                        groupId = groupId
+                    ).any { it.team?.id == team.id }
+                }
         } catch (e: SocketTimeoutException) {
             updateErrorMessage("Timeout")
         } catch (e: ConnectException) {

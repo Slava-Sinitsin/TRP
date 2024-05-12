@@ -36,7 +36,7 @@ class AuthScreenViewModel @Inject constructor(val repository: UserAPIRepositoryI
             try {
                 user = repository.getActiveUser()
                 logValue = user.login ?: ""
-                passValue = user.password ?: ""
+                passValue = ""
             } catch (e: SocketTimeoutException) {
                 updateErrorMessage("Timeout")
             } catch (e: ConnectException) {

@@ -33,8 +33,6 @@ class CreateTeamScreenViewModel @AssistedInject constructor(
         private set
     private var teamSizeOverflow by mutableStateOf(false)
 
-    var disciplineId by mutableStateOf(repository.currentDiscipline) // TODO
-
     var showSelectLeaderDialog by mutableStateOf(false)
         private set
     var selectedGroupLeaderIndex by mutableStateOf(0)
@@ -71,7 +69,13 @@ class CreateTeamScreenViewModel @AssistedInject constructor(
         try {
             students = repository.getStudents(groupId = groupId).sortedBy { it.fullName }
             studentsCheckBoxStates = List(students.size) { CheckBoxState() }
-            teams = repository.getTeams(disciplineId)
+            teams = repository.getTeams(repository.currentDiscipline) // TODO
+                .filter { team ->
+                    repository.getAllTeamAppointments(
+                        disciplineId = repository.currentDiscipline,
+                        groupId = groupId
+                    ).any { it.team?.id == team.id }
+                }
             maxTeamSize = 2
             disableStudents()
         } catch (e: SocketTimeoutException) {
@@ -141,7 +145,7 @@ class CreateTeamScreenViewModel @AssistedInject constructor(
             try {
                 repository.postNewTeam(
                     PostTeamBody(
-                        disciplineId = disciplineId,
+                        disciplineId = repository.currentDiscipline, // TODO
                         groupId = groupId,
                         studentIds = selectedStudents.mapNotNull { it.id },
                         leaderId = selectedStudents[selectedGroupLeaderIndex].id

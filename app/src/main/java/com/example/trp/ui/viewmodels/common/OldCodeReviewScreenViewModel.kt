@@ -12,8 +12,6 @@ import com.example.trp.data.mappers.user.User
 import com.example.trp.data.repository.UserAPIRepositoryImpl
 import com.wakaztahir.codeeditor.highlight.model.CodeLang
 import com.wakaztahir.codeeditor.highlight.prettify.PrettifyParser
-import com.wakaztahir.codeeditor.highlight.theme.CodeThemeType
-import com.wakaztahir.codeeditor.highlight.utils.parseCodeAsAnnotatedString
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -35,10 +33,8 @@ class OldCodeReviewScreenViewModel @AssistedInject constructor(
     private var codeList by mutableStateOf(emptyList<AnnotatedString>())
     var padCodeList by mutableStateOf(emptyList<Pair<AnnotatedString, Boolean>>())
         private set
-    private val language = CodeLang.C
-    private val parser by mutableStateOf(PrettifyParser())
-    private var themeState by mutableStateOf(CodeThemeType.Monokai)
-    private val theme by mutableStateOf(themeState.theme())
+    val language = CodeLang.C
+    val parser by mutableStateOf(PrettifyParser())
     var user by mutableStateOf(User())
         private set
 
@@ -78,14 +74,7 @@ class OldCodeReviewScreenViewModel @AssistedInject constructor(
                         }
                     )
                 }
-                codeList = splitCode(codeReview.code ?: "").map { code ->
-                    parseCodeAsAnnotatedString(
-                        parser = parser,
-                        theme = theme,
-                        lang = language,
-                        code = code.text
-                    )
-                }
+                codeList = splitCode(codeReview.code ?: "")
                 padCodeList = padCodeList(splitCode(codeReview.code ?: ""))
                 user = repository.user
             } catch (e: SocketTimeoutException) {
@@ -114,14 +103,7 @@ class OldCodeReviewScreenViewModel @AssistedInject constructor(
         return codeList.map { code ->
             val paddingLength = maxLength - code.text.length + 2
             val padding = " ".repeat(paddingLength + 100)
-            Pair(
-                parseCodeAsAnnotatedString(
-                    parser = parser,
-                    theme = theme,
-                    lang = language,
-                    code = code.text + padding
-                ), false
-            )
+            Pair(AnnotatedString(code.text + padding), false)
         }
     }
 

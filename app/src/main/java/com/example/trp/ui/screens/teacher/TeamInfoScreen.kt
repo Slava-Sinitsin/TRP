@@ -194,7 +194,8 @@ fun Task(
                     ) {
                         Text(
                             modifier = Modifier.alpha(0.6f),
-                            text = "${viewModel.labs[index].title}"
+                            text = "${viewModel.labs[index].title}",
+                            color = TRPTheme.colors.primaryText
                         )
                         Text(
                             text = teamAppointment.task?.title.toString(),
@@ -217,7 +218,8 @@ fun Task(
                                 teamAppointment.ratings?.joinToString(separator = ", ") { rating ->
                                     rating.grade.toString()
                                 } ?: "",
-                                fontSize = 15.sp
+                                fontSize = 15.sp,
+                                color = TRPTheme.colors.primaryText,
                             )
                         }
                     } else {

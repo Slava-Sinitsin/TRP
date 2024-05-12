@@ -68,6 +68,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -82,6 +83,7 @@ import com.example.trp.data.mappers.tasks.CodeThread
 import com.example.trp.data.mappers.tasks.TaskMessage
 import com.example.trp.domain.di.ViewModelFactoryProvider
 import com.example.trp.ui.components.TabIndicator
+import com.example.trp.ui.components.TaskStatus
 import com.example.trp.ui.components.clearFocusOnTap
 import com.example.trp.ui.components.keyboardAsState
 import com.example.trp.ui.components.myTabIndicatorOffset
@@ -89,6 +91,7 @@ import com.example.trp.ui.components.tabs.DisabledInteractionSource
 import com.example.trp.ui.components.tabs.TaskTabs
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.student.TaskScreenViewModel
+import com.wakaztahir.codeeditor.highlight.utils.parseCodeAsAnnotatedString
 import dagger.hilt.android.EntryPointAccessors
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -458,6 +461,7 @@ fun TaskText(
     val interactionSource = remember { MutableInteractionSource() }
     val isKeyboardOpen by keyboardAsState()
     val focusManager = LocalFocusManager.current
+    val theme = TRPTheme.colors.codeTheme
 
     LaunchedEffect(isKeyboardOpen) {
         viewModel.updateEnableUserScroll(!isKeyboardOpen)
@@ -529,7 +533,14 @@ fun TaskText(
                         state = rememberScrollState(),
                         enabled = !viewModel.userScrollEnabled
                     ),
-                value = viewModel.solutionTextFieldValue,
+                value = TextFieldValue(
+                    annotatedString = parseCodeAsAnnotatedString(
+                        parser = viewModel.parser,
+                        theme = theme,
+                        lang = viewModel.language,
+                        code = viewModel.teamAppointment.task?.solution?.code ?: ""
+                    )
+                ),
                 onValueChange = { viewModel.updateTaskText(it) },
                 interactionSource = interactionSource,
                 textStyle = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 15.sp),
@@ -575,7 +586,7 @@ fun OutputText(
                 end = 5.dp
             )
             .fillMaxWidth()
-            .height(100.dp)
+            .height(200.dp)
             .shadow(
                 elevation = 10.dp,
                 shape = RoundedCornerShape(8.dp)
@@ -774,6 +785,7 @@ fun ReviewField(viewModel: TaskScreenViewModel) {
     val primaryBackground = TRPTheme.colors.primaryBackground.copy(alpha = 0.6f)
     val secondaryBackground = TRPTheme.colors.secondaryBackground.copy(alpha = 0.6f)
     val selectedColor = TRPTheme.colors.okColor.copy(alpha = 0.3f)
+    val theme = TRPTheme.colors.codeTheme
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -822,7 +834,15 @@ fun ReviewField(viewModel: TaskScreenViewModel) {
                                 }
                             )
                     ) {
-                        Text(text = item.first, fontFamily = FontFamily.Monospace, fontSize = 15.sp)
+                        Text(
+                            text = parseCodeAsAnnotatedString(
+                                parser = viewModel.parser,
+                                theme = theme,
+                                lang = viewModel.language,
+                                code = item.first.text
+                            ),
+                            fontFamily = FontFamily.Monospace, fontSize = 15.sp
+                        )
                     }
                 }
             }
@@ -909,6 +929,7 @@ fun CodeThreadField(
     codeThread: CodeThread,
     index: Int
 ) {
+    val theme = TRPTheme.colors.codeTheme
     Surface(
         color = TRPTheme.colors.secondaryBackground,
         shape = RoundedCornerShape(8.dp),
@@ -918,7 +939,16 @@ fun CodeThreadField(
             codeThread.endLineNumber?.let { endLineNumber ->
                 IntRange(beginLineNumber, endLineNumber)
             }
-        }?.let { range -> viewModel.getCodeInRange(range) }
+        }?.let { range ->
+            viewModel.getCodeInRange(range).map {
+                it.first to parseCodeAsAnnotatedString(
+                    parser = viewModel.parser,
+                    theme = theme,
+                    lang = viewModel.language,
+                    code = it.second.text
+                )
+            }
+        }
         Column {
             Row {
                 Column(modifier = Modifier.background(TRPTheme.colors.cardButtonColor)) {
@@ -978,33 +1008,37 @@ fun CodeThreadField(
                 )
                 Spacer(modifier = Modifier.size(5.dp))
             }
-            OutlinedTextField(
-                modifier = Modifier.fillMaxWidth(),
-                textStyle = TextStyle.Default.copy(fontSize = 15.sp),
-                value = viewModel.codeThreadCommentList[index],
-                onValueChange = { viewModel.updateCodeThreadComment(index, it) },
-                placeholder = {
-                    Text(
-                        "Comment",
-                        color = TRPTheme.colors.primaryText,
-                        modifier = Modifier.alpha(0.6f),
-                        fontSize = 15.sp
-                    )
-                },
-                shape = RoundedCornerShape(8.dp),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = TRPTheme.colors.primaryBackground,
-                    textColor = TRPTheme.colors.primaryText,
-                    cursorColor = TRPTheme.colors.primaryText,
-                    focusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    errorIndicatorColor = TRPTheme.colors.errorColor,
-                    errorCursorColor = TRPTheme.colors.primaryText
-                ),
-                singleLine = true,
-                isError = false
-            )
+            if (viewModel.teamAppointment.status != TaskStatus.WaitingForGrade.status
+                && viewModel.teamAppointment.status != TaskStatus.Rated.status
+            ) {
+                OutlinedTextField(
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = TextStyle.Default.copy(fontSize = 15.sp),
+                    value = viewModel.codeThreadCommentList[index],
+                    onValueChange = { viewModel.updateCodeThreadComment(index, it) },
+                    placeholder = {
+                        Text(
+                            "Comment",
+                            color = TRPTheme.colors.primaryText,
+                            modifier = Modifier.alpha(0.6f),
+                            fontSize = 15.sp
+                        )
+                    },
+                    shape = RoundedCornerShape(8.dp),
+                    colors = TextFieldDefaults.textFieldColors(
+                        containerColor = TRPTheme.colors.primaryBackground,
+                        textColor = TRPTheme.colors.primaryText,
+                        cursorColor = TRPTheme.colors.primaryText,
+                        focusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        errorIndicatorColor = TRPTheme.colors.errorColor,
+                        errorCursorColor = TRPTheme.colors.primaryText
+                    ),
+                    singleLine = true,
+                    isError = false
+                )
+            }
         }
     }
 }

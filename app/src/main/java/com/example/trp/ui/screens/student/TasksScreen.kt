@@ -124,7 +124,11 @@ fun Task(
                     .fillMaxWidth()
                     .weight(1f)
             ) {
-                Text(modifier = Modifier.alpha(0.6f), text = "${viewModel.labs[index].title}")
+                Text(
+                    modifier = Modifier.alpha(0.6f),
+                    text = "${viewModel.labs[index].title}",
+                    color = TRPTheme.colors.primaryText
+                )
                 if (index < viewModel.teamAppointments.size) {
                     Text(
                         text = viewModel.teamAppointments[index].task?.title.toString(),
@@ -154,7 +158,8 @@ fun Task(
                             viewModel.teamAppointments[index].ratings?.find { rating ->
                                 rating.studentId == viewModel.user.id
                             }?.let { rating -> rating.grade.toString() } ?: "",
-                            fontSize = 15.sp
+                            fontSize = 15.sp,
+                            color = TRPTheme.colors.primaryText,
                         )
                     }
                 } else {

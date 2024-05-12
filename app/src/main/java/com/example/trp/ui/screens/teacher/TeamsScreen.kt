@@ -136,7 +136,7 @@ fun TeamsTopAppBar(
                         onCreateTeamClick(viewModel.groupId)
                     }
                 )
-                DropdownMenuItem(
+/*                DropdownMenuItem(
                     text = {
                         Text(
                             "Appoint tasks to everyone in group",
@@ -144,7 +144,7 @@ fun TeamsTopAppBar(
                         )
                     },
                     onClick = { viewModel.onEveryoneAppointButtonClick() }
-                )
+                )*/ // TODO
             }
         }
     )

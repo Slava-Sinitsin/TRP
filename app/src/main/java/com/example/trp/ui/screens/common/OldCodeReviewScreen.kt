@@ -37,6 +37,7 @@ import com.example.trp.data.mappers.tasks.TaskMessage
 import com.example.trp.domain.di.ViewModelFactoryProvider
 import com.example.trp.ui.theme.TRPTheme
 import com.example.trp.ui.viewmodels.common.OldCodeReviewScreenViewModel
+import com.wakaztahir.codeeditor.highlight.utils.parseCodeAsAnnotatedString
 import dagger.hilt.android.EntryPointAccessors
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -83,6 +84,7 @@ fun ReviewField(viewModel: OldCodeReviewScreenViewModel) {
     val primaryBackground = TRPTheme.colors.primaryBackground.copy(alpha = 0.6f)
     val secondaryBackground = TRPTheme.colors.secondaryBackground.copy(alpha = 0.6f)
     val selectedColor = TRPTheme.colors.okColor.copy(alpha = 0.3f)
+    val theme = TRPTheme.colors.codeTheme
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -131,7 +133,15 @@ fun ReviewField(viewModel: OldCodeReviewScreenViewModel) {
                                 }
                             )
                     ) {
-                        Text(text = item.first, fontFamily = FontFamily.Monospace, fontSize = 15.sp)
+                        Text(
+                            text = parseCodeAsAnnotatedString(
+                                parser = viewModel.parser,
+                                theme = theme,
+                                lang = viewModel.language,
+                                code = item.first.text
+                            ),
+                            fontFamily = FontFamily.Monospace, fontSize = 15.sp
+                        )
                     }
                 }
             }
@@ -215,6 +225,7 @@ fun CodeThreadField(
     viewModel: OldCodeReviewScreenViewModel,
     codeThread: CodeThread
 ) {
+    val theme = TRPTheme.colors.codeTheme
     Surface(
         color = TRPTheme.colors.secondaryBackground,
         shape = RoundedCornerShape(8.dp),
@@ -224,7 +235,16 @@ fun CodeThreadField(
             codeThread.endLineNumber?.let { endLineNumber ->
                 IntRange(beginLineNumber, endLineNumber)
             }
-        }?.let { range -> viewModel.getCodeInRange(range) }
+        }?.let { range ->
+            viewModel.getCodeInRange(range).map {
+                it.first to parseCodeAsAnnotatedString(
+                    parser = viewModel.parser,
+                    theme = theme,
+                    lang = viewModel.language,
+                    code = it.second.text
+                )
+            }
+        }
         Column {
             Row {
                 Column(modifier = Modifier.background(TRPTheme.colors.cardButtonColor)) {

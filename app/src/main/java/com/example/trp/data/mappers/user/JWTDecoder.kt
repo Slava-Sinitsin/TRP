@@ -1,23 +1,17 @@
 package com.example.trp.data.mappers.user
 
-import android.util.Base64
-import org.json.JSONObject
-import java.nio.charset.Charset
+import java.util.Base64
 
 class JWTDecoder {
-    fun decodeToken(token: String): JSONObject? {
-        val parts = token.split('.')
-        if (parts.size == 3) {
-            val encodedPayload = parts[1]
-            val payloadJson = decodeBase64(encodedPayload)
-            return JSONObject(payloadJson)
+    fun decodeToken(jwt: String): String {
+        val parts = jwt.split(".")
+        return try {
+            val charset = charset("UTF-8")
+            val payload =
+                String(Base64.getUrlDecoder().decode(parts[1].toByteArray(charset)), charset)
+            payload
+        } catch (e: Exception) {
+            "Error parsing JWT: $e"
         }
-        return null
-    }
-
-    private fun decodeBase64(data: String): String {
-        val decodedBytes = Base64.decode(data, Base64.DEFAULT)
-        return decodedBytes.toString(Charset.defaultCharset())
     }
 }
-

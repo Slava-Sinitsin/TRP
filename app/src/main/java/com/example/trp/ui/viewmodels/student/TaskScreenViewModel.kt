@@ -17,8 +17,6 @@ import com.example.trp.ui.components.TaskStatus
 import com.example.trp.ui.components.tabs.TaskTabs
 import com.wakaztahir.codeeditor.highlight.model.CodeLang
 import com.wakaztahir.codeeditor.highlight.prettify.PrettifyParser
-import com.wakaztahir.codeeditor.highlight.theme.CodeThemeType
-import com.wakaztahir.codeeditor.highlight.utils.parseCodeAsAnnotatedString
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -44,10 +42,8 @@ class TaskScreenViewModel @AssistedInject constructor(
         private set
     var outputText by mutableStateOf("")
         private set
-    private val language = CodeLang.C
-    private val parser by mutableStateOf(PrettifyParser())
-    private var themeState by mutableStateOf(CodeThemeType.Monokai)
-    private val theme by mutableStateOf(themeState.theme())
+    val language = CodeLang.C
+    val parser by mutableStateOf(PrettifyParser())
     var taskScreens by mutableStateOf(emptyList<TaskTabs>())
     var selectedTabIndex by mutableStateOf(1)
         private set
@@ -128,14 +124,7 @@ class TaskScreenViewModel @AssistedInject constructor(
                         })
                     }
                 } ?: TeamAppointment()
-            solutionTextFieldValue = TextFieldValue(
-                annotatedString = parseCodeAsAnnotatedString(
-                    parser = parser,
-                    theme = theme,
-                    lang = language,
-                    code = teamAppointment.task?.solution?.code ?: ""
-                )
-            )
+            solutionTextFieldValue = TextFieldValue(teamAppointment.task?.solution?.code ?: "")
             linesCount = solutionTextFieldValue.text.lineSequence().count()
             codeBck = solutionTextFieldValue.text
             updateLinesCount()
@@ -156,14 +145,7 @@ class TaskScreenViewModel @AssistedInject constructor(
                     }
                 )
             } ?: CodeReview()
-            codeList = splitCode(currentCodeReview.code ?: "").map { code ->
-                parseCodeAsAnnotatedString(
-                    parser = parser,
-                    theme = theme,
-                    lang = language,
-                    code = code.text
-                )
-            }
+            codeList = splitCode(currentCodeReview.code ?: "")
             padCodeList = padCodeList(splitCode(currentCodeReview.code ?: ""))
             reviewButtonEnabled = teamAppointment.status == TaskStatus.Tested.status
             taskScreens =
@@ -211,14 +193,7 @@ class TaskScreenViewModel @AssistedInject constructor(
 
     fun updateTaskText(newTaskText: TextFieldValue) {
         reviewButtonEnabled = false
-        solutionTextFieldValue = newTaskText.copy(
-            annotatedString = parseCodeAsAnnotatedString(
-                parser = parser,
-                theme = theme,
-                lang = language,
-                code = newTaskText.text
-            )
-        )
+        solutionTextFieldValue = newTaskText
         updateLinesCount()
     }
 
@@ -247,26 +222,30 @@ class TaskScreenViewModel @AssistedInject constructor(
                 val output = teamAppointment.task?.id?.let { repository.runCode(it) }
                 if (teamAppointment.task?.testable == true) {
                     if (output?.data?.testPassed != null && output.data.totalTests != null) {
-                        if (output.data.testPassed == output.data.totalTests) {
+                        if (output.data.testsInfo?.isNotEmpty() == true) {
+                            outputText =
+                                "Test passed: ${output.data.testPassed} / ${output.data.totalTests}\n" +
+                                        "--------------------------------------------"
+                            output.data.testsInfo.forEach { test ->
+                                outputText += "\nInput: " + test.input +
+                                        "\nOutput: " + test.output +
+                                        "\nExpected: " + test.expected
+                                if (!test.stdout.isNullOrEmpty()) {
+                                    outputText += "\nStdout:\n" + test.stdout
+                                    reviewButtonEnabled = true
+                                }
+                                if (!test.stderr.isNullOrEmpty()) {
+                                    outputText += "\nStderr:\n" + test.stderr
+                                    reviewButtonEnabled = false
+                                }
+                                outputText += "\n--------------------------------------------"
+                            }
+                        } else {
                             outputText =
                                 "Test passed: ${output.data.testPassed} / ${output.data.totalTests}"
-                            reviewButtonEnabled =
-                                repository.user.id == teamAppointment.team?.leaderStudentId
-                        } else {
-                            outputText = if (output.data.testsInfo?.isNotEmpty() == true) {
-                                "Test passed: ${output.data.testPassed} / ${output.data.totalTests}\n" +
-                                        "--------------------------------------------\n" +
-                                        output.data.testsInfo.joinToString(separator = "\n") { test ->
-                                            "Input: " + test.input +
-                                                    "\nOutput: " + test.output +
-                                                    "\nExpected: " + test.expected +
-                                                    "\n--------------------------------------------\n"
-                                        }
-                            } else {
-                                "Test passed: ${output.data.testPassed} / ${output.data.totalTests}"
-                            }
-                            reviewButtonEnabled = false
                         }
+                        reviewButtonEnabled =
+                            output.data.testPassed == output.data.totalTests && repository.user.id == teamAppointment.team?.leaderStudentId
                     } else {
                         outputText = when (output?.error) {
                             "ERROR WHILE COMPILATION CODE" -> "Compilation error"
@@ -277,6 +256,7 @@ class TaskScreenViewModel @AssistedInject constructor(
                     }
                 } else {
                     if (output?.error != null) {
+                        reviewButtonEnabled = false
                         outputText = when (output.error) {
                             "ERROR WHILE COMPILATION CODE" -> "Compilation error"
                             "ERROR WHILE EXECUTE CODE" -> "Execute error"
@@ -284,11 +264,15 @@ class TaskScreenViewModel @AssistedInject constructor(
                             else -> "Error"
                         }
                     } else {
-                        if (output?.data?.executeInfo?.stdout != null) {
-                            outputText = "Stdout: " + output.data.executeInfo.stdout + "\n"
+                        outputText = "Success"
+                        reviewButtonEnabled = true
+                        if (!output?.data?.executeInfo?.stdout.isNullOrEmpty()) {
+                            outputText += "\n--------------------------------------------\n" +
+                                    "Stdout:\n" + output?.data?.executeInfo?.stdout + "\n"
                         }
-                        if (output?.data?.executeInfo?.stderr != null) {
-                            outputText += "Stderr: " + output.data.executeInfo.stderr
+                        if (!output?.data?.executeInfo?.stderr.isNullOrEmpty()) {
+                            reviewButtonEnabled = false
+                            outputText += "Stderr:\n" + output?.data?.executeInfo?.stderr
                         }
                     }
                 }
@@ -384,14 +368,7 @@ class TaskScreenViewModel @AssistedInject constructor(
         return codeList.map { code ->
             val paddingLength = maxLength - code.text.length + 2
             val padding = " ".repeat(paddingLength + 100)
-            Pair(
-                parseCodeAsAnnotatedString(
-                    parser = parser,
-                    theme = theme,
-                    lang = language,
-                    code = code.text + padding
-                ), false
-            )
+            Pair(AnnotatedString(code.text + padding), false)
         }
     }
 

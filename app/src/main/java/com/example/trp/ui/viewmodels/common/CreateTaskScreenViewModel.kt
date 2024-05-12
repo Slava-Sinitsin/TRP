@@ -43,7 +43,7 @@ class CreateTaskScreenViewModel @AssistedInject constructor(
         private set
     var description by mutableStateOf("")
         private set
-    var language by mutableStateOf(languageList[0])
+    var language by mutableStateOf("")
         private set
     var testableList by mutableStateOf(listOf("Yes", "No"))
         private set
