@@ -47,8 +47,12 @@ import com.example.trp.data.mappers.teacherappointments.DeleteGroupResponse
 import com.example.trp.data.mappers.teacherappointments.Group
 import com.example.trp.data.mappers.teacherappointments.GroupsResponse
 import com.example.trp.data.mappers.teacherappointments.PostGroupResponse
+import com.example.trp.data.mappers.teacherappointments.PostNewDisciplineWithInfoBody
+import com.example.trp.data.mappers.teacherappointments.PostNewDisciplineWithInfoResponse
 import com.example.trp.data.mappers.teacherappointments.PostNewGroupBody
+import com.example.trp.data.mappers.teacherappointments.PostTeacherAppointmentBody
 import com.example.trp.data.mappers.teacherappointments.PostTeacherResponse
+import com.example.trp.data.mappers.teacherappointments.SimpleTeacherAppointmentsResponse
 import com.example.trp.data.mappers.teacherappointments.Teacher
 import com.example.trp.data.mappers.teacherappointments.TeacherAppointmentsData
 import com.example.trp.data.mappers.teacherappointments.TeacherAppointmentsResponse
@@ -56,7 +60,6 @@ import com.example.trp.data.mappers.teacherappointments.TeachersResponse
 import com.example.trp.data.mappers.user.AuthRequest
 import com.example.trp.data.mappers.user.JWTDecoder
 import com.example.trp.data.mappers.user.User
-import com.example.trp.data.network.ApiService
 import com.example.trp.data.network.UserAPI
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -64,7 +67,8 @@ import org.json.JSONObject
 import retrofit2.Response
 
 class UserAPIRepositoryImpl(
-    val mainDB: MainDB
+    private val mainDB: MainDB,
+    private val apiService: UserAPI
 ) : UserAPI {
     var user by mutableStateOf(User())
 
@@ -90,37 +94,37 @@ class UserAPIRepositoryImpl(
     var labs by mutableStateOf(emptyList<Lab>())
 
     override suspend fun getUserResponse(authRequest: AuthRequest): Response<User> {
-        return ApiService.userAPI.getUserResponse(authRequest)
+        return apiService.getUserResponse(authRequest)
     }
 
     override suspend fun getDisciplinesResponse(token: String): Response<Disciplines> {
-        return ApiService.userAPI.getDisciplinesResponse("Bearer $token")
+        return apiService.getDisciplinesResponse("Bearer $token")
     }
 
     override suspend fun getTasks(token: String, labId: Int): Response<Tasks> {
-        return ApiService.userAPI.getTasks("Bearer $token", labId)
+        return apiService.getTasks("Bearer $token", labId)
     }
 
     override suspend fun getTask(token: String, id: Int): Response<TaskResponse> {
-        return ApiService.userAPI.getTask("Bearer $token", id)
+        return apiService.getTask("Bearer $token", id)
     }
 
     override suspend fun getTaskWithOpenTests(
         token: String,
         id: Int
     ): Response<TaskResponse> {
-        return ApiService.userAPI.getTaskWithOpenTests("Bearer $token", id)
+        return apiService.getTaskWithOpenTests("Bearer $token", id)
     }
 
     override suspend fun getDisciplineByID(token: String, id: Int): Response<DisciplineResponse> {
-        return ApiService.userAPI.getDisciplineByID("Bearer $token", id)
+        return apiService.getDisciplineByID("Bearer $token", id)
     }
 
     override suspend fun getTaskSolution(
         token: String,
         taskId: Int
     ): Response<SolutionResponse> {
-        return ApiService.userAPI.getTaskSolution("Bearer $token", taskId)
+        return apiService.getTaskSolution("Bearer $token", taskId)
     }
 
     override suspend fun postTaskSolution(
@@ -128,41 +132,41 @@ class UserAPIRepositoryImpl(
         taskId: Int,
         code: String
     ): Response<PostSolutionResponse> {
-        return ApiService.userAPI.postTaskSolution("Bearer $token", taskId, code)
+        return apiService.postTaskSolution("Bearer $token", taskId, code)
     }
 
     override suspend fun teacherAppointments(token: String): Response<TeacherAppointmentsResponse> {
-        return ApiService.userAPI.teacherAppointments("Bearer $token")
+        return apiService.teacherAppointments("Bearer $token")
     }
 
     override suspend fun getStudents(
         token: String,
         id: Int
     ): Response<Students> {
-        return ApiService.userAPI.getStudents("Bearer $token", id)
+        return apiService.getStudents("Bearer $token", id)
     }
 
     override suspend fun runCode(
         token: String,
         taskId: Int,
     ): Response<OutputResponse> {
-        return ApiService.userAPI.runCode("Bearer $token", taskId)
+        return apiService.runCode("Bearer $token", taskId)
     }
 
     override suspend fun putTask(token: String, taskId: Int, task: Task): Response<Task> {
-        return ApiService.userAPI.putTask("Bearer $token", taskId, task)
+        return apiService.putTask("Bearer $token", taskId, task)
     }
 
     override suspend fun deleteTask(token: String, taskId: Int): Response<Task> {
-        return ApiService.userAPI.deleteTask("Bearer $token", taskId)
+        return apiService.deleteTask("Bearer $token", taskId)
     }
 
     override suspend fun postTestableTask(token: String, task: Task): Response<Task> {
-        return ApiService.userAPI.postTestableTask("Bearer $token", task)
+        return apiService.postTestableTask("Bearer $token", task)
     }
 
     override suspend fun postNonTestableTask(token: String, task: Task): Response<Task> {
-        return ApiService.userAPI.postNonTestableTask("Bearer $token", task)
+        return apiService.postNonTestableTask("Bearer $token", task)
     }
 
     override suspend fun getAllTeamAppointments(
@@ -170,14 +174,14 @@ class UserAPIRepositoryImpl(
         disciplineId: Int,
         groupId: Int
     ): Response<TeamAppointmentsResponse> {
-        return ApiService.userAPI.getAllTeamAppointments("Bearer $token", disciplineId, groupId)
+        return apiService.getAllTeamAppointments("Bearer $token", disciplineId, groupId)
     }
 
     override suspend fun postTeamAppointments(
         token: String,
         postTeamAppointmentsBody: PostTeamAppointmentsBody
     ): Response<PostStudentAppointmentsResponse> {
-        return ApiService.userAPI.postTeamAppointments(
+        return apiService.postTeamAppointments(
             "Bearer $token",
             postTeamAppointmentsBody
         )
@@ -187,119 +191,119 @@ class UserAPIRepositoryImpl(
         token: String,
         postNewDisciplineBody: PostNewDisciplineBody
     ): Response<PostNewDisciplineResponse> {
-        return ApiService.userAPI.postNewDiscipline(
+        return apiService.postNewDiscipline(
             "Bearer $token",
             postNewDisciplineBody
         )
     }
 
     override suspend fun getTeachers(token: String): Response<TeachersResponse> {
-        return ApiService.userAPI.getTeachers("Bearer $token")
+        return apiService.getTeachers("Bearer $token")
     }
 
     override suspend fun getGroups(token: String): Response<GroupsResponse> {
-        return ApiService.userAPI.getGroups("Bearer $token")
+        return apiService.getGroups("Bearer $token")
     }
 
     override suspend fun getTests(token: String, taskId: Int): Response<TestsResponse> {
-        return ApiService.userAPI.getTests("Bearer $token", taskId)
+        return apiService.getTests("Bearer $token", taskId)
     }
 
     override suspend fun postNewTest(
         token: String,
         test: Test
     ): Response<PostTestResponse> {
-        return ApiService.userAPI.postNewTest("Bearer $token", test)
+        return apiService.postNewTest("Bearer $token", test)
     }
 
     override suspend fun getTeamAppointments(
         token: String,
         disciplineId: Int
     ): Response<TeamAppointmentsResponse> {
-        return ApiService.userAPI.getTeamAppointments("Bearer $token", disciplineId)
+        return apiService.getTeamAppointments("Bearer $token", disciplineId)
     }
 
     override suspend fun getTeams(token: String, disciplineId: Int): Response<TeamResponse> {
-        return ApiService.userAPI.getTeams("Bearer $token", disciplineId)
+        return apiService.getTeams("Bearer $token", disciplineId)
     }
 
     override suspend fun postNewTeam(
         token: String,
         postTeamBody: PostTeamBody
     ): Response<PostTeamResponse> {
-        return ApiService.userAPI.postNewTeam("Bearer $token", postTeamBody)
+        return apiService.postNewTeam("Bearer $token", postTeamBody)
     }
 
     override suspend fun getLabs(token: String, disciplineId: Int): Response<LabsResponse> {
-        return ApiService.userAPI.getLabs("Bearer $token", disciplineId)
+        return apiService.getLabs("Bearer $token", disciplineId)
     }
 
     override suspend fun postNewLab(token: String, postLabBody: Lab): Response<PostLabResponse> {
-        return ApiService.userAPI.postNewLab("Bearer $token", postLabBody)
+        return apiService.postNewLab("Bearer $token", postLabBody)
     }
 
     override suspend fun getTeamTasks(token: String, teamId: Int): Response<Tasks> {
-        return ApiService.userAPI.getTeamTasks("Bearer $token", teamId)
+        return apiService.getTeamTasks("Bearer $token", teamId)
     }
 
     override suspend fun postNewGroup(
         token: String,
         group: PostNewGroupBody
     ): Response<PostGroupResponse> {
-        return ApiService.userAPI.postNewGroup("Bearer $token", group)
+        return apiService.postNewGroup("Bearer $token", group)
     }
 
     override suspend fun postNewStudent(
         token: String,
         student: PostNewStudentBody
     ): Response<StudentResponse> {
-        return ApiService.userAPI.postNewStudent("Bearer $token", student)
+        return apiService.postNewStudent("Bearer $token", student)
     }
 
     override suspend fun deleteGroup(token: String, id: Int): Response<DeleteGroupResponse> {
-        return ApiService.userAPI.deleteGroup("Bearer $token", id)
+        return apiService.deleteGroup("Bearer $token", id)
     }
 
     override suspend fun postNewLectureTeacher(
         token: String,
         teacher: PostNewTeacherBody
     ): Response<PostTeacherResponse> {
-        return ApiService.userAPI.postNewLectureTeacher("Bearer $token", teacher)
+        return apiService.postNewLectureTeacher("Bearer $token", teacher)
     }
 
     override suspend fun postNewLabWorkTeacher(
         token: String,
         teacher: PostNewTeacherBody
     ): Response<PostTeacherResponse> {
-        return ApiService.userAPI.postNewLabWorkTeacher("Bearer $token", teacher)
+        return apiService.postNewLabWorkTeacher("Bearer $token", teacher)
     }
 
     override suspend fun postCodeReview(
         token: String,
         teamAppointmentId: Int
     ): Response<PostCodeReviewResponse> {
-        return ApiService.userAPI.postCodeReview("Bearer $token", teamAppointmentId)
+        return apiService.postCodeReview("Bearer $token", teamAppointmentId)
     }
 
     override suspend fun getCodeReview(
         token: String,
         codeReviewId: Int
     ): Response<CodeReviewResponse> {
-        return ApiService.userAPI.getCodeReview("Bearer $token", codeReviewId)
+        return apiService.getCodeReview("Bearer $token", codeReviewId)
     }
 
     override suspend fun closeCodeReview(
         token: String,
         codeReviewId: Int
     ): Response<CloseCodeReviewResponse> {
-        return ApiService.userAPI.closeCodeReview("Bearer $token", codeReviewId)
+        return apiService.closeCodeReview("Bearer $token", codeReviewId)
     }
 
     override suspend fun approveCodeReview(
         token: String,
         codeReviewId: Int
     ): Response<CloseCodeReviewResponse> {
-        return ApiService.userAPI.approveCodeReview("Bearer $token", codeReviewId)
+        return apiService.approveCodeReview("Bearer $token", codeReviewId)
     }
 
     override suspend fun addNoteToCodeReview(
@@ -307,7 +311,7 @@ class UserAPIRepositoryImpl(
         codeReviewId: Int,
         note: String
     ): Response<CodeReviewResponse> {
-        return ApiService.userAPI.addNoteToCodeReview("Bearer $token", codeReviewId, note)
+        return apiService.addNoteToCodeReview("Bearer $token", codeReviewId, note)
     }
 
     override suspend fun postRate(
@@ -315,14 +319,14 @@ class UserAPIRepositoryImpl(
         teamAppointmentId: Int,
         postRateBody: PostRateBody
     ): Response<PostRateResponse> {
-        return ApiService.userAPI.postRate("Bearer $token", teamAppointmentId, postRateBody)
+        return apiService.postRate("Bearer $token", teamAppointmentId, postRateBody)
     }
 
     override suspend fun getTeamAppointment(
         token: String,
         teamAppointmentId: Int
     ): Response<TeamAppointmentResponse> {
-        return ApiService.userAPI.getTeamAppointment("Bearer $token", teamAppointmentId)
+        return apiService.getTeamAppointment("Bearer $token", teamAppointmentId)
     }
 
     override suspend fun postMultilineNote(
@@ -330,11 +334,25 @@ class UserAPIRepositoryImpl(
         codeReviewId: Int,
         postMultilineNoteBody: PostMultilineNoteBody
     ): Response<CodeReviewResponse> {
-        return ApiService.userAPI.postMultilineNote(
+        return apiService.postMultilineNote(
             "Bearer $token",
             codeReviewId,
             postMultilineNoteBody
         )
+    }
+
+    override suspend fun postNewDisciplineWithInfo(
+        token: String,
+        postNewDisciplineWithInfoBody: PostNewDisciplineWithInfoBody
+    ): Response<PostNewDisciplineWithInfoResponse> {
+        return apiService.postNewDisciplineWithInfo("Bearer $token", postNewDisciplineWithInfoBody)
+    }
+
+    override suspend fun postNewTeacherAppointment(
+        token: String,
+        postNewTeacherAppointmentBody: PostTeacherAppointmentBody
+    ): Response<SimpleTeacherAppointmentsResponse> {
+        return apiService.postNewTeacherAppointment("Bearer $token", postNewTeacherAppointmentBody)
     }
 
     suspend fun getActiveUser(): User {
@@ -682,5 +700,27 @@ class UserAPIRepositoryImpl(
         taskId: Int,
     ): Task? {
         return user.token?.let { token -> getTaskWithOpenTests(token, taskId) }?.body()?.task
+    }
+
+    suspend fun postNewDisciplineWithInfo(
+        postNewDisciplineWithInfo: PostNewDisciplineWithInfoBody,
+    ): PostNewDisciplineWithInfoResponse? {
+        return user.token?.let { token ->
+            postNewDisciplineWithInfo(
+                token,
+                postNewDisciplineWithInfo
+            )
+        }?.body()
+    }
+
+    suspend fun postNewTeacherAppointment(
+        postNewTeacherAppointmentBody: PostTeacherAppointmentBody
+    ): SimpleTeacherAppointmentsResponse? {
+        return user.token?.let { token ->
+            postNewTeacherAppointment(
+                token,
+                postNewTeacherAppointmentBody
+            )
+        }?.body()
     }
 }

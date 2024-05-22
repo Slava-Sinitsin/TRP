@@ -36,8 +36,12 @@ import com.example.trp.data.mappers.tasks.solution.SolutionResponse
 import com.example.trp.data.mappers.teacherappointments.DeleteGroupResponse
 import com.example.trp.data.mappers.teacherappointments.GroupsResponse
 import com.example.trp.data.mappers.teacherappointments.PostGroupResponse
+import com.example.trp.data.mappers.teacherappointments.PostNewDisciplineWithInfoBody
+import com.example.trp.data.mappers.teacherappointments.PostNewDisciplineWithInfoResponse
 import com.example.trp.data.mappers.teacherappointments.PostNewGroupBody
+import com.example.trp.data.mappers.teacherappointments.PostTeacherAppointmentBody
 import com.example.trp.data.mappers.teacherappointments.PostTeacherResponse
+import com.example.trp.data.mappers.teacherappointments.SimpleTeacherAppointmentsResponse
 import com.example.trp.data.mappers.teacherappointments.TeacherAppointmentsResponse
 import com.example.trp.data.mappers.teacherappointments.TeachersResponse
 import com.example.trp.data.mappers.user.AuthRequest
@@ -295,4 +299,16 @@ interface UserAPI {
         @Path("codeReviewId") codeReviewId: Int,
         @Body postMultilineNoteBody: PostMultilineNoteBody
     ): Response<CodeReviewResponse>
+
+    @POST("api/v2/teacher-appointments/create")
+    suspend fun postNewDisciplineWithInfo(
+        @Header("Authorization") token: String,
+        @Body postNewDisciplineWithInfoBody: PostNewDisciplineWithInfoBody
+    ): Response<PostNewDisciplineWithInfoResponse>
+
+    @POST("api/v2/teacher-appointments")
+    suspend fun postNewTeacherAppointment(
+        @Header("Authorization") token: String,
+        @Body postNewTeacherAppointmentBody: PostTeacherAppointmentBody
+    ): Response<SimpleTeacherAppointmentsResponse>
 }

@@ -12,8 +12,8 @@ import com.example.trp.ui.viewmodels.admin.CreateTeacherScreenViewModel
 import com.example.trp.ui.viewmodels.admin.GroupsTeachersScreenViewModel
 import com.example.trp.ui.viewmodels.common.CreateNewTestScreenViewModel
 import com.example.trp.ui.viewmodels.common.CreateTaskScreenViewModel
-import com.example.trp.ui.viewmodels.common.TaskInfoTestsScreenViewModel
 import com.example.trp.ui.viewmodels.common.OldCodeReviewScreenViewModel
+import com.example.trp.ui.viewmodels.common.TaskInfoTestsScreenViewModel
 import com.example.trp.ui.viewmodels.student.StudentDisciplinesScreenViewModel
 import com.example.trp.ui.viewmodels.student.StudentWelcomeScreenViewModel
 import com.example.trp.ui.viewmodels.student.TaskScreenViewModel

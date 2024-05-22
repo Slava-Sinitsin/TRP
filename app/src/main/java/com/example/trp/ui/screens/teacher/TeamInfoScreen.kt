@@ -230,7 +230,11 @@ fun Task(
                     }
                 } ?: run {
                 Column {
-                    Text(modifier = Modifier.alpha(0.6f), text = "${viewModel.labs[index].title}")
+                    Text(
+                        modifier = Modifier.alpha(0.6f),
+                        text = "${viewModel.labs[index].title}",
+                        color = TRPTheme.colors.primaryText
+                    )
                     Text(
                         modifier = Modifier.fillMaxWidth(),
                         text = "Not appoint",

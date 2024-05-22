@@ -59,6 +59,6 @@ fun NavGraphBuilder.tasksNavGraph(navController: NavHostController) {
 
 sealed class TasksScreen(val route: String) {
     object Tasks : TasksScreen(route = "disciplines_TASKS")
-    object TaskInfo : TasksScreen(route = "disciplines_TASK_INFO")
+    object TaskInfo : TasksScreen(route = "TASK_INFO")
     object CodeReview : TasksScreen(route = "disciplines_CODE_REVIEW")
 }

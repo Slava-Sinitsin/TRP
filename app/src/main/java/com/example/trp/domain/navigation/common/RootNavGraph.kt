@@ -49,6 +49,7 @@ object Graph {
     const val STUDENT_DISCIPLINES = "student_disciplines_graph"
     const val TEACHER_WELCOME = "teacher_welcome_graph"
     const val TEACHER_DISCIPLINES = "teacher_disciplines_graph"
+    const val TEACHER_EVENT = "teacher_event_graph"
     const val ADMIN_WELCOME = "admin_welcome_graph"
     const val ADMIN_DISCIPLINES = "admin_disciplines_graph"
     const val ADMIN_GROUPS = "admin_groups_graph"

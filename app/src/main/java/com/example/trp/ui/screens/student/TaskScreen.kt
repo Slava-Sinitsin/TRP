@@ -540,7 +540,7 @@ fun TaskText(
                         code = viewModel.solutionTextFieldValue.text
                     )
                 ),
-                onValueChange = { viewModel.updateTaskText(newTaskText = it) },
+                onValueChange = { viewModel.updateTaskText(it) },
                 interactionSource = interactionSource,
                 textStyle = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 15.sp),
                 cursorBrush = SolidColor(TRPTheme.colors.primaryText),

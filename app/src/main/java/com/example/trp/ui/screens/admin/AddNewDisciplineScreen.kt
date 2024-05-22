@@ -9,6 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -65,6 +66,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.example.trp.data.mappers.disciplines.DisciplineData
 import com.example.trp.data.mappers.teacherappointments.Group
 import com.example.trp.domain.di.ViewModelFactoryProvider
 import com.example.trp.ui.components.HorizontalNumberPicker
@@ -94,7 +96,11 @@ fun AddNewDisciplineScreen(
 
     val pagerState = rememberPagerState(0)
     LaunchedEffect(viewModel.selectedTabIndex) {
-        pagerState.animateScrollToPage(viewModel.selectedTabIndex)
+        if (viewModel.selectedTabIndex == 0) {
+            pagerState.animateScrollToPage(0)
+        } else {
+            pagerState.animateScrollToPage(1)
+        }
     }
 
     Scaffold(
@@ -132,6 +138,11 @@ fun AddNewDisciplineScreen(
                 }
             }
         }
+        LaunchedEffect(viewModel.responseSuccess) {
+            if (viewModel.responseSuccess) {
+                navController.popBackStack()
+            }
+        }
         if (viewModel.errorMessage.isNotEmpty()) {
             Toast.makeText(LocalContext.current, viewModel.errorMessage, Toast.LENGTH_SHORT).show()
             viewModel.updateErrorMessage("")
@@ -155,6 +166,7 @@ fun MainScreen(
         item { DeprecatedToggle(viewModel = viewModel) }
         item { TeacherSelectField(viewModel = viewModel) }
         item { GroupsSelectField(viewModel = viewModel) }
+        item { Spacer(Modifier.size(100.dp)) }
     }
 }
 
@@ -164,11 +176,6 @@ fun DisciplineInfoCenterAlignedTopAppBar(
     viewModel: AddNewDisciplineScreenViewModel,
     navController: NavHostController
 ) {
-    LaunchedEffect(viewModel.responseSuccess) {
-        if (viewModel.responseSuccess) {
-            navController.popBackStack()
-        }
-    }
     TopAppBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
             containerColor = TRPTheme.colors.myYellow,
@@ -221,42 +228,91 @@ fun NameField(
     viewModel: AddNewDisciplineScreenViewModel,
     paddingValues: PaddingValues
 ) {
+    Column(modifier = Modifier.padding(top = paddingValues.calculateTopPadding())) {
+        if (viewModel.selectedDiscipline == DisciplineData()) {
+            Text(
+                text = "Discipline name",
+                color = TRPTheme.colors.primaryText,
+                fontSize = 15.sp,
+                modifier = Modifier
+                    .padding(top = 10.dp, start = 5.dp)
+                    .alpha(0.6f)
+            )
+            OutlinedTextField(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 5.dp, start = 5.dp, end = 5.dp),
+                textStyle = TextStyle.Default.copy(fontSize = 15.sp),
+                value = viewModel.disciplineName,
+                onValueChange = { viewModel.updateNameValue(it) },
+                placeholder = {
+                    Text(
+                        "Create new discipline",
+                        color = TRPTheme.colors.primaryText,
+                        modifier = Modifier.alpha(0.6f)
+                    )
+                },
+                shape = RoundedCornerShape(8.dp),
+                colors = TextFieldDefaults.textFieldColors(
+                    containerColor = TRPTheme.colors.secondaryBackground,
+                    textColor = TRPTheme.colors.primaryText,
+                    cursorColor = TRPTheme.colors.primaryText,
+                    focusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    errorIndicatorColor = TRPTheme.colors.errorColor,
+                    errorCursorColor = TRPTheme.colors.primaryText
+                ),
+                isError = viewModel.disciplineName.isBlank(),
+                singleLine = true
+            )
+        }
+        if (viewModel.disciplineName.isBlank()) {
+            DisciplineSelectField(viewModel = viewModel)
+        }
+    }
+}
+
+@Composable
+fun DisciplineSelectField(viewModel: AddNewDisciplineScreenViewModel) {
     Text(
-        text = "Discipline name",
+        text = "Select discipline",
         color = TRPTheme.colors.primaryText,
         fontSize = 15.sp,
         modifier = Modifier
             .alpha(0.6f)
-            .padding(start = 5.dp, top = paddingValues.calculateTopPadding() + 10.dp)
+            .padding(start = 5.dp, top = 10.dp)
     )
-    OutlinedTextField(
+    Button(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 10.dp, start = 5.dp, end = 5.dp),
-        textStyle = TextStyle.Default.copy(fontSize = 15.sp),
-        value = viewModel.disciplineName,
-        onValueChange = { viewModel.updateNameValue(it) },
-        placeholder = {
-            Text(
-                "Discipline name",
-                color = TRPTheme.colors.primaryText,
-                modifier = Modifier.alpha(0.6f)
-            )
-        },
-        shape = RoundedCornerShape(8.dp),
-        colors = TextFieldDefaults.textFieldColors(
-            containerColor = TRPTheme.colors.secondaryBackground,
-            textColor = TRPTheme.colors.primaryText,
-            cursorColor = TRPTheme.colors.primaryText,
-            focusedIndicatorColor = Color.Transparent,
-            disabledIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-            errorIndicatorColor = TRPTheme.colors.errorColor,
-            errorCursorColor = TRPTheme.colors.primaryText
+            .padding(horizontal = 5.dp),
+        onClick = { viewModel.setPagerState(1) },
+        colors = ButtonDefaults.buttonColors(
+            containerColor = TRPTheme.colors.cardButtonColor
         ),
-        isError = viewModel.disciplineName.isEmpty(),
-        singleLine = true
-    )
+        shape = RoundedCornerShape(8.dp),
+        contentPadding = PaddingValues()
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                modifier = Modifier.padding(start = 5.dp),
+                textAlign = TextAlign.Start,
+                text = viewModel.selectedDiscipline.name ?: "Select discipline",
+                color = TRPTheme.colors.primaryText,
+                fontSize = 15.sp
+            )
+            Icon(
+                imageVector = Icons.Filled.ArrowRight,
+                contentDescription = "ArrowRight",
+                tint = TRPTheme.colors.primaryText
+            )
+        }
+    }
 }
 
 @Composable
@@ -415,13 +471,18 @@ fun SelectScreen(
     viewModel: AddNewDisciplineScreenViewModel,
     paddingValues: PaddingValues
 ) {
-    if (viewModel.selectedTabIndex == 1) {
-        TeacherSelectScreen(
+    when (viewModel.selectedTabIndex) {
+        1 -> DisciplineSelectScreen(
             viewModel = viewModel,
             paddingValues = paddingValues
         )
-    } else if (viewModel.selectedTabIndex == 2) {
-        GroupsSelectScreen(
+
+        2 -> TeacherSelectScreen(
+            viewModel = viewModel,
+            paddingValues = paddingValues
+        )
+
+        3 -> GroupsSelectScreen(
             viewModel = viewModel,
             paddingValues = paddingValues
         )
@@ -434,49 +495,6 @@ fun TeacherSelectField(
 ) {
     Text(
         text = "Teacher",
-        color = TRPTheme.colors.primaryText,
-        fontSize = 15.sp,
-        modifier = Modifier
-            .alpha(0.6f)
-            .padding(start = 5.dp, top = 10.dp)
-    )
-    Button(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 5.dp, start = 5.dp, end = 5.dp),
-        onClick = { viewModel.setPagerState(1) },
-        colors = ButtonDefaults.buttonColors(
-            containerColor = TRPTheme.colors.cardButtonColor
-        ),
-        shape = RoundedCornerShape(8.dp),
-        contentPadding = PaddingValues()
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                modifier = Modifier.padding(start = 5.dp),
-                textAlign = TextAlign.Start,
-                text = viewModel.selectedTeacher.fullName ?: "Select teacher",
-                color = TRPTheme.colors.primaryText,
-                fontSize = 15.sp
-            )
-            Icon(
-                imageVector = Icons.Filled.ArrowRight,
-                contentDescription = "ArrowRight"
-            )
-        }
-    }
-}
-
-@Composable
-fun GroupsSelectField(
-    viewModel: AddNewDisciplineScreenViewModel
-) {
-    Text(
-        text = "Groups",
         color = TRPTheme.colors.primaryText,
         fontSize = 15.sp,
         modifier = Modifier
@@ -502,13 +520,58 @@ fun GroupsSelectField(
             Text(
                 modifier = Modifier.padding(start = 5.dp),
                 textAlign = TextAlign.Start,
+                text = viewModel.selectedTeacher.fullName ?: "Select teacher",
+                color = TRPTheme.colors.primaryText,
+                fontSize = 15.sp
+            )
+            Icon(
+                imageVector = Icons.Filled.ArrowRight,
+                contentDescription = "ArrowRight",
+                tint = TRPTheme.colors.primaryText
+            )
+        }
+    }
+}
+
+@Composable
+fun GroupsSelectField(
+    viewModel: AddNewDisciplineScreenViewModel
+) {
+    Text(
+        text = "Groups",
+        color = TRPTheme.colors.primaryText,
+        fontSize = 15.sp,
+        modifier = Modifier
+            .alpha(0.6f)
+            .padding(start = 5.dp, top = 10.dp)
+    )
+    Button(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 5.dp),
+        onClick = { viewModel.setPagerState(3) },
+        colors = ButtonDefaults.buttonColors(
+            containerColor = TRPTheme.colors.cardButtonColor
+        ),
+        shape = RoundedCornerShape(8.dp),
+        contentPadding = PaddingValues()
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                modifier = Modifier.padding(start = 5.dp),
+                textAlign = TextAlign.Start,
                 text = "Select groups",
                 color = TRPTheme.colors.primaryText,
                 fontSize = 15.sp
             )
             Icon(
                 imageVector = Icons.Filled.ArrowRight,
-                contentDescription = "ArrowRight"
+                contentDescription = "ArrowRight",
+                tint = TRPTheme.colors.primaryText
             )
         }
     }
@@ -572,6 +635,62 @@ fun Group(
                 tint = TRPTheme.colors.errorColor
             )
         }
+    }
+}
+
+@Composable
+fun DisciplineSelectScreen(
+    viewModel: AddNewDisciplineScreenViewModel,
+    paddingValues: PaddingValues
+) {
+    BackHandler(enabled = true, onBack = { viewModel.setPagerState(0) })
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(TRPTheme.colors.primaryBackground)
+            .padding(top = paddingValues.calculateTopPadding()),
+    ) {
+        items(count = viewModel.disciplines.size) { index ->
+            var checked by remember { mutableStateOf(false) }
+            Button(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(8.dp),
+                onClick = {
+                    viewModel.onDisciplineClick(index)
+                    checked = !checked
+                },
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 10.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = TRPTheme.colors.cardButtonColor),
+                shape = RoundedCornerShape(8.dp),
+                contentPadding = PaddingValues()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 5.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = viewModel.disciplines[index].name ?: "",
+                        color = TRPTheme.colors.primaryText,
+                        fontSize = 15.sp
+                    )
+                    RadioButton(
+                        selected = checked,
+                        onClick = {
+                            viewModel.onDisciplineClick(index)
+                            checked = !checked
+                        },
+                        colors = RadioButtonDefaults.colors(
+                            selectedColor = TRPTheme.colors.myYellow
+                        )
+                    )
+                }
+            }
+        }
+        item { Spacer(modifier = Modifier.size(100.dp)) }
     }
 }
 

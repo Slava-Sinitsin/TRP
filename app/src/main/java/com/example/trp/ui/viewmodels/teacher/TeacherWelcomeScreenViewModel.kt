@@ -44,7 +44,7 @@ class TeacherWelcomeScreenViewModel @AssistedInject constructor(
 
     val screens = listOf(
         TeacherBottomBarScreen.Checklist,
-        /*TeacherBottomBarScreen.Home,*/ // TODO
+        TeacherBottomBarScreen.Home,
         TeacherBottomBarScreen.Me
     )
 }

@@ -127,7 +127,7 @@ class TeacherTaskScreenViewModel @AssistedInject constructor(
                 currentCodeReview = codeReviews.maxByOrNull { it.id ?: -1 }?.let { codeReview ->
                     codeReview.copy(
                         taskMessages = codeReview.taskMessages?.sortedBy {
-                            ZonedDateTime.parse(it.createdAt).toInstant()
+                            ZonedDateTime.parse(it.createdAt).toInstant() // TODO
                         },
                         codeThreads = codeReview.codeThreads?.map {
                             it.copy(

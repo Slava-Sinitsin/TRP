@@ -6,8 +6,10 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.trp.data.mappers.disciplines.PostNewDisciplineBody
+import com.example.trp.data.mappers.disciplines.DisciplineData
 import com.example.trp.data.mappers.teacherappointments.Group
+import com.example.trp.data.mappers.teacherappointments.PostNewDisciplineWithInfoBody
+import com.example.trp.data.mappers.teacherappointments.PostTeacherAppointmentBody
 import com.example.trp.data.mappers.teacherappointments.Teacher
 import com.example.trp.data.repository.UserAPIRepositoryImpl
 import com.example.trp.ui.components.tabs.AddNewDisciplineTabs
@@ -56,6 +58,10 @@ class AddNewDisciplineScreenViewModel @AssistedInject constructor(
         private set
     var responseSuccess by mutableStateOf(false)
         private set
+    var disciplines by mutableStateOf(emptyList<DisciplineData>())
+        private set
+    var selectedDiscipline by mutableStateOf(DisciplineData())
+        private set
 
     @AssistedFactory
     interface Factory {
@@ -84,6 +90,7 @@ class AddNewDisciplineScreenViewModel @AssistedInject constructor(
             teachers = repository.getTeachers().sortedBy { it.fullName }
             groups = repository.getGroups().sortedBy { it.name }
             selectableGroups = groups.map { it to false }
+            disciplines = repository.getDisciplines()
         } catch (e: SocketTimeoutException) {
             updateErrorMessage("Timeout")
         } catch (e: ConnectException) {
@@ -114,11 +121,7 @@ class AddNewDisciplineScreenViewModel @AssistedInject constructor(
         selectedDeprecatedIndex = newDeprecatedValue
     }
 
-    fun beforeSaveButtonClick() {
-        responseSuccess = false
-        viewModelScope.launch {
-            try {
-                repository.postNewDiscipline(
+    /*repository.postNewDiscipline(
                     PostNewDisciplineBody(
                         name = disciplineName,
                         year = selectedYear.toInt(),
@@ -133,7 +136,45 @@ class AddNewDisciplineScreenViewModel @AssistedInject constructor(
                             else -> null
                         }
                     )
-                )
+                )*/
+
+    fun beforeSaveButtonClick() {
+        responseSuccess = false
+        viewModelScope.launch {
+            try {
+                if (selectedDiscipline == DisciplineData()) {
+                    repository.postNewDisciplineWithInfo(
+                        PostNewDisciplineWithInfoBody(
+                            groupIds = selectableGroups.filter { it.second }
+                                .mapNotNull { it.first.id },
+                            teacherId = selectedTeacher.id,
+                            discipline = DisciplineData(
+                                name = disciplineName,
+                                year = selectedYear.toInt(),
+                                halfYear = when (disciplineHalfYear[selectedHalfYearIndex]) {
+                                    "First" -> "FIRST"
+                                    "Second" -> "SECOND"
+                                    else -> null
+                                },
+                                deprecated = when (disciplineDeprecated[selectedDeprecatedIndex]) {
+                                    "Yes" -> true
+                                    "No" -> false
+                                    else -> null
+                                }
+                            )
+                        )
+                    )
+                } else {
+                    selectableGroups.filter { it.second }.forEach { group ->
+                        repository.postNewTeacherAppointment(
+                            PostTeacherAppointmentBody(
+                                groupId = group.first.id,
+                                teacherId = selectedTeacher.id,
+                                disciplineId = selectedDiscipline.id
+                            )
+                        )
+                    }
+                }
                 responseSuccess = true
             } catch (e: SocketTimeoutException) {
                 updateErrorMessage("Timeout")
@@ -153,10 +194,14 @@ class AddNewDisciplineScreenViewModel @AssistedInject constructor(
             }
 
             1 -> {
-                topAppBarText = "Select teacher"
+                topAppBarText = "Select discipline"
             }
 
             2 -> {
+                topAppBarText = "Select teacher"
+            }
+
+            3 -> {
                 topAppBarText = "Select groups"
             }
         }
@@ -172,6 +217,12 @@ class AddNewDisciplineScreenViewModel @AssistedInject constructor(
 
     fun onTeacherClick(index: Int) {
         selectedTeacher = teachers[index]
+        checkFields()
+        selectedTabIndex = 0
+    }
+
+    fun onDisciplineClick(index: Int) {
+        selectedDiscipline = disciplines[index]
         checkFields()
         selectedTabIndex = 0
     }
@@ -199,7 +250,7 @@ class AddNewDisciplineScreenViewModel @AssistedInject constructor(
     }
 
     private fun checkFields() {
-        applyButtonEnabled = disciplineName.isNotBlank()
+        applyButtonEnabled = (disciplineName.isNotBlank() || selectedDiscipline != DisciplineData())
                 && selectedTeacher != Teacher()
                 && selectableGroups.any { it.second }
     }
